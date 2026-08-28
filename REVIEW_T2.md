@@ -1,8 +1,8 @@
-# REVIEW_T2 — A3 prediction core 0.1
+# REVIEW_T2 — A3 prediction core 0.1 (type-system barrier)
 
-**Gate:** P1–P10 green, T1–T10 still green, invariant *Prediction may prepare / may not commit* PASS.  
-**Scope:** prediction core under `core/` (`a3.core.prediction.model`, `a3.core.prediction.engine`) plus `spec/19-prediction-core.md`. Not product adapters: `adapters/`, `a3ui/`, `intent-model/` untouched. No AI/MCP/A2UI/network/LLM.  
-**Tag:** `prediction-core-v0.1` (applied only after this document and tests green). Frozen T1 tag `core-v0.1` is unchanged.
+**Gate:** T1–T10 + P1–P11 green. Invariant *Prediction may prepare / may not commit* enforced by the **type system**, not a boolean.  
+**Tag:** `prediction-core-v0.1` (overwrites the previous T2 tag). Frozen T1 tag `core-v0.1` is unchanged.  
+**No AI / MCP / A2UI / renderer / network.**
 
 ---
 
@@ -12,18 +12,23 @@ Comando: `./gradlew test --rerun-tasks`
 Host: locale, 2026-08-28. Exit code: 0.
 
 ```
-> Task :core:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :core:processResources
-> Task :core:processTestResources NO-SOURCE
-> Task :core:compileKotlin
-> Task :core:compileJava NO-SOURCE
-> Task :core:classes
-> Task :core:jar
-> Task :core:compileTestKotlin
-> Task :core:compileTestJava NO-SOURCE
-> Task :core:testClasses UP-TO-DATE
+> Task :prediction:test
 
-> Task :core:test
+PredictionArchitectureTest > P11_prediction_does_not_depend_on_world_or_runtime PASSED
+
+PredictionAcceptanceTest > P5_forecast_ranking_deterministic() PASSED
+
+PredictionAcceptanceTest > P3_PreparedState_expires_after_TTL() PASSED
+
+PredictionAcceptanceTest > P8_prediction_may_produce_ProjectionCandidate_but_never_Outcome() PASSED
+
+PredictionAcceptanceTest > P6_prediction_event_log_replayable() PASSED
+
+PredictionAcceptanceTest > P10_canonical_determinism_Forecast_FutureState() PASSED
+
+PredictionAcceptanceTest > P4_new_context_invalidates_previous_prepared_state() PASSED
+
+> Task :core:runtime:test
 
 CoreAcceptanceTest > T7_loopMismatch() PASSED
 
@@ -67,52 +72,107 @@ InvariantReviewTest > R4_compensatory_rollback_never_decrements_version() PASSED
 
 SchemaValidationTest > every_model_validates_against_its_schema() PASSED
 
-PredictionAcceptanceTest > P5_forecast_ranking_deterministic() PASSED
+PredictionWorldGateTest > P7_observation_accepted_remains_only_WorldState_writer() PASSED
 
-PredictionAcceptanceTest > P3_PreparedState_expires_after_TTL() PASSED
+PredictionWorldGateTest > P1_prediction_produces_FutureState_without_modifying_WorldState() PASSED
 
-PredictionAcceptanceTest > P7_observation_accepted_remains_only_WorldState_writer() PASSED
+PredictionWorldGateTest > P9_core_T1_T10_remain_green() PASSED
 
-PredictionAcceptanceTest > P8_prediction_may_produce_ProjectionCandidate_but_never_Outcome() PASSED
+PredictionWorldGateTest > P2_PreparedState_cannot_be_committed_into_WorldState() PASSED
 
-PredictionAcceptanceTest > P6_prediction_event_log_replayable() PASSED
-
-PredictionAcceptanceTest > P10_canonical_determinism_Forecast_FutureState() PASSED
-
-PredictionAcceptanceTest > P4_new_context_invalidates_previous_prepared_state() PASSED
-
-PredictionAcceptanceTest > P1_prediction_produces_FutureState_without_modifying_WorldState() PASSED
-
-PredictionAcceptanceTest > P9_core_T1_T10_remain_green() PASSED
-
-PredictionAcceptanceTest > P2_PreparedState_cannot_be_committed_into_WorldState() PASSED
-
-BUILD SUCCESSFUL in 7s
-5 actionable tasks: 5 executed
+BUILD SUCCESSFUL in 23s
+13 actionable tasks: 13 executed
 ```
 
-T1–T10: 10/10 PASSED. P1–P10: 10/10 PASSED. Review R1–R9 + schema: PASSED.
+T1–T10: 10/10 PASSED. P1–P11: 11/11 PASSED (P11 = ArchUnit).
 
 ---
 
-## Invariant: Prediction may prepare / may not commit
+## STEP 1 — Audit e rimozioni
+
+| Rimozione | Dove stava | Perché |
+|-----------|------------|--------|
+| `WorldState.write(EpistemicSource, Observation, …)` | `a3.core.world.WorldState` | Overload che accettava Observation + un enum; il booleano di fatto (`source == OBSERVATION_ACCEPTED`) era ignorabile. |
+| `EpistemicSource` (`PREDICTION` / `POLICY` / `EXECUTION` / `OBSERVATION_ACCEPTED`) | `WorldState.kt` | Non serve più un discriminante a runtime. |
+| `WriteResult.Rejected` | `WorldState.kt` | Non esiste più un write rifiutato a runtime: i pathway extra non compilano. |
+| `PredictionWrite` / `PolicyWrite` / `ExecutionWrite` | `core/.../prediction/PredictionWrite.kt` | Adapter che chiamava `world.write(PREDICTION\|POLICY\|EXECUTION, …)`. |
+| `WorldState.apply(PreparedState)` / `apply(FutureState)` / `apply(Forecast)` / `apply(Observation)` | mai presenti come overload; **vietati** | Unico `apply` = `apply(AcceptedObservation)`. |
+| `PreparedState.commitToWorldState()` / `toWorldState()` / `toBeliefState()` / `commit()` | mai presenti; **vietati** | P2/P8 verificano l'assenza via reflection. |
+| Campo `may_commit` su PreparedState | **non era nello schema JSON né nel modello T2 taggato** | Eliminato dal disegno: un booleano è insufficiente. Commento nel modello + spec 19. |
+
+`ObservationAcceptance.apply(BeliefState, Observation)` resta: è il merge su **copie** (planner / replay), non `WorldState.apply`.
+
+---
+
+## STEP 2 — Moduli Gradle
+
+| Modulo | Contenuto | Dipendenze |
+|--------|-----------|------------|
+| `:core:world-api` | `Fact`, `BeliefReader`, `ReadBelief`, clock/ID iniettati | nessuna |
+| `:core:world` | `BeliefState`, `WorldState`, `AcceptedObservation` (ctor `protected`), `Observation`, `EventLog` | `world-api` |
+| `:core:runtime` | planner, runtime, `AcceptedObservationToken` (**ctor `internal`**), `acceptedObservation()` | `world` |
+| `:prediction` | Forecast / engine / canonical JSON predittivo | **solo `world-api`** |
+
+`WorldState.apply` accetta **solo** `AcceptedObservation`. Nessun altro overload.
+
+Kotlin `internal` è per compilation unit: il token costruibile (`AcceptedObservationToken`) vive in `:core:runtime` con costruttore `internal`. Il tipo nominale `AcceptedObservation` sta in `:core:world` con costruttore `protected` così `apply` può nominarlo senza ciclo Gradle. Prediction non dipende da `world` né da `runtime`, quindi non può mintare il token né chiamare `apply`.
+
+Le quattro categorie epistemiche (Observation, Prediction, Policy, Execution) restano tipi distinti, senza supertipo mutabile.
+
+---
+
+## STEP 3 — P11 ArchUnit (output reale)
+
+```
+PredictionArchitectureTest > P11_prediction_does_not_depend_on_world_or_runtime PASSED
+```
+
+Regola: nessuna classe in `a3.prediction..` dipende da `a3.core.world` o `a3.core.runtime..`.
+
+Riga documentata in `PredictionArchitectureTest` e in P2:
+
+```
+// worldState.apply(preparedState)   ← NON COMPILA: nessun overload esiste.
+```
+
+---
+
+## Prova compile-time (grep)
+
+Eseguiti sulla working tree (escluso `**/build/**`). Pathway di scrittura **assenti** nel codice eseguibile:
+
+| Query | Risultato |
+|-------|-----------|
+| `fun write(` | **vuoto** |
+| `apply(prepared` / `apply(future` / `apply(forecast` | solo commenti `← NON COMPILA` |
+| `PredictionWrite` / `enum class EpistemicSource` | **assenti** dal source Kotlin |
+| `may_commit` in `.kt` eseguibile | solo Javadoc su PreparedState (nessun campo) |
+| `WorldState.apply` | un solo overload: `fun apply(accepted: AcceptedObservation)` |
+
+`ObservationAcceptance.apply` e `Transition.apply` restano (merge/simulazione, non commit WorldState).
+
+---
+
+## Invariante: prepare / not commit
 
 | Check | Evidence | Test | Esito |
 |-------|----------|------|-------|
-| Produces `FutureState` | One-step simulation of applicable capabilities; facts are hypothesized `current(now)` | P1 | **PASS** |
-| Does not modify WorldState | Version stays 0; STATE canonical bytes unchanged; no `state.updated` from prediction | P1 | **PASS** |
-| No `PreparedState.commitToWorldState()` | Method absent on the type; `PreparedState` ≠ `BeliefState` | P2 | **PASS** |
-| Commit attempt rejected | `WorldState.write(PREDICTION, …)` and `PredictionWrite.attempt` → `WriteResult.Rejected`, `state.write_rejected` | P2, P7 | **PASS** |
-| TTL | `get` live iff `prepared_at <= t < expires_at`; `t == expires_at` → null | P3 | **PASS** |
-| New context invalidates | Previous live prepared marked `invalidated`; `prediction.invalidated` logged | P4 | **PASS** |
-| Only Observation.accepted writes | After predict, PREDICTION/POLICY/EXECUTION rejected; `OBSERVATION_ACCEPTED` → version 1 | P7, R9 | **PASS** |
-| ProjectionCandidate, never Outcome | Engine returns `ProjectionCandidate`; no `Outcome` payloads or `outcome` field | P8 | **PASS** |
-
-WorldState write gate is unchanged from T1: only `EpistemicSource.OBSERVATION_ACCEPTED` succeeds.
+| Produce FutureState | hypothesised facts, tipo ≠ BeliefState | P1 | **PASS** |
+| Non modifica WorldState | version 0, bytes STATE invariati | P1 | **PASS** |
+| Nessun commit method / overload | reflection + unico `apply(AcceptedObservation)` | P2, R9 | **PASS** |
+| TTL | `get` live iff `prepared_at <= t < expires_at` | P3 | **PASS** |
+| Nuovo context invalida | `prediction.invalidated` | P4 | **PASS** |
+| Ranking deterministico | score desc, capability_ref asc, id asc | P5 | **PASS** |
+| Replay event log predittivo | `PredictionReplay` | P6 | **PASS** |
+| Solo Observation.accepted scrive | token runtime → `apply`; prediction non ha WorldState | P7, R9 | **PASS** |
+| ProjectionCandidate, mai Outcome | P8 | P8 | **PASS** |
+| T1–T10 verdi | CoreAcceptanceTest | P9, T1–T10 | **PASS** |
+| Canonical UTF-8 Forecast/FutureState | P10 | P10 | **PASS** |
+| ArchUnit isolation | P11 | P11 | **PASS** |
 
 ---
 
-## P1–P10
+## P1–P11
 
 | # | Criterio | Esito |
 |---|----------|-------|
@@ -120,54 +180,41 @@ WorldState write gate is unchanged from T1: only `EpistemicSource.OBSERVATION_AC
 | P2 | PreparedState cannot be committed into WorldState | **PASS** |
 | P3 | PreparedState expires after TTL | **PASS** |
 | P4 | New context invalidates previous prepared state | **PASS** |
-| P5 | Forecast ranking deterministic (score desc, capability_ref asc, id asc; HashMap graph same bytes) | **PASS** |
-| P6 | Prediction event log replayable (`prediction.updated` / `prediction.invalidated`) | **PASS** |
+| P5 | Forecast ranking deterministic | **PASS** |
+| P6 | Prediction event log replayable | **PASS** |
 | P7 | Observation.accepted remains the only WorldState writer | **PASS** |
 | P8 | ProjectionCandidate, never Outcome | **PASS** |
 | P9 | Core T1–T10 remain green | **PASS** |
 | P10 | Canonical UTF-8 bytes for Forecast / FutureState | **PASS** |
+| P11 | ArchUnit: `a3.prediction..` ↛ `a3.core.world` / `a3.core.runtime..` | **PASS** |
 
 ---
 
 ## T1–T10
 
-Unchanged tests in `CoreAcceptanceTest.kt`. All PASSED in the same `./gradlew test` run. `core-v0.1` behavior: WorldState write gate, planner `PlanResult`, canonical SCHEMA/STATE profiles, clock/IDs, replay of `state.updated` are unmodified.
+Comportamento del planner, merge, STALE_STATE (`expires_at < now`), closed-loop, rollback compensativo, canonical SCHEMA/STATE: invariati. API di commit: `world.apply(acceptedObservation(obs, now))` al posto di `world.write(OBSERVATION_ACCEPTED, obs, now)`. Semantica del commit accettato identica.
 
 ---
 
 ## Canonical serialization
 
-Additive branches in `a3.core.serialize.CanonicalJson` for Forecast, ForecastCandidate, FutureState, PreparedState, PredictionPolicy, PredictionStatus, ProjectionCandidate, PredictionInvalidation. Existing SCHEMA validation (T1 `Prediction` envelope, T9/T10, `SchemaValidationTest`) unchanged.
-
-Rules reused: sorted keys (`TreeMap`), sorted facts `(k, observed_at, id, source)`, omitted nulls, UTF-8 compact. P10 uses `assertContentEquals` on UTF-8 bytes.
-
----
-
-## Core files touched (T1 freeze)
-
-| File | Why | T1–T10 semantics |
-|------|-----|------------------|
-| `CanonicalJson.kt` | Additive `when` branches for prediction types | Unchanged for Plan/BeliefState/schema models |
-| `spec/14-prediction.md` | Pointer to spec 19 | Docs only |
-| `spec/01-event-model.md` | Listed `prediction.invalidated` | Docs only |
-| `A3_SPEC_0.1.md` | Pointer to spec 19 | Docs only |
-
-No edits to `WorldState.kt`, `BeliefState.kt`, `Planner.kt`, `Runtime.kt`, `EventLog.replayState`, `PredictionWrite`, `Models.kt`, or T1–T10 tests.
+- Runtime: `a3.core.serialize.CanonicalJson` (T1, senza tipi Forecast/PreparedState).
+- Prediction: `a3.prediction.serialize.CanonicalJson` (stesse regole: chiavi TreeMap, fatti ordinati, UTF-8 compact).
 
 ---
 
 ## Deviazioni dichiarate
 
-1. **One-step lookahead**, not a chained plan. Multi-step search remains the planner. Prediction ranks currently applicable capabilities independently from the same belief copy.
-2. **`ProjectionCandidate` ≠ A3UI `Projection`**. Prefetch hint only; not validated against `projection.schema.json`; no renderer.
-3. **No new JSON Schema files** for Forecast/FutureState/PreparedState. Byte contract is CanonicalJson. The T1 `prediction.schema.json` envelope (`Prediction`) is unchanged.
-4. **Expiry is evaluated at read time** against the injected clock. Stored status stays `prepared` until explicit invalidation; `get` returns null when `t >= expires_at`.
-5. **`prediction.invalidated`** is the invalidation event (listed in spec 01 and 19). Forecast/prepared still use `prediction.updated`. These events are ignored by `EventLog.replayState`.
-6. **Scoring** `reliability / (1 + money + timeMin) × boost`; boost is `1 + goal.priority` only when effects overlap desired `(k,v)`.
-7. **Top-ranked FutureState** is the single `PreparedState` stored per `predict` call. Other candidates remain on the Forecast.
-8. **Jackson** still schema-only (T1); prediction path does not use it.
+1. **`AcceptedObservation` è `protected` in `:core:world`**, subclass `internal` in `:core:runtime`. Kotlin non consente `internal` cross-module sul tipo nominato da `WorldState.apply`.
+2. **Niente `WriteResult.Rejected` / `state.write_rejected`**. Il rifiuto è compile-time. R9 verifica un solo `apply(AcceptedObservation)` e l'assenza di `write`.
+3. **`may_commit` non era un campo nel tag T2 precedente**; hardening lo esclude dal modello e dallo schema (lo schema T1 `prediction.schema.json` è l'envelope `Prediction`, senza `may_commit`).
+4. **`:prediction` non usa `CapabilityGraph` / `Transition`**. Usa `CapabilityHint` + overlay su `BeliefReader` (stesso ranking).
+5. **Event log predittivo** è `PredictionEventLog` nel modulo prediction (non `EventLog` di world), così prediction non dipende da `a3.core.world`.
+6. **One-step lookahead**, non un piano concatenato.
+7. **`ProjectionCandidate` ≠ A3UI `Projection`**.
+8. **Planner smart-cast** su `Fact.expiresAt`: variabile locale (proprietà public API di altro modulo). Semantica STALE invariata.
 
-Nessuna di queste deviazioni rende FAIL P1–P10 o T1–T10.
+Nessuna di queste rende FAIL T1–T10 o P1–P11.
 
 ---
 
@@ -175,9 +222,8 @@ Nessuna di queste deviazioni rende FAIL P1–P10 o T1–T10.
 
 - `./gradlew test` green
 - T1–T10 verdi
-- P1–P10 verdi
+- P1–P11 verdi
+- Barriera compile-time (ArchUnit + grep + unico `apply`)
 - Questo file presente
-- Invariante epistemico: solo Observation.accepted scrive WorldState
-- Invariante predittivo: prepare, never commit
 
-**Definizione di fatto soddisfatta.** Tag `prediction-core-v0.1`. MCP, A3UI e AI restano fuori scope.
+**Definizione di fatto soddisfatta.** Tag `prediction-core-v0.1`.

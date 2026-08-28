@@ -8,7 +8,13 @@ If prediction is disabled, A3 remains fully functional.
 
 ## Types
 
-`BeliefState` and `PreparedState` are distinct types. There is no `PreparedState.commitToWorldState()`. A FutureState is a hypothesized snapshot, not a belief merge and not an `Outcome`.
+`BeliefState` and `PreparedState` are distinct types. There is no `PreparedState.commitToWorldState()`, `toWorldState()`, `toBeliefState()`, `commit()`, or `may_commit`. A FutureState is a hypothesized snapshot, not a belief merge and not an `Outcome`.
+
+**Type-system barrier:** `WorldState.apply` accepts only `AcceptedObservation`. That type has a `protected` constructor; the only constructible subclass lives in `:core:runtime` with an `internal` constructor. `:prediction` depends solely on `:core:world-api` (`BeliefReader`, `Fact`) and cannot mention `WorldState`.
+
+```
+// worldState.apply(preparedState)   ← NON COMPILA: nessun overload esiste.
+```
 
 ### Forecast
 
@@ -116,11 +122,11 @@ Append-only, replayable from `EventLog`. Prediction events never fold into `Even
 
 `PredictionReplay` reconstructs forecasts and prepared entries. Reconstructing prediction artifacts must not write WorldState.
 
-`WorldState.write(PREDICTION, …)` remains `Rejected` and logs `state.write_rejected` (T1 epistemic gate).
+There is no `WorldState.write(PREDICTION, …)` pathway. The T1 runtime reject/log gate is replaced by the type-system barrier (`apply(AcceptedObservation)` only).
 
 ## Canonical serialization
 
-`a3.core.serialize.CanonicalJson` (same rules as T1):
+`a3.prediction.serialize.CanonicalJson` (same rules as T1 `a3.core.serialize.CanonicalJson`):
 
 1. UTF-8, compact, no whitespace, no BOM.
 2. Object keys sorted lexicographically (`String.compareTo`).
@@ -133,12 +139,13 @@ Append-only, replayable from `EventLog`. Prediction events never fold into `Even
 
 P10 compares UTF-8 bytes of `Forecast` and `FutureState`.
 
-## Epistemic boundary
+## Epistemic boundary (compile-time)
 
 - Prediction may prepare `FutureState` / `PreparedState` / `ProjectionCandidate`.
-- Prediction may not commit. No `PreparedState.commitToWorldState()`.
-- Any write attempt through `WorldState.write` with source `PREDICTION` is rejected and logged.
-- Policy and Execution writes remain rejected. Only `OBSERVATION_ACCEPTED` succeeds.
+- Prediction may not commit. No `PreparedState.commitToWorldState()`. No `may_commit` boolean.
+- Gradle: `:prediction` → `:core:world-api` only. ArchUnit P11: `a3.prediction..` must not depend on `a3.core.world` or `a3.core.runtime..`.
+- `WorldState.apply(AcceptedObservation)` is the only apply overload. Runtime mints the token. Prediction cannot call it.
+- The four epistemic categories (Observation, Prediction, Policy, Execution) remain distinct types with no mutable shared supertype.
 
 ## Out of scope
 
