@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/projection",
+  "type": "object",
+  "required": [
+    "id",
+    "state_ref",
+    "form_factor",
+    "ui_state_ref"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "state_ref": {
+      "type": "integer"
+    },
+    "form_factor": {
+      "enum": [
+        "phone",
+        "tablet",
+        "car",
+        "glasses",
+        "desktop"
+      ]
+    },
+    "ui_state_ref": {
+      "type": "string"
+    },
+    "interaction_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}
