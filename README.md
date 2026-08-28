@@ -16,16 +16,18 @@ The 0.1 core is deterministic-first and works without an LLM. MCP and A2UI are o
 - `A3_SPEC_0.1.md` — master specification
 - `spec/` — normative module specifications
 - `schemas/` — JSON Schemas
-- `core/` — deterministic Kotlin runtime
+- `core/world-api` — read-only `Fact`, `BeliefReader`
+- `core/world` — `WorldState.apply(AcceptedObservation)` only
+- `core/runtime` — planner, execution, minting of `AcceptedObservation`
+- `prediction/` — deterministic forecast core (depends only on `world-api`)
 - `adapters/` — reserved for MCP/A2UI adapters
 - `a3ui/` — reserved for the projection layer
 - `intent-model/` — optional AI providers
-- `tests/` — acceptance fixtures
 
 ## Build
 ```bash
-./gradlew :core:test
+./gradlew test
 ```
 
 ## 0.1 acceptance
-T1–T10 must pass without any AI/model dependency.
+T1–T10 must pass without any AI/model dependency. Prediction core: P1–P11.
