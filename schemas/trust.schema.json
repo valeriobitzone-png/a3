@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/trust",
+  "type": "object",
+  "required": [
+    "id",
+    "capability_ref",
+    "tier",
+    "granted"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "capability_ref": {
+      "type": "string"
+    },
+    "tier": {
+      "enum": [
+        "read",
+        "prepare",
+        "commit",
+        "irreversible"
+      ]
+    },
+    "granted": {
+      "type": "boolean"
+    },
+    "ttl": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "scope": {
+      "type": "string"
+    },
+    "receipt": {
+      "type": "string"
+    },
+    "revocable": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}
