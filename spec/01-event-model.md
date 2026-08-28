@@ -7,4 +7,4 @@ Envelope:
 
 The event log is append-only. Replay reconstructs state deterministically. `causal_id` links the immediate causal predecessor.
 
-Core event types: `context.observed`, `intent.updated`, `goal.set`, `goal.cleared`, `plan.proposed`, `plan.approved`, `plan.rejected`, `capability.discovered`, `trust.requested`, `trust.granted`, `trust.denied`, `execution.started`, `execution.committed`, `execution.rolled_back`, `state.updated`, `prediction.updated`, `projection.updated`.
+Core event types: `context.observed`, `intent.updated`, `goal.set`, `goal.cleared`, `plan.proposed`, `plan.approved`, `plan.rejected`, `capability.discovered`, `trust.requested`, `trust.granted`, `trust.denied`, `execution.started`, `execution.committed`, `execution.rolled_back`, `state.updated`, `prediction.updated`, `prediction.invalidated`, `projection.updated`.

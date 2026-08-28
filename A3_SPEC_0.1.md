@@ -18,7 +18,7 @@ A3 is an intent-to-outcome runtime: it decides what state should become true, ex
 
 Predictive branch:
 `INTENT FORECAST → FUTURE STATE → FUTURE UI → PREFETCH`
-Prediction prepares but never commits.
+Prediction prepares but never commits. See `spec/19-prediction-core.md`.
 
 ## Core distinction
 MCP answers “What can I call?”

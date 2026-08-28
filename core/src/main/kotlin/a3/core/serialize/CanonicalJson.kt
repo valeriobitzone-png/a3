@@ -3,6 +3,14 @@ package a3.core.serialize
 import a3.core.model.*
 import a3.core.planner.PlanResult
 import a3.core.planner.PlannerError
+import a3.core.prediction.model.Forecast
+import a3.core.prediction.model.ForecastCandidate
+import a3.core.prediction.model.FutureState
+import a3.core.prediction.model.PreparedState
+import a3.core.prediction.model.PredictionInvalidation
+import a3.core.prediction.model.PredictionPolicy
+import a3.core.prediction.model.PredictionStatus
+import a3.core.prediction.model.ProjectionCandidate
 import a3.core.world.BeliefState
 import java.time.Instant
 import java.util.Locale
@@ -180,6 +188,83 @@ object CanonicalJson {
                 put("state_ref", value.stateRef)
                 put("ui_state_ref", value.uiStateRef)
             },
+            profile
+        )
+        is Forecast -> obj(
+            buildMap {
+                put("candidates", value.candidates)
+                put("context_ref", value.contextRef)
+                put("context_signature", value.contextSignature)
+                put("id", value.id)
+                value.policyRef?.let { put("policy_ref", it) }
+                put("produced_at", value.producedAt)
+            },
+            profile
+        )
+        is ForecastCandidate -> obj(
+            mapOf(
+                "capability_ref" to value.capabilityRef,
+                "future_state_id" to value.futureStateId,
+                "id" to value.id,
+                "rank" to value.rank,
+                "score" to value.score
+            ),
+            profile
+        )
+        is FutureState -> obj(
+            mapOf(
+                "capability_ref" to value.capabilityRef,
+                "context_ref" to value.contextRef,
+                "facts" to sortedFacts(value.facts),
+                "id" to value.id,
+                "produced_at" to value.producedAt,
+                "score" to value.score
+            ),
+            profile
+        )
+        is PreparedState -> obj(
+            mapOf(
+                "context_ref" to value.contextRef,
+                "context_signature" to value.contextSignature,
+                "expires_at" to value.expiresAt,
+                "facts" to sortedFacts(value.facts),
+                "forecast_id" to value.forecastId,
+                "future_state_id" to value.futureStateId,
+                "id" to value.id,
+                "prepared_at" to value.preparedAt,
+                "status" to value.status.wire(),
+                "ttl_seconds" to value.ttlSeconds
+            ),
+            profile
+        )
+        is PredictionPolicy -> obj(
+            mapOf(
+                "id" to value.id,
+                "max_candidates" to value.maxCandidates,
+                "min_score" to value.minScore,
+                "ttl_seconds" to value.ttlSeconds
+            ),
+            profile
+        )
+        is PredictionStatus -> string(value.wire())
+        is ProjectionCandidate -> obj(
+            mapOf(
+                "context_ref" to value.contextRef,
+                "future_state_ref" to value.futureStateRef,
+                "id" to value.id,
+                "ui_state_hint" to value.uiStateHint
+            ),
+            profile
+        )
+        is PredictionInvalidation -> obj(
+            mapOf(
+                "context_ref" to value.contextRef,
+                "context_signature" to value.contextSignature,
+                "id" to value.id,
+                "prepared_ids" to value.preparedIds.sorted(),
+                "reason" to value.reason,
+                "t" to value.t
+            ),
             profile
         )
         is WorldStateSnapshot -> obj(
