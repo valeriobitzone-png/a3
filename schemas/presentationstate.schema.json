@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/presentationstate",
+  "type": "object",
+  "required": [
+    "id",
+    "source_state_version",
+    "produced_at",
+    "atoms",
+    "lineage"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "source_state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "produced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "atoms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "meaning",
+          "k",
+          "v",
+          "priority"
+        ],
+        "properties": {
+          "meaning": {
+            "type": "string"
+          },
+          "k": {
+            "type": "string"
+          },
+          "v": {},
+          "priority": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "required": [
+        "state_identity",
+        "source_state_version",
+        "causal_event_id"
+      ],
+      "properties": {
+        "state_identity": {
+          "type": "string"
+        },
+        "source_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "causal_event_id": {
+          "type": "string"
+        },
+        "future_state_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "forecast_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

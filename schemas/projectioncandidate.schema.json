@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/projectioncandidate",
+  "type": "object",
+  "required": [
+    "id",
+    "future_state_id",
+    "context_ref",
+    "presentation",
+    "base_state_version",
+    "status",
+    "priority",
+    "rank",
+    "lineage"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "future_state_id": {
+      "type": "string"
+    },
+    "forecast_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "context_ref": {
+      "type": "string"
+    },
+    "presentation": {
+      "type": "object"
+    },
+    "base_state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": [
+        "prepared",
+        "invalidated",
+        "expired"
+      ]
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "priority": {
+      "type": "integer"
+    },
+    "rank": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lineage": {
+      "type": "object",
+      "required": [
+        "state_identity",
+        "source_state_version",
+        "causal_event_id",
+        "future_state_id",
+        "forecast_id"
+      ],
+      "properties": {
+        "state_identity": {
+          "type": "string"
+        },
+        "source_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "causal_event_id": {
+          "type": "string"
+        },
+        "future_state_id": {
+          "type": "string"
+        },
+        "forecast_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
