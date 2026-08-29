@@ -139,7 +139,7 @@ class RendererCoreAcceptanceTest {
             .filter { java.lang.reflect.Modifier.isPrivate(it.modifiers) }
             .map { it.name }
             .toSet()
-        assertEquals(setOf("gesture", "action"), fields)
+        assertEquals(setOf("gesture", "action", "targetNodeId"), fields)
         assertFalse(fields.any { it == "x" || it == "y" })
     }
 
