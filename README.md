@@ -1,33 +1,54 @@
-# A3 — Adaptive Agent Architecture 0.1
+# A3 — Adaptive Agent Architecture
 
-A3 is an intent-to-outcome runtime. A3UI is its projection layer.
+Runtime intent-to-outcome. La 0.1 è deterministic-first e gira senza LLM.
+MCP e A2UI sono adapter opzionali, non fondazione.
 
-> MCP: What can I call?  
-> A2UI: What can I render?  
-> **A3: What should become true?**  
+> MCP: What can I call?
+> A2UI: What can I render?
+> **A3: What should become true?**
 > **A3UI: How should that future state be experienced?**
 
-### Invariant
+### Invariante
 > Prediction may prepare. Policy may authorize. Execution may change the world. Observation determines what actually happened.
 
-The 0.1 core is deterministic-first and works without an LLM. MCP and A2UI are optional adapters.
+L'unico writer di `WorldState` è `WorldState.apply(AcceptedObservation)`: vero su classe, sul closed loop live, e sul replay (fold di apply su un world fresco).
+
+## Strati
+
+| Strato | Domanda | Modulo | Tag |
+|---|---|---|---|
+| CORE | What should become true? | `core/` | `core-v0.2` |
+| PREDICTION | What could become true? | `prediction/` | `prediction-core-v0.1` |
+| PROJECTION | How should meaning be presented? | `projection/` | `projection-core-v0.1` |
+| A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-core-v0.1` |
+| RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.1` |
+| ADAPTERS | How does the existing world plug in? | `adapters/` | T6, in corso |
+
+## Tassonomia
+`BeliefState` = reality believed · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality.
 
 ## Repository
 - `A3_SPEC_0.1.md` — master specification
-- `spec/` — normative module specifications
-- `schemas/` — JSON Schemas
-- `core/world-api` — read-only `Fact`, `BeliefReader`
+- `spec/` — specifiche normative
+- `schemas/` — JSON Schema
+- `core/world-api` — `Fact`, `BeliefReader` (read-only)
 - `core/world` — `WorldState.apply(AcceptedObservation)` only
-- `core/runtime` — planner, execution, minting of `AcceptedObservation`
-- `prediction/` — deterministic forecast core (depends only on `world-api`)
-- `adapters/` — reserved for MCP/A2UI adapters
-- `a3ui/` — reserved for the projection layer
-- `intent-model/` — optional AI providers
+- `core/runtime` — planner, execution, mint di `AcceptedObservation`, replay fold
+- `prediction/` — forecast deterministico (dipende solo da `world-api`)
+- `projection/` — transformer read-only
+- `a3ui/` — compiler di intent temporale
+- `renderers/` — interprete A3UI (Android 0.1)
+- `adapters/` — MCP/A2UI (T6)
 
-## Build
+## Accettazione
+T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 (a3ui) · P43–P56 (renderer) · W1–W5 (writer) · V1–V5 (replay) + barriere ArchUnit.
+
 ```bash
 ./gradlew test
 ```
 
-## 0.1 acceptance
-T1–T10 must pass without any AI/model dependency. Prediction core: P1–P11.
+## Confini (ArchUnit)
+prediction ↛ core:world/runtime · projection ↛ world/runtime/a3ui/renderers · a3ui ↛ world/runtime/renderers/adapters · renderers ↛ world/runtime/prediction · a3ui importa `ProjectionCandidate` solo da `a3.projection.model` · `:core:runtime` ↛ `:adapters` (l'adapter si inietta al composition root).
+
+## Hardening aperto
+H3 duplicazione `ProjectionCandidate` (intenzionale, pre-1.0) · validator/CanonicalJson 3 copie (trigger 4ª → `:core:json` cieco) · `missingPrecondition` naming (deferred) · A3UI 0.2 language gap (P56) · live reject duplicate event id (R2, futuro).
