@@ -1,6 +1,5 @@
 package a3.core.runtime
 
-import a3.core.events.EventLog
 import a3.core.model.*
 import a3.core.policy.Policy
 import a3.core.policy.PolicyDecision
@@ -8,7 +7,8 @@ import a3.core.schema.ModelValidator
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
 import a3.core.world.IntegrateMode
-import a3.core.world.ObservationAcceptance
+import a3.core.world.WorldState
+import a3.core.world.WriteResult
 import java.time.Instant
 import java.util.TreeMap
 
@@ -25,12 +25,11 @@ fun interface Executor {
 
 class Runtime(
     private val policy: Policy,
-    private val trustGate: TrustGate,
-    private val events: EventLog
+    private val trustGate: TrustGate
 ) {
     fun execute(
         plan: Plan,
-        initial: BeliefState,
+        world: WorldState,
         capabilities: Map<String, Capability>,
         executor: Executor,
         now: Instant,
@@ -39,8 +38,8 @@ class Runtime(
         ModelValidator.plan(plan)
         val caps = TreeMap(capabilities)
         val grantIndex = TreeMap(grants)
-        var state = initial
-        val before = initial
+        val origin = world.committed
+        val events = world.eventLog()
         val observed = ArrayList<Fact>()
         var lastEventId: String? = null
 
@@ -51,7 +50,7 @@ class Runtime(
 
         for (step in plan.steps.sortedBy { it.seq }) {
             val cap = caps[step.capability]
-                ?: return failure(plan, before, observed)
+                ?: return failure(plan, world.committed, observed)
 
             val decision = policy.evaluate(step.trustTier, step.reversible)
             val authorized = when (decision) {
@@ -69,7 +68,7 @@ class Runtime(
                         causalId = lastEventId
                     )
                 )
-                return failure(plan, before, observed)
+                return failure(plan, world.committed, observed)
             }
 
             append(
@@ -87,11 +86,16 @@ class Runtime(
             observed += observation.facts
 
             if (!matchesExpected(cap.effects, observation.facts)) {
-                val rolled = if (state.version == before.version) {
-                    state
-                } else {
-                    compensate(state, before, plan, now)
-                }
+                val compensating = rollbackObservation(plan, origin, now)
+                val minted = mintAcceptedObservation(
+                    compensating,
+                    decision,
+                    now,
+                    lastEventId,
+                    IntegrateMode.COMPENSATE
+                )
+                val write = world.apply(minted) as WriteResult.Accepted
+                lastEventId = write.acceptedEventId
                 append(
                     Event(
                         id = "ev_${step.seq}_rollback",
@@ -99,32 +103,20 @@ class Runtime(
                         source = "runtime",
                         type = "execution.rolled_back",
                         causalId = lastEventId,
-                        stateVersion = rolled.version
+                        stateVersion = write.state.version
                     )
                 )
-                if (rolled.version != state.version) {
-                    val compensation = rollbackObservation(plan, before, now)
-                    append(
-                        Event(
-                            id = "ev_${step.seq}_state",
-                            t = now,
-                            source = "runtime",
-                            type = "state.updated",
-                            causalId = lastEventId,
-                            stateVersion = rolled.version,
-                            payload = compensation
-                        )
-                    )
-                }
                 return ExecutionResult(
                     Outcome("out_${plan.id}", plan.goalRef, observed, 0.0, "failed"),
                     committed = false,
                     rolledBack = true,
-                    state = rolled
+                    state = world.committed
                 )
             }
 
-            state = ObservationAcceptance.apply(state, observation)
+            val minted = mintAcceptedObservation(observation, decision, now, lastEventId)
+            val write = world.apply(minted) as WriteResult.Accepted
+            lastEventId = write.acceptedEventId
             append(
                 Event(
                     id = "ev_${step.seq}_commit",
@@ -132,18 +124,7 @@ class Runtime(
                     source = "runtime",
                     type = "execution.committed",
                     causalId = lastEventId,
-                    stateVersion = state.version
-                )
-            )
-            append(
-                Event(
-                    id = "ev_${step.seq}_state",
-                    t = now,
-                    source = "runtime",
-                    type = "state.updated",
-                    causalId = lastEventId,
-                    stateVersion = state.version,
-                    payload = observation
+                    stateVersion = write.state.version
                 )
             )
         }
@@ -152,11 +133,9 @@ class Runtime(
             Outcome("out_${plan.id}", plan.goalRef, observed, 1.0, "achieved"),
             committed = true,
             rolledBack = false,
-            state = state
+            state = world.committed
         )
     }
-
-    fun eventLog(): EventLog = events
 
     private fun matchesExpected(expected: List<Fact>, observed: List<Fact>): Boolean {
         val actual = TreeMap<String, Any?>()
@@ -164,16 +143,6 @@ class Runtime(
             actual[fact.k] = fact.v
         }
         return expected.sortedBy { it.k }.all { fact -> actual[fact.k] == fact.v }
-    }
-
-    private fun compensate(
-        committed: BeliefState,
-        restoreTo: BeliefState,
-        plan: Plan,
-        now: Instant
-    ): BeliefState {
-        val observation = rollbackObservation(plan, restoreTo, now)
-        return ObservationAcceptance.apply(committed, observation, IntegrateMode.COMPENSATE)
     }
 
     private fun rollbackObservation(plan: Plan, restoreTo: BeliefState, now: Instant): Observation {

@@ -4,7 +4,7 @@ import a3.core.model.Capability
 import a3.core.model.Fact
 import a3.core.model.Observation
 import a3.core.world.BeliefState
-import a3.core.world.ObservationAcceptance
+import a3.core.world.integrate
 import java.time.Instant
 import java.util.TreeMap
 
@@ -30,7 +30,7 @@ object Transition {
                 effect.copy(confidence = confidence, observedAt = now)
             }
         )
-        return ObservationAcceptance.apply(state, observation)
+        return state.integrate(observation)
     }
 
     fun propagatedConfidence(state: BeliefState, cap: Capability, now: Instant): Double {

@@ -11,6 +11,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation(project(":prediction"))
     testImplementation(kotlin("test"))
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
 
 kotlin {

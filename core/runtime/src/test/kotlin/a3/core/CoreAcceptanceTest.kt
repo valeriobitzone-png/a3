@@ -10,6 +10,7 @@ import a3.core.runtime.*
 import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
+import a3.core.world.WorldState
 import kotlin.test.*
 import java.time.Instant
 
@@ -84,12 +85,19 @@ class CoreAcceptanceTest {
             Goal("g","i", listOf(Fact("ticket.owned",true,0.5,"goal",t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
-        val runtime = Runtime(Policy(), TrustGate(), EventLog())
+        val world = WorldState()
+        val runtime = Runtime(Policy(), TrustGate())
         val executor = Executor { cap, now -> Observation("o_${cap.id}", "e", now, cap.effects) }
-        val result = runtime.execute(plan.plan, BeliefState(), graph().capabilities, executor, t,
+        val result = runtime.execute(plan.plan, world, graph().capabilities, executor, t,
             grants=mapOf("train.commit" to TrustGrant("tg","train.commit",TrustTier.IRREVERSIBLE,true,t.plusSeconds(300))))
         assertTrue(result.committed)
         assertEquals(true, result.state.current(t).first { it.k == "ticket.owned" }.v)
+        assertTrue(result.state === world.committed)
+        assertEquals(world.committed.version, result.state.version)
+        val viaGate = reconstructThroughApply(BeliefState(), world)
+        assertEquals(viaGate.version, world.committed.version)
+        assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(world.committed))
+        assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(result.state))
     }
 
     @Test fun T7_loopMismatch() {
@@ -97,24 +105,32 @@ class CoreAcceptanceTest {
             Goal("g","i", listOf(Fact("ticket.owned",true,0.5,"goal",t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
-        val runtime = Runtime(Policy(), TrustGate(), EventLog())
+        val world = WorldState()
+        val runtime = Runtime(Policy(), TrustGate())
         val executor = Executor { cap, now ->
             Observation("o_${cap.id}", "e", now, cap.effects.map { it.copy(v=false) })
         }
-        val result = runtime.execute(plan.plan, BeliefState(), graph().capabilities, executor, t,
+        val result = runtime.execute(plan.plan, world, graph().capabilities, executor, t,
             grants=mapOf("train.commit" to TrustGrant("tg","train.commit",TrustTier.IRREVERSIBLE,true,t.plusSeconds(300))))
         assertTrue(result.rolledBack)
         assertFalse(result.committed)
+        assertTrue(result.state === world.committed)
+        val viaGate = reconstructThroughApply(BeliefState(), world)
+        assertEquals(viaGate.version, world.committed.version)
+        assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(result.state))
     }
 
     @Test fun T8_trustBlocked() {
         val plan = Plan("p","g",
             listOf(PlanStep(1,"train.commit",TrustTier.IRREVERSIBLE,false)),
             ExpectedOutcome("g", listOf(Fact("ticket.owned",true,1.0,"x",t))))
-        val runtime = Runtime(Policy(), TrustGate(), EventLog())
-        val result = runtime.execute(plan, BeliefState(), graph().capabilities,
+        val world = WorldState()
+        val runtime = Runtime(Policy(), TrustGate())
+        val result = runtime.execute(plan, world, graph().capabilities,
             Executor { cap, now -> Observation("o","e",now,cap.effects) }, t)
         assertTrue(result.outcome.status == "failed")
+        assertTrue(result.state === world.committed)
+        assertEquals(0, world.committed.version)
     }
 
     @Test fun T9_determinism() {
@@ -146,15 +162,15 @@ class CoreAcceptanceTest {
             Goal("g","i", listOf(Fact("ticket.owned",true,0.5,"goal",t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
-        val execLog = EventLog()
-        val result = Runtime(Policy(), TrustGate(), execLog).execute(
-            plan.plan, BeliefState(), graph().capabilities,
+        val world = WorldState()
+        val result = Runtime(Policy(), TrustGate()).execute(
+            plan.plan, world, graph().capabilities,
             Executor { cap, now -> Observation("o_${cap.id}", "e", now, cap.effects) },
             t,
             grants=mapOf("train.commit" to TrustGrant("tg","train.commit",TrustTier.IRREVERSIBLE,true,t.plusSeconds(300)))
         )
         assertTrue(result.committed)
-        val reconstructed = execLog.replayState(BeliefState())
+        val reconstructed = world.eventLog().replayState(BeliefState())
         assertEquals(CanonicalJson.ofState(result.state), CanonicalJson.ofState(reconstructed))
         assertContentEquals(
             CanonicalJson.bytesState(result.state),

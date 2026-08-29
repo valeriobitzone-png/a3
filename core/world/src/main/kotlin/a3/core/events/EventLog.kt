@@ -4,7 +4,7 @@ import a3.core.world.BeliefState
 import a3.core.world.Event
 import a3.core.world.IntegrateMode
 import a3.core.world.Observation
-import a3.core.world.ObservationAcceptance
+import a3.core.world.integrate
 import java.util.Collections
 
 class EventLog {
@@ -33,7 +33,7 @@ class EventLog {
                     } else {
                         IntegrateMode.SUPERSEDE_KEYS
                     }
-                    ObservationAcceptance.apply(state, payload, mode)
+                    state.integrate(payload, mode)
                 }
                 is BeliefState -> payload
                 else -> state
