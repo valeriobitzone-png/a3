@@ -1,6 +1,6 @@
 # REVIEW_RENDERER02 — A3 Renderer 0.2 (catalog interpreter)
 
-**Unfrozen:** `:renderers:android-core` + `:renderers:android-compose` → tag `renderer-android-v0.2`.  
+**Unfrozen:** `:renderers:android-core` + `:renderers:android-compose`. Tag `renderer-android-v0.2` not applied — waiting confirmation.  
 **Frozen:** `core-v0.2`, `prediction/`, `projection/` (source), `a3ui-core-v0.2`, `adapters/`.  
 **Renderer-0.2-INV:** core resolves Binding → copy on a data tree. Compose maps roles → foundation. No extra widgets. No writes to A3UI / Projection / BeliefState.
 
@@ -25,7 +25,7 @@ Two planes kept: `interpret` returns `RenderedOutput` (never a Composable). `Com
 | list | LazyColumn |
 | item | Box |
 | action | Box + clickable |
-| field | foundation text field (`FoundationInput` alias of BasicTextField) |
+| field | BasicTextField (foundation) |
 | text | BasicText |
 
 `onAction: (String) -> Unit` is injected. The renderer emits the semantic name; it does not execute a capability.
@@ -70,9 +70,9 @@ BUILD SUCCESSFUL in 11m 57s
 43 actionable tasks: 43 executed
 ```
 
-`./gradlew test --rerun-tasks` was started for R8; the daemon stalled after `:prediction:test` with idle CPU (same stall on three attempts). Frozen modules were not modified. Renderer modules that this phase unfroze are green, including P43–P56 and R1–R7.
+`./gradlew test --rerun-tasks` stalled on this host after `:prediction:test` (idle CPU, three attempts). That is a Mini 16GB host stall, not a catalog GAP. Frozen modules were not retested.
 
-R8 on the unfrozen tree: **PASS**. Aggregate host stall is not a catalog GAP.
+**R8 aggregate: not PASS.** Proof of the 0.2 catalog is the renderer module runs above (core + compose debug).
 
 ---
 
@@ -84,20 +84,26 @@ R8 on the unfrozen tree: **PASS**. Aggregate host stall is not a catalog GAP.
 | R2 BINDING | atom `v` → `text`; assente → `""`; placeholder → `hint` | `BindingCopy` + CanonicalJson fixture `08:45` | atomo assente / placeholder senza atomo | **PASS** |
 | R3 GESTURE | `targetNodeId` + Compose click → `onAction("confirm")` | `GestureBinding(tap, n2, confirm)` | target `ghost` → interpret 0.2 throw | **PASS** |
 | R4 LIST | 3 item; Compose LazyColumn 3 Box | interpret 0.2 + `onNodeWithTag` i1–i3 | child `text` sotto list → throw | **PASS** |
-| R5 FIELD | `role=value` → field text = atomo | interpret + FoundationInput displayed | field senza Binding → `text=""` (no throw) | **PASS** |
+| R5 FIELD | `role=value` → field text = atomo | interpret + BasicTextField displayed | field senza Binding → `text=""` (no throw) | **PASS** |
 | R6 MOTION 0.1 | spring / shared / haptic identici 0.1 vs 0.2; appliers wrappano | stesso surface; `ComposeRenderer` chiama i 4 applier | 0.1 `nodes` vuoto, 0.2 no | **PASS** |
-| R7 NO EXTRA | niente Material widget | ArchUnit core ↛ compose; grep `src/main` Button/Card/Dialog/AlertDialog/Snackbar/`TextField(` | material package assente | **PASS** |
-| R8 REGRESSION | moduli renderer + P43–P56 verdi | `:android-core:test` e `:android-compose:testDebugUnitTest --rerun-tasks` | P56 0.1 resta (b); `test` aggregato stallato sul daemon dopo prediction | **PASS** |
+| R7 NO EXTRA | niente Material widget; BasicTextField foundation ok | ArchUnit core ↛ compose; due grep `src/main` sotto | Button/Card/Dialog/AlertDialog/Snackbar vuoti; `TextField(` meno `BasicTextField(` vuoto | **PASS** |
+| R8 REGRESSION | catalogo 0.2 = core+compose verdi | `:android-core:test` e `:android-compose:testDebugUnitTest` (già loggati) | `./gradlew test --rerun-tasks` stall host dopo `:prediction:test` — **non PASS** sull'aggregato; non GAP di catalogo | **non PASS (host)** |
 
 ---
 
-## Grep pre-tag
+## Grep pre-tag (output reale, 2026-08-29)
 
 ```
-grep -rn "Button(\|Card(\|Dialog(\|AlertDialog(\|Snackbar(\|TextField(" renderers --include='*.kt' | grep src/main
+grep -rn "Button(\|Card(\|Dialog(\|AlertDialog(\|Snackbar(" renderers --include='*.kt' | grep src/main
 ```
 
-Vuoto. (`FoundationInput` evita il substring `TextField(` richiesto dal gate.)
+(vuoto)
+
+```
+grep -rn "TextField(" renderers --include='*.kt' | grep src/main | grep -v "BasicTextField("
+```
+
+(vuoto)
 
 ---
 
@@ -105,7 +111,7 @@ Vuoto. (`FoundationInput` evita il substring `TextField(` richiesto dal gate.)
 
 - Nessun widget fuori catalogo. Nessuna modifica a `:a3ui` / `:projection` source / `:core`.
 - `text` è `BasicText` (foundation); Material `Text` non è sul classpath.
-- Field: alias `FoundationInput` = `BasicTextField` perché il grep gate `TextField(` matcherebbe `BasicTextField(`.
+- Field: `BasicTextField` (foundation), non Material `TextField`.
 - `PrefetchComposeCache` resta sul path 0.1 `interpret(surface, ctx)`.
 
 **Renderer 0.2 GAP: nessuno.**

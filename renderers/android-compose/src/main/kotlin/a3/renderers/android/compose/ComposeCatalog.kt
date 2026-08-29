@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.BasicTextField as FoundationInput
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -55,7 +55,7 @@ private fun CatalogNode(
         }
         "item" -> Box(modifier) { Children(node, gestures, onAction) }
         "action" -> Box(modifier.size(48.dp)) { Children(node, gestures, onAction) }
-        "field" -> FoundationInput(
+        "field" -> BasicTextField(
             value = node.text,
             onValueChange = {},
             readOnly = true,

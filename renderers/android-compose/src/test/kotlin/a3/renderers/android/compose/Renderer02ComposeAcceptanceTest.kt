@@ -155,8 +155,8 @@ class Renderer02ComposeAcceptanceTest {
         composeRule.onNodeWithTag("pax").assertIsDisplayed()
         composeRule.onNodeWithTag("pax").assertTextContains("Ada")
         val catalog = File("src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt").readText()
-        assertTrue(catalog.contains("FoundationInput") || catalog.contains("BasicTextField"))
-        assertFalse(catalog.contains("TextField("))
+        assertTrue(catalog.contains("BasicTextField"))
+        assertFalse(catalog.contains("androidx.compose.material"))
     }
 
     @Test
@@ -185,8 +185,7 @@ class Renderer02ComposeAcceptanceTest {
             "Card(",
             "Dialog(",
             "AlertDialog(",
-            "Snackbar(",
-            "TextField("
+            "Snackbar("
         )
         val sources = File("src/main").walkTopDown().filter { it.extension == "kt" }.toList()
         assertTrue(sources.isNotEmpty())
@@ -196,13 +195,18 @@ class Renderer02ComposeAcceptanceTest {
                 assertFalse(text.contains(token), "${file.path} $token")
             }
             assertFalse(text.contains("androidx.compose.material"), file.path)
+            for (line in text.lineSequence()) {
+                if (line.contains("TextField(") && !line.contains("BasicTextField(")) {
+                    throw AssertionError("${file.path} material TextField: $line")
+                }
+            }
         }
         val catalog = File("src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt").readText()
         assertTrue(catalog.contains("Column"))
         assertTrue(catalog.contains("Row"))
         assertTrue(catalog.contains("LazyColumn"))
         assertTrue(catalog.contains("Box"))
-        assertTrue(catalog.contains("FoundationInput") || catalog.contains("BasicTextField"))
+        assertTrue(catalog.contains("BasicTextField"))
         assertTrue(catalog.contains("clickable"))
         assertTrue(catalog.contains("pointerInput"))
     }
