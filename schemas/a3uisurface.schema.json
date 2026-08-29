@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/a3uisurface",
+  "type": "object",
+  "required": [
+    "id",
+    "projection_ref",
+    "presentation_ref",
+    "lineage",
+    "density_hint",
+    "color_tokens",
+    "motion",
+    "morph",
+    "gestures",
+    "haptics",
+    "produced_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "projection_ref": {
+      "type": "string"
+    },
+    "presentation_ref": {
+      "type": "string"
+    },
+    "lineage": {
+      "type": "object",
+      "required": [
+        "state_identity",
+        "source_state_version",
+        "causal_event_id"
+      ],
+      "properties": {
+        "state_identity": {
+          "type": "string"
+        },
+        "source_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "causal_event_id": {
+          "type": "string"
+        },
+        "future_state_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "forecast_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "density_hint": {
+      "enum": [
+        "compact",
+        "comfortable",
+        "spacious"
+      ]
+    },
+    "color_tokens": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "accent",
+          "anticipation_highlight",
+          "success"
+        ]
+      }
+    },
+    "motion": {
+      "type": "object",
+      "required": [
+        "stiffness",
+        "damping",
+        "curve",
+        "duration_hint"
+      ],
+      "properties": {
+        "stiffness": {
+          "type": "number"
+        },
+        "damping": {
+          "type": "number"
+        },
+        "curve": {
+          "type": "string"
+        },
+        "duration_hint": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "morph": {
+      "type": "object",
+      "required": [
+        "to",
+        "mode",
+        "shared",
+        "motion"
+      ],
+      "properties": {
+        "to": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "shared-element",
+            "crossfade"
+          ]
+        },
+        "shared": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "motion": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gestures": {
+      "type": "object",
+      "required": [
+        "bindings"
+      ],
+      "properties": {
+        "bindings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "gesture",
+              "action"
+            ],
+            "properties": {
+              "gesture": {
+                "type": "string"
+              },
+              "action": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "haptics": {
+      "type": "object",
+      "required": [
+        "events"
+      ],
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "event",
+              "pattern",
+              "intensity_hint"
+            ],
+            "properties": {
+              "event": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "intensity_hint": {
+                "enum": [
+                  "light",
+                  "medium",
+                  "strong"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "prefetch": {
+      "type": "object",
+      "required": [
+        "candidate_ref",
+        "base_state_version",
+        "confidence",
+        "ttl_ms",
+        "status"
+      ],
+      "properties": {
+        "candidate_ref": {
+          "type": "string"
+        },
+        "base_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ttl_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "status": {
+          "enum": [
+            "prepared",
+            "invalidated",
+            "expired"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "produced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}
