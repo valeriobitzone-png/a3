@@ -27,7 +27,8 @@ data class MorphSpec(
 
 data class GestureBinding(
     val gesture: String,
-    val action: String
+    val action: String,
+    val targetNodeId: String
 )
 
 data class GestureMap(
@@ -44,12 +45,25 @@ data class HapticMap(
     val events: List<HapticEvent>
 )
 
+data class Node(
+    val id: String,
+    val role: String,
+    val children: List<Node> = emptyList()
+)
+
+data class Binding(
+    val atomKey: String,
+    val nodeId: String,
+    val role: String
+)
+
 data class PrefetchSpec(
     val candidateRef: String,
     val baseStateVersion: Long,
     val confidence: Double,
     val ttlMs: Long,
-    val status: PrefetchStatus
+    val status: PrefetchStatus,
+    val atomKeys: List<String> = emptyList()
 )
 
 data class A3UISurface(
@@ -63,6 +77,8 @@ data class A3UISurface(
     val morph: MorphSpec,
     val gestures: GestureMap,
     val haptics: HapticMap,
+    val nodes: List<Node> = emptyList(),
+    val bindings: List<Binding> = emptyList(),
     val prefetch: PrefetchSpec? = null,
     val producedAt: Instant
 )

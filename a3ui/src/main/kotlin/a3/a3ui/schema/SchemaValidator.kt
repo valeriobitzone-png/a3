@@ -15,7 +15,7 @@ object SchemaValidator {
         val schema = loadSchema(schemaFile)
         val instance = mapper.readTree(canonicalJson)
         val errors = ArrayList<String>()
-        check(schema, instance, "$", errors)
+        check(schema, instance, "$", errors, schema)
         require(errors.isEmpty()) {
             "schema $schemaFile failed: ${errors.joinToString("; ")}"
         }
@@ -44,57 +44,76 @@ object SchemaValidator {
         return Files.readString(path)
     }
 
-    private fun check(schema: JsonNode, instance: JsonNode, path: String, errors: MutableList<String>) {
-        if (schema.has("type")) {
-            val types = typeList(schema.get("type"))
+    private fun check(
+        schema: JsonNode,
+        instance: JsonNode,
+        path: String,
+        errors: MutableList<String>,
+        root: JsonNode
+    ) {
+        val effective = resolve(schema, root)
+        if (effective.has("type")) {
+            val types = typeList(effective.get("type"))
             if (!matchesType(instance, types)) {
                 errors += "$path: expected type $types, got ${instance.nodeType}"
                 return
             }
         }
-        if (schema.has("enum")) {
-            val allowed = schema.get("enum").map { mapper.writeValueAsString(it) }
+        if (effective.has("enum")) {
+            val allowed = effective.get("enum").map { mapper.writeValueAsString(it) }
             val actual = mapper.writeValueAsString(instance)
             if (actual !in allowed) errors += "$path: value $actual not in enum $allowed"
         }
         if (instance.isNumber) {
             val n = instance.doubleValue()
-            if (schema.has("minimum") && n < schema.get("minimum").doubleValue()) {
+            if (effective.has("minimum") && n < effective.get("minimum").doubleValue()) {
                 errors += "$path: $n < minimum"
             }
-            if (schema.has("maximum") && n > schema.get("maximum").doubleValue()) {
+            if (effective.has("maximum") && n > effective.get("maximum").doubleValue()) {
                 errors += "$path: $n > maximum"
             }
         }
-        if (instance.isTextual && schema.path("format").asText("") == "date-time") {
+        if (instance.isTextual && effective.path("format").asText("") == "date-time") {
             if (!instance.asText().matches(DATE_TIME)) errors += "$path: not a date-time"
         }
         if (instance.isObject) {
-            if (schema.has("required")) {
-                for (req in schema.get("required")) {
+            if (effective.has("required")) {
+                for (req in effective.get("required")) {
                     val name = req.asText()
                     if (!instance.has(name)) errors += "$path: missing required '$name'"
                 }
             }
-            val props = schema.get("properties")
-            val additional = schema.path("additionalProperties")
+            val props = effective.get("properties")
+            val additional = effective.path("additionalProperties")
             val fieldNames = ArrayList<String>()
             instance.fieldNames().forEachRemaining { fieldNames.add(it) }
             fieldNames.sorted().forEach { name ->
                 val child = instance.get(name)
                 if (props != null && props.has(name)) {
-                    check(props.get(name), child, "$path.$name", errors)
+                    check(props.get(name), child, "$path.$name", errors, root)
                 } else if (additional.isBoolean && !additional.booleanValue()) {
                     errors += "$path: additional property '$name' not allowed"
                 } else if (additional.isObject) {
-                    check(additional, child, "$path.$name", errors)
+                    check(additional, child, "$path.$name", errors, root)
                 }
             }
         }
-        if (instance.isArray && schema.has("items")) {
-            val items = schema.get("items")
-            instance.forEachIndexed { i, child -> check(items, child, "$path[$i]", errors) }
+        if (instance.isArray && effective.has("items")) {
+            val items = effective.get("items")
+            instance.forEachIndexed { i, child -> check(items, child, "$path[$i]", errors, root) }
         }
+    }
+
+    private fun resolve(schema: JsonNode, root: JsonNode): JsonNode {
+        if (!schema.has("\$ref")) return schema
+        val ref = schema.get("\$ref").asText()
+        require(ref.startsWith("#/")) { "unsupported \$ref $ref" }
+        var node = root
+        for (part in ref.removePrefix("#/").split('/')) {
+            node = node.get(part)
+                ?: throw IllegalArgumentException("unresolved \$ref $ref")
+        }
+        return node
     }
 
     private fun typeList(node: JsonNode): List<String> =

@@ -35,7 +35,10 @@ class A3UIBarrierTest {
         assertTrue(
             DeterministicA3UICompiler::class.java.declaredMethods
                 .filter { it.name.startsWith("compile") }
-                .all { it.parameterTypes.single().packageName.startsWith("a3.projection.model") }
+                .all { method ->
+                    method.parameterTypes.isNotEmpty() &&
+                        method.parameterTypes.all { it.packageName.startsWith("a3.projection.model") }
+                }
         )
         assertTrue(
             listOf(Projection::class.java, PresentationState::class.java).all { model ->

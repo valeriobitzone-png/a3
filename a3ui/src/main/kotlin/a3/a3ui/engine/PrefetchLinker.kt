@@ -5,6 +5,7 @@ import a3.a3ui.model.PrefetchStatus
 import a3.projection.model.CandidateStatus
 import a3.projection.model.ProjectionCandidate
 import java.time.Instant
+import java.util.ArrayList
 import java.util.TreeMap
 
 /**
@@ -52,12 +53,18 @@ class PrefetchLinker {
             expiry != null && !now.isBefore(expiry) -> PrefetchStatus.EXPIRED
             else -> PrefetchStatus.PREPARED
         }
+        val atomKeys = ArrayList<String>()
+        for (atom in candidate.presentation.atoms) {
+            atomKeys += atom.k
+        }
+        atomKeys.sort()
         return PrefetchSpec(
             candidateRef = candidate.id,
             baseStateVersion = candidate.baseStateVersion,
             confidence = confidence,
             ttlMs = ttl,
-            status = status
+            status = status,
+            atomKeys = atomKeys
         )
     }
 }

@@ -28,13 +28,13 @@ class TemporalBuilder {
         return MorphSpec(to = to, mode = "shared-element", shared = ids, motion = motion)
     }
 
-    fun gestures(requirements: List<String>): GestureMap {
+    fun gestures(requirements: List<String>, targetNodeId: String): GestureMap {
         val req = ArrayList(requirements)
         req.sort()
         val bindings = ArrayList<GestureBinding>()
-        if (req.isNotEmpty()) bindings += GestureBinding("swipe-left", "dismiss")
-        if (req.contains("confirm")) bindings += GestureBinding("confirm", "confirm")
-        bindings.sortWith(compareBy({ it.gesture }, { it.action }))
+        if (req.isNotEmpty()) bindings += GestureBinding("swipe-left", "dismiss", targetNodeId)
+        if (req.contains("confirm")) bindings += GestureBinding("confirm", "confirm", targetNodeId)
+        bindings.sortWith(compareBy({ it.gesture }, { it.action }, { it.targetNodeId }))
         return GestureMap(bindings)
     }
 

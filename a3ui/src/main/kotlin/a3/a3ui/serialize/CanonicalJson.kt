@@ -1,12 +1,14 @@
 package a3.a3ui.serialize
 
 import a3.a3ui.model.A3UISurface
+import a3.a3ui.model.Binding
 import a3.a3ui.model.GestureBinding
 import a3.a3ui.model.GestureMap
 import a3.a3ui.model.HapticEvent
 import a3.a3ui.model.HapticMap
 import a3.a3ui.model.MorphSpec
 import a3.a3ui.model.MotionSpec
+import a3.a3ui.model.Node
 import a3.a3ui.model.PrefetchSpec
 import a3.a3ui.model.PrefetchStatus
 import a3.projection.model.CausalLineage
@@ -52,9 +54,27 @@ object CanonicalJson {
             )
         )
         is GestureBinding -> obj(
-            mapOf("action" to value.action, "gesture" to value.gesture)
+            mapOf(
+                "action" to value.action,
+                "gesture" to value.gesture,
+                "target_node_id" to value.targetNodeId
+            )
         )
         is GestureMap -> obj(mapOf("bindings" to value.bindings))
+        is Node -> obj(
+            mapOf(
+                "children" to value.children,
+                "id" to value.id,
+                "role" to value.role
+            )
+        )
+        is Binding -> obj(
+            mapOf(
+                "atom_key" to value.atomKey,
+                "node_id" to value.nodeId,
+                "role" to value.role
+            )
+        )
         is HapticEvent -> obj(
             mapOf(
                 "event" to value.event,
@@ -65,6 +85,7 @@ object CanonicalJson {
         is HapticMap -> obj(mapOf("events" to value.events))
         is PrefetchSpec -> obj(
             mapOf(
+                "atom_keys" to value.atomKeys,
                 "base_state_version" to value.baseStateVersion,
                 "candidate_ref" to value.candidateRef,
                 "confidence" to value.confidence,
@@ -74,6 +95,7 @@ object CanonicalJson {
         )
         is A3UISurface -> obj(
             buildMap {
+                put("bindings", value.bindings)
                 put("color_tokens", value.colorTokens)
                 put("density_hint", value.densityHint)
                 put("gestures", value.gestures)
@@ -82,6 +104,7 @@ object CanonicalJson {
                 put("lineage", value.lineage)
                 put("morph", value.morph)
                 put("motion", value.motion)
+                put("nodes", value.nodes)
                 value.prefetch?.let { put("prefetch", it) }
                 put("presentation_ref", value.presentationRef)
                 put("produced_at", value.producedAt)

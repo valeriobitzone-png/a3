@@ -48,3 +48,7 @@ T5 did not unify the two types (H3 remains OPEN).
 8. **Content-bearing prefetch.** Prefetch is status metadata, not a second surface of facts.
 
 Closing these gaps belongs to A3UI 0.2, not to renderer special-cases.
+
+## A3UI 0.2 — payload closed (a); frozen renderer remains (b)
+
+A3UI 0.2 expresses the train scenario as `Node` / `Binding` / `GestureBinding` on `A3UISurface`. Copy is the injected atom value (`BindingCopy`), not compiler-invented text. The T5 renderer is still 0.1 and may ignore `nodes[]`. Historical P56 stays **(b) LANGUAGE GAP**: (b)→(a) is payload expressibility, not new pixels.
