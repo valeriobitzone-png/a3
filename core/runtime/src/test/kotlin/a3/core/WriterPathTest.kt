@@ -7,6 +7,7 @@ import a3.core.planner.PlanResult
 import a3.core.policy.Policy
 import a3.core.runtime.Executor
 import a3.core.runtime.Runtime
+import a3.core.runtime.WorldStateReplay
 import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
@@ -84,7 +85,7 @@ class WriterPathTest {
             assertEquals(event.id, bump.causalId)
         }
 
-        val viaGate = reconstructThroughApply(BeliefState(), world, t)
+        val viaGate = WorldStateReplay.replay(world.eventLog())
         assertEquals(viaGate.version, world.committed.version)
         assertContentEquals(
             CanonicalJson.bytesState(viaGate),
@@ -122,15 +123,15 @@ class WriterPathTest {
         assertTrue(versions.zipWithNext().all { (a, b) -> b == a + 1 })
         assertTrue(versions.none { it < prev })
 
-        val compensating = world.eventLog().all()
+        val compensatingEvent = world.eventLog().all()
             .filter { it.type == "observation.accepted" }
-            .map { it.payload as a3.core.world.Observation }
-            .single { it.id.startsWith("obs_rollback_") }
+            .single { it.integrateMode == "COMPENSATE" }
+        val compensating = compensatingEvent.payload as a3.core.world.Observation
         assertEquals("obs_rollback_${plan().plan.id}", compensating.id)
         assertTrue(result.state.facts.any { it.k == "calendar.next" && it.supersededBy != null })
         assertTrue(result.state.facts.any { it.k == "train.selected" && it.supersededBy != null })
 
-        val viaGate = reconstructThroughApply(BeliefState(), world, t)
+        val viaGate = WorldStateReplay.replay(world.eventLog())
         assertEquals(3, viaGate.version)
         assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(result.state))
         assertNotNull(world.eventLog().all().first { it.type == "execution.rolled_back" })

@@ -246,7 +246,7 @@ class InvariantReviewTest {
             t, grants()
         )
         assertTrue(result.committed)
-        val reconstructed = world.eventLog().replayState(BeliefState())
+        val reconstructed = WorldStateReplay.replay(world.eventLog())
         assertEquals(CanonicalJson.ofState(result.state), CanonicalJson.ofState(reconstructed))
         assertContentEquals(
             CanonicalJson.bytesState(result.state),

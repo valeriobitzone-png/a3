@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/event",
+  "type": "object",
+  "required": [
+    "id",
+    "t",
+    "source",
+    "type"
+  ],
+  "description": "Event envelope. When type is observation.accepted, integrate_mode is required on the envelope (SUPERSEDE_KEYS | COMPENSATE) and payload is Observation. Mode is data on the event, never inferred from observation id.",
+  "properties": {
+    "schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "t": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "causal_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state_version": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "payload": {},
+    "integrate_mode": {
+      "type": "string",
+      "enum": [
+        "SUPERSEDE_KEYS",
+        "COMPENSATE"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

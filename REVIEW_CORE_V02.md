@@ -12,7 +12,7 @@ The single-writer barrier is now true **on the execute path**, not only on the `
 
 **Invariant:** after a successful execute, `world.committed.version = prev + N` (N = committed steps, each apply is +1), `ExecutionResult.state === world.committed`, and that state equals an **independent** `WorldState.apply` of the minted observations. The event log contains `observation.accepted` as the causal parent of each `state.updated` version bump.
 
-**How:** happy-path train plan (3 steps). Runtime mints with the real `PolicyDecision` and calls `world.apply`. A second `WorldState(initial)` replays only `observation.accepted` payloads via `mintAcceptedObservation` + `apply` (`reconstructThroughApply`). Bytes compared with `CanonicalJson.bytesState`.
+**How:** happy-path train plan (3 steps). Runtime mints with the real `PolicyDecision` and calls `world.apply`. Reconstruction is `WorldStateReplay.replay` (fresh world, fold of apply). Bytes compared with `CanonicalJson.bytesState`.
 
 **Not tautological:** the independent world never went through `Runtime.execute`. If execute still merged on a detached copy, `observation.accepted` would be absent and reconstruction would stay at version 0.
 
@@ -26,7 +26,7 @@ The single-writer barrier is now true **on the execute path**, not only on the `
 
 **Invariant:** mismatch → mint compensating observation → `WorldState.apply` with `IntegrateMode.COMPENSATE` → new version, never decrement; superseded facts remain in history.
 
-**How:** two successful steps then mismatch (same as R4). Independent `reconstructThroughApply` uses `obs_rollback_` → COMPENSATE. Assert versions `[1,2,3]`, superseded `calendar.next` / `train.selected`, no live `ticket.owned=true`.
+**How:** two successful steps then mismatch (same as R4). Independent `WorldStateReplay.replay` reads `integrate_mode=COMPENSATE` from the event (not from `obs_rollback_` prefix). Assert versions `[1,2,3]`, superseded `calendar.next` / `train.selected`, no live `ticket.owned=true`.
 
 **Not tautological:** SUPERSEDE_KEYS on an empty restore would leave the two commits live at v3; COMPENSATE through the gate is required for byte match.
 
@@ -43,11 +43,11 @@ The single-writer barrier is now true **on the execute path**, not only on the `
 **How:**
 - `Class.forName("a3.core.world."+"ObservationAcceptance")` → `ClassNotFoundException`
 - reflection: one `apply`, parameter `AcceptedObservation`; no `write`; `committed` field not public
-- ArchUnit (production classes only): no `a3.core..` class except `Runtime` calls `WorldState.apply`
-- ArchUnit: `Runtime` **does** call `WorldState.apply`
+- ArchUnit (production classes only): no `a3.core..` class except `Runtime` and `WorldStateReplay` calls `WorldState.apply`
+- ArchUnit: `Runtime` and `WorldStateReplay` **do** call `WorldState.apply`; `EventLog` does not
 - source: `Runtime.kt` contains `world.apply(` and `mintAcceptedObservation`; no `.integrate(` on the execute path
 
-**Negative:** planner, `Transition`, `EventLog` cannot call `WorldState.apply` (ArchUnit). Replay reconstructs copies via `BeliefState.integrate`, which does not assign `WorldState.committed`.
+**Negative:** planner, `Transition`, `EventLog` cannot call `WorldState.apply` (ArchUnit). `EventLog` is a log (list reader). Replay folds apply in `:core:runtime` on a **fresh** world.
 
 **Grep (empty):** `grep -rn "ObservationAcceptance.apply" core/*/src | grep -v "WorldState"`
 
@@ -57,7 +57,7 @@ The single-writer barrier is now true **on the execute path**, not only on the `
 
 ## 4. W4 — T6 / T7 assert the committed world, not a detached copy
 
-**T6:** `result.state === world.committed`; version and UTF-8 STATE bytes equal `reconstructThroughApply`. Ticket fact present.
+**T6:** `result.state === world.committed`; version and UTF-8 STATE bytes equal `WorldStateReplay.replay`. Ticket fact present.
 
 **T7:** rollback flags; `result.state === world.committed`; bytes equal independent apply of the compensating accepted observation.
 
@@ -107,6 +107,11 @@ WriterPathTest > W2_rollback_mints_compensating_accepted_and_bumps_monotonically
 WriterPathTest > W1_commit_goes_through_world_state_apply() PASSED
 WriterPathTest > W5_planner_stays_on_copy_and_does_not_mint_or_apply() PASSED
 
+ReplayWriterTest > V1_every_accepted_event_carries_integrate_mode_and_main_does_not_branch_on_rollback_prefix() PASSED
+ReplayWriterTest > V3_replay_fold_matches_committed_bytes_for_supersede_and_compensate() PASSED
+ReplayWriterTest > V2_apply_is_the_only_writer_event_log_does_not_apply_or_integrate() PASSED
+ReplayWriterTest > V4_accepted_without_mode_or_unknown_mode_throws_and_does_not_guess() PASSED
+
 PredictionWorldGateTest > P1 P2 P7 P9 PASSED
 
 > Task :prediction:test
@@ -127,7 +132,7 @@ P52 P55 PASSED
 > Task :renderers:android-compose:testReleaseUnitTest
 P52 P55 PASSED
 
-BUILD SUCCESSFUL in 11m 13s
+BUILD SUCCESSFUL in 8m 35s
 89 actionable tasks: 89 executed
 ```
 
@@ -148,15 +153,32 @@ T1–T56 remain green. W1–W5 green.
 
 ---
 
+## Replay-writer (chiude core-v0.2)
+
+`EventLog` is a log. `observation.accepted` carries `integrate_mode` on the envelope. `WorldStateReplay.replay` creates a **fresh** `WorldState` and folds `WorldState.apply`. T10 and R8 use that fold. P6/P18 untouched.
+
+| Test | Invariante | Percorso reale | Perché non tautologico | Negativo | Esito |
+|------|------------|----------------|------------------------|----------|-------|
+| V1 | ogni accepted ha `integrate_mode`; main non brancha sul prefisso | execute + walk `src/main` | schema + source, non un mock | `startsWith`+prefisso assente | **PASS** |
+| V2 | apply è l'unico writer; EventLog non apply/integrate | ArchUnit W3 + source EventLog / WorldStateReplay | bytecode + file | EventLog senza `integrate(` | **PASS** |
+| V3 | SUPERSEDE + COMPENSATE → bytes = committed | execute mismatch + `WorldStateReplay.replay` | replica ≠ `world.committed`; CanonicalJson | mode letto dall'evento | **PASS** |
+| V4 | missing/unknown mode → throw | log sintetico `NORMAL` / mode assente | non defaulta SUPERSEDE | non indovina dal payload id | **PASS** |
+| V5 | T1–T10, P1–P56, W1–W5, V1–V4 | `./gradlew test --rerun-tasks` | suite completa | — | **PASS** |
+
+R2 (non gate): `DECISIONS.md` — futuro: `WorldState.apply` live rifiuta duplicate event id.
+
+---
+
 ## 7. Deviazioni dichiarate (non GAP)
 
-1. **`ObservationAcceptance` rimosso**, non reso `internal`. Il merge su copie è `BeliefState.integrate` (planner + `EventLog.replayState`). Non assegna `WorldState.committed`.
+1. **`ObservationAcceptance` rimosso**, non reso `internal`. Il merge su copie è `BeliefState.integrate` (planner / `Transition`). Non assegna `WorldState.committed`. Replay committed è `WorldStateReplay` (fold di `apply`), non `EventLog`.
 2. **Mismatch al primo step** ora passa dal gate compensativo (v1 su world vuoto). Prima si saltava l'apply se `version == before`. Allineato al contratto ROLLBACK della spec; T7 non asseriva version 0.
 3. **`Runtime.execute` prende `WorldState`**, non una `BeliefState` staccata. `ExecutionResult.state` è `world.committed`.
 4. **`WriteResult.Accepted` include `acceptedEventId`** per la catena causale `observation.accepted` → `execution.committed` / `execution.rolled_back`.
 5. **`mintAcceptedObservation(observation, policyDecision, …)`** è il mint del loop. `acceptedObservation` resta un wrapper ALLOW per P2/P7/R9 (type-gate, non il closed loop).
-6. **H3 / validator / CanonicalJson / `missingPrecondition`:** non toccati (fuori scope).
-7. **AGP `testReleaseUnitTest`** duplica P52/P55 (invariato da T5). Suite più lenta con `--rerun-tasks` (11m 13s).
+6. **H3 / consolidamento validator/CanonicalJson / `missingPrecondition`:** non fatti. Aggiunti `event.schema.json`, `ModelValidator.event`, e `integrate_mode` sull'encoding Event (campo envelope, non un merge di CanonicalJson).
+7. **AGP `testReleaseUnitTest`** duplica P52/P55 (invariato da T5).
+8. **`obs_rollback_`** resta naming cosmetico dell'observation id. Il mode è sull'evento.
 
 Nessuna di queste riapre un write laterale sul world committed.
 
@@ -166,7 +188,9 @@ Nessuna di queste riapre un write laterale sul world committed.
 
 Solo `core/` (+ questa review a root):
 
-- `WorldState.apply` emette `observation.accepted` (causale del bump) poi `state.updated`
+- `WorldState.apply` emette `observation.accepted` con `integrate_mode` poi `state.updated`
+- `WorldStateReplay` fold di apply su world fresco; `EventLog.replay()` è solo lista
+- test W1–W5, V1–V4; T10/R8 sul fold
 - `Runtime` minta e chiama `world.apply` su commit e rollback
 - planner / `Transition` restano su `BeliefState.integrate`
 - test W1–W5; T6/T7 aggiornati (W4)

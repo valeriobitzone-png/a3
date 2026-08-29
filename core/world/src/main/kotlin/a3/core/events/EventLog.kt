@@ -1,12 +1,12 @@
 package a3.core.events
 
-import a3.core.world.BeliefState
 import a3.core.world.Event
-import a3.core.world.IntegrateMode
-import a3.core.world.Observation
-import a3.core.world.integrate
 import java.util.Collections
 
+/**
+ * Append-only event log. Reconstruction of committed belief lives in :core:runtime
+ * as a fold over a fresh world. This class does not mint, apply, or merge belief.
+ */
 class EventLog {
     private val events = ArrayList<Event>()
 
@@ -21,24 +21,4 @@ class EventLog {
     fun all(): List<Event> = Collections.unmodifiableList(ArrayList(events))
 
     fun replay(): List<Event> = all()
-
-    fun replayState(initial: BeliefState = BeliefState()): BeliefState {
-        var state = initial
-        for (event in events) {
-            if (event.type != "state.updated") continue
-            state = when (val payload = event.payload) {
-                is Observation -> {
-                    val mode = if (payload.id.startsWith("obs_rollback_")) {
-                        IntegrateMode.COMPENSATE
-                    } else {
-                        IntegrateMode.SUPERSEDE_KEYS
-                    }
-                    state.integrate(payload, mode)
-                }
-                is BeliefState -> payload
-                else -> state
-            }
-        }
-        return state
-    }
 }

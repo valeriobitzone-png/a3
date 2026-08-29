@@ -153,6 +153,7 @@ object CanonicalJson {
             buildMap {
                 value.causalId?.let { put("causal_id", it) }
                 put("id", value.id)
+                value.integrateMode?.let { put("integrate_mode", it) }
                 value.payload?.let { put("payload", it) }
                 put("source", value.source)
                 value.stateVersion?.let { put("state_version", it) }

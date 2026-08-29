@@ -94,7 +94,7 @@ class CoreAcceptanceTest {
         assertEquals(true, result.state.current(t).first { it.k == "ticket.owned" }.v)
         assertTrue(result.state === world.committed)
         assertEquals(world.committed.version, result.state.version)
-        val viaGate = reconstructThroughApply(BeliefState(), world)
+        val viaGate = WorldStateReplay.replay(world.eventLog())
         assertEquals(viaGate.version, world.committed.version)
         assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(world.committed))
         assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(result.state))
@@ -115,7 +115,7 @@ class CoreAcceptanceTest {
         assertTrue(result.rolledBack)
         assertFalse(result.committed)
         assertTrue(result.state === world.committed)
-        val viaGate = reconstructThroughApply(BeliefState(), world)
+        val viaGate = WorldStateReplay.replay(world.eventLog())
         assertEquals(viaGate.version, world.committed.version)
         assertContentEquals(CanonicalJson.bytesState(viaGate), CanonicalJson.bytesState(result.state))
     }
@@ -170,7 +170,7 @@ class CoreAcceptanceTest {
             grants=mapOf("train.commit" to TrustGrant("tg","train.commit",TrustTier.IRREVERSIBLE,true,t.plusSeconds(300)))
         )
         assertTrue(result.committed)
-        val reconstructed = world.eventLog().replayState(BeliefState())
+        val reconstructed = WorldStateReplay.replay(world.eventLog())
         assertEquals(CanonicalJson.ofState(result.state), CanonicalJson.ofState(reconstructed))
         assertContentEquals(
             CanonicalJson.bytesState(result.state),
