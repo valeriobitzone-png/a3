@@ -17,7 +17,8 @@ data class Event(
     val type: String,
     val causalId: String? = null,
     val stateVersion: Long? = null,
-    val payload: Any? = null
+    val payload: Any? = null,
+    val integrateMode: String? = null
 )
 
 /**
@@ -65,7 +66,8 @@ class WorldState(
                 type = "observation.accepted",
                 causalId = accepted.causalId ?: observation.id,
                 stateVersion = committed.version,
-                payload = observation
+                payload = observation,
+                integrateMode = accepted.integrateMode.name
             )
         )
         events.append(

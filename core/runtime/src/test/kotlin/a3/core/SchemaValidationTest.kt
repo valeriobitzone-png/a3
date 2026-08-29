@@ -36,6 +36,17 @@ class SchemaValidationTest {
         ModelValidator.trust(TrustGrant("tg", "train.commit", TrustTier.COMMIT, true, ttl = 300))
         ModelValidator.outcome(Outcome("o", "g", listOf(fact), 0.9, "achieved"))
         ModelValidator.observation(Observation("obs", "exec", t, listOf(fact)))
+        ModelValidator.event(
+            Event(
+                id = "ev_accepted_1",
+                t = t,
+                source = "observation",
+                type = "observation.accepted",
+                stateVersion = 1,
+                payload = Observation("obs", "exec", t, listOf(fact)),
+                integrateMode = "SUPERSEDE_KEYS"
+            )
+        )
         ModelValidator.capability(
             Capability("c", "c", emptyList(), effects = listOf(fact), reliability = 1.0)
         )

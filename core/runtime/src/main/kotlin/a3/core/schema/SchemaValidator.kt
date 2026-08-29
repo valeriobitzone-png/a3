@@ -142,6 +142,7 @@ object ModelValidator {
     fun trust(model: Any) = SchemaValidator.validate("trust.schema.json", model)
     fun outcome(model: Any) = SchemaValidator.validate("outcome.schema.json", model)
     fun observation(model: Any) = SchemaValidator.validate("observation.schema.json", model)
+    fun event(model: Any) = SchemaValidator.validate("event.schema.json", model)
     fun capability(model: Any) = SchemaValidator.validate("capability.schema.json", model)
     fun prediction(model: Any) = SchemaValidator.validate("prediction.schema.json", model)
     fun projection(model: Any) = SchemaValidator.validate("projection.schema.json", model)

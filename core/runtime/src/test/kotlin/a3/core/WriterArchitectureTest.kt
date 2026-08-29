@@ -35,11 +35,23 @@ class WriterArchitectureTest {
         noClasses()
             .that().resideInAPackage("a3.core..")
             .and().doNotHaveFullyQualifiedName("a3.core.runtime.Runtime")
+            .and().doNotHaveFullyQualifiedName("a3.core.runtime.WorldStateReplay")
             .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .because("WorldState.apply is the only committed writer; live Runtime and WorldStateReplay may call it")
             .check(production)
 
         classes()
             .that().haveFullyQualifiedName("a3.core.runtime.Runtime")
+            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .check(production)
+
+        classes()
+            .that().haveFullyQualifiedName("a3.core.runtime.WorldStateReplay")
+            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .check(production)
+
+        noClasses()
+            .that().resideInAPackage("a3.core.events..")
             .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
