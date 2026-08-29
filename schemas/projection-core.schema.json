@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/projection-core",
+  "type": "object",
+  "required": [
+    "id",
+    "presentation_id",
+    "context_ref",
+    "form_factor_hints",
+    "lineage",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "presentation_id": {
+      "type": "string"
+    },
+    "context_ref": {
+      "type": "string"
+    },
+    "form_factor_hints": {
+      "type": "object",
+      "required": [
+        "form_factor",
+        "density"
+      ],
+      "properties": {
+        "form_factor": {
+          "enum": [
+            "phone",
+            "tablet",
+            "car",
+            "glasses",
+            "desktop"
+          ]
+        },
+        "density": {
+          "enum": [
+            "compact",
+            "comfortable",
+            "spacious"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "interaction_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "required": [
+        "state_identity",
+        "source_state_version",
+        "causal_event_id"
+      ],
+      "properties": {
+        "state_identity": {
+          "type": "string"
+        },
+        "source_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "causal_event_id": {
+          "type": "string"
+        },
+        "future_state_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "forecast_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "ready",
+        "superseded"
+      ]
+    }
+  },
+  "additionalProperties": false
+}
