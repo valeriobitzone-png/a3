@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "a3/a3uisurface",
+  "title": "A3UISurface v0.2",
   "type": "object",
   "required": [
     "id",
@@ -13,6 +14,8 @@
     "morph",
     "gestures",
     "haptics",
+    "nodes",
+    "bindings",
     "produced_at"
   ],
   "properties": {
@@ -142,13 +145,22 @@
             "type": "object",
             "required": [
               "gesture",
-              "action"
+              "action",
+              "target_node_id"
             ],
             "properties": {
               "gesture": {
                 "type": "string"
               },
               "action": {
+                "enum": [
+                  "confirm",
+                  "dismiss",
+                  "select",
+                  "next-step"
+                ]
+              },
+              "target_node_id": {
                 "type": "string"
               }
             },
@@ -194,6 +206,39 @@
       },
       "additionalProperties": false
     },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/node"
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "atom_key",
+          "node_id",
+          "role"
+        ],
+        "properties": {
+          "atom_key": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "content",
+              "placeholder",
+              "value"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "prefetch": {
       "type": "object",
       "required": [
@@ -226,6 +271,12 @@
             "invalidated",
             "expired"
           ]
+        },
+        "atom_keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
@@ -235,5 +286,38 @@
       "format": "date-time"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "role",
+        "children"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "stack",
+            "row",
+            "list",
+            "item",
+            "action",
+            "field",
+            "text"
+          ]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/node"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

@@ -167,14 +167,17 @@ class A3UIAcceptanceTest {
         )
         val surface = compiler().compile(readOut.projection)
         assertEquals(
-            listOf(GestureBinding("confirm", "confirm"), GestureBinding("swipe-left", "dismiss")),
+            listOf(
+                GestureBinding("confirm", "confirm", "root"),
+                GestureBinding("swipe-left", "dismiss", "root")
+            ),
             surface.gestures.bindings
         )
         val fields = GestureBinding::class.java.declaredFields
             .filter { java.lang.reflect.Modifier.isPrivate(it.modifiers) && !java.lang.reflect.Modifier.isStatic(it.modifiers) }
             .map { it.name }
             .toSet()
-        assertEquals(setOf("gesture", "action"), fields)
+        assertEquals(setOf("gesture", "action", "targetNodeId"), fields)
         assertFalse(fields.any { it == "x" || it == "y" || it.contains("coord", ignoreCase = true) })
     }
 
@@ -223,7 +226,7 @@ class A3UIAcceptanceTest {
         assertTrue(PrefetchSpec::class.java.declaredFields.none { it.name == "may_commit" })
         assertFalse(CanonicalJson.of(live).contains("may_commit"))
         val illegal =
-            """{"id":"s","projection_ref":"p","presentation_ref":"ps","lineage":{"state_identity":"c","source_state_version":0,"causal_event_id":"e"},"density_hint":"compact","color_tokens":["accent"],"motion":{"stiffness":1,"damping":1,"curve":"standard","duration_hint":1},"morph":{"to":"ps","mode":"shared-element","shared":[],"motion":{"stiffness":1,"damping":1,"curve":"standard","duration_hint":1}},"gestures":{"bindings":[]},"haptics":{"events":[]},"produced_at":"2026-08-27T08:00:00Z","prefetch":{"candidate_ref":"x","base_state_version":0,"confidence":0,"ttl_ms":0,"status":"prepared","may_commit":true}}"""
+            """{"id":"s","projection_ref":"p","presentation_ref":"ps","lineage":{"state_identity":"c","source_state_version":0,"causal_event_id":"e"},"density_hint":"compact","color_tokens":["accent"],"motion":{"stiffness":1,"damping":1,"curve":"standard","duration_hint":1},"morph":{"to":"ps","mode":"shared-element","shared":[],"motion":{"stiffness":1,"damping":1,"curve":"standard","duration_hint":1}},"gestures":{"bindings":[]},"haptics":{"events":[]},"nodes":[],"bindings":[],"produced_at":"2026-08-27T08:00:00Z","prefetch":{"candidate_ref":"x","base_state_version":0,"confidence":0,"ttl_ms":0,"status":"prepared","may_commit":true}}"""
         assertFails { SchemaValidator.validateCanonical("a3uisurface.schema.json", illegal) }
         val believed = "World" + "State"
         assertTrue(
@@ -305,9 +308,10 @@ class A3UIAcceptanceTest {
         assertTrue(A3UISurface::class.java.declaredFields.none { it.type == RenderedOutput::class.java })
         assertTrue(A3UISurface::class.java.declaredFields.none { it.name == forbidden })
         assertFalse(CanonicalJson.of(surface).contains(forbidden))
-        val compile = DeterministicA3UICompiler::class.java.methods.first { it.name == "compile" }
-        assertEquals(A3UISurface::class.java, compile.returnType)
-        assertTrue(compile.returnType != RenderedOutput::class.java)
+        val compiles = DeterministicA3UICompiler::class.java.methods.filter { it.name == "compile" }
+        assertTrue(compiles.isNotEmpty())
+        assertTrue(compiles.all { it.returnType == A3UISurface::class.java })
+        assertTrue(compiles.all { it.returnType != RenderedOutput::class.java })
     }
 
     @Test
