@@ -7,7 +7,6 @@ import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import java.io.File
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -34,10 +33,22 @@ class RendererArchitectureTest {
             .should().dependOnClassesThat()
             .haveFullyQualifiedName("a3.core.world." + "Accepted" + "Observation")
 
+    @ArchTest
+    val R7_android_core_does_not_depend_on_compose_or_material: ArchRule =
+        noClasses()
+            .that().resideInAPackage("a3.renderers.android.core..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage(
+                "androidx.compose..",
+                "androidx.compose.material..",
+                "androidx.compose.material3.."
+            )
+
     @Test
     fun P43_gradle_android_core_depends_only_on_a3ui() {
         val gradle = File("build.gradle.kts").readText()
         assertTrue(gradle.contains("project(\":a3ui\")"))
+        assertTrue(gradle.contains("project(\":projection\")"))
         assertFalse(gradle.contains("project(\":core:world\")"))
         assertFalse(gradle.contains("project(\":core:runtime\")"))
         assertFalse(gradle.contains("project(\":prediction\")"))
@@ -66,9 +77,10 @@ class RendererArchitectureTest {
         val world = "World" + "State"
         assertTrue(interp.methods.none { m -> m.parameterTypes.any { it.simpleName == accepted } })
         assertTrue(interp.methods.none { m -> m.parameterTypes.any { it.simpleName == world } })
-        assertEquals(
-            a3.renderers.android.core.model.RenderedOutput::class.java,
-            interp.methods.first { it.name == "interpret" }.returnType
+        assertTrue(
+            interp.methods.filter { it.name == "interpret" }.all {
+                it.returnType == a3.renderers.android.core.model.RenderedOutput::class.java
+            }
         )
     }
 }

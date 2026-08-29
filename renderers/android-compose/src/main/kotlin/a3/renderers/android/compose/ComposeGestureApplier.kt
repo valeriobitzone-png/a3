@@ -8,12 +8,19 @@ import androidx.compose.ui.input.pointer.pointerInput
 import a3.renderers.android.core.model.SemanticGestureActions
 
 @Composable
-fun ComposeGestureApplier(actions: SemanticGestureActions, content: @Composable () -> Unit) {
-    val dismiss = actions.actions.any { it.action == "dismiss" }
+fun ComposeGestureApplier(
+    actions: SemanticGestureActions,
+    onAction: (String) -> Unit = {},
+    attachSwipe: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val dismiss = actions.actions.firstOrNull { it.action == "dismiss" }
     Box(
-        modifier = if (dismiss) {
-            Modifier.pointerInput(actions) {
-                detectHorizontalDragGestures { _, _ -> }
+        modifier = if (attachSwipe && dismiss != null) {
+            Modifier.pointerInput(dismiss.action) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    if (dragAmount < 0f) onAction(dismiss.action)
+                }
             }
         } else {
             Modifier

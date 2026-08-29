@@ -3,6 +3,7 @@ package a3.renderers.android.core.serialize
 import a3.a3ui.model.PrefetchStatus
 import a3.projection.model.CausalLineage
 import a3.renderers.android.core.model.ColorValue
+import a3.renderers.android.core.model.RenderedNode
 import a3.renderers.android.core.model.RenderedOutput
 import a3.renderers.android.core.model.RenderedPrefetch
 import a3.renderers.android.core.model.ResolvedToken
@@ -57,7 +58,11 @@ object CanonicalJson {
             )
         )
         is SemanticGestureAction -> obj(
-            mapOf("action" to value.action, "gesture" to value.gesture)
+            mapOf(
+                "action" to value.action,
+                "gesture" to value.gesture,
+                "target_node_id" to value.targetNodeId
+            )
         )
         is SemanticGestureActions -> obj(mapOf("actions" to value.actions))
         is SemanticHapticEvent -> obj(
@@ -71,11 +76,21 @@ object CanonicalJson {
         is ResolvedToken -> obj(mapOf("color" to value.color, "token" to value.token))
         is RenderedPrefetch -> obj(
             mapOf(
+                "atom_keys" to value.atomKeys,
                 "base_state_version" to value.baseStateVersion,
                 "candidate_ref" to value.candidateRef,
                 "confidence" to value.confidence,
                 "status" to value.status.wire(),
                 "ttl_ms" to value.ttlMs
+            )
+        )
+        is RenderedNode -> obj(
+            mapOf(
+                "children" to value.children,
+                "hint" to value.hint,
+                "id" to value.id,
+                "role" to value.role,
+                "text" to value.text
             )
         )
         is RenderedOutput -> obj(
@@ -86,6 +101,7 @@ object CanonicalJson {
                 put("gestures", value.gestures)
                 put("haptics", value.haptics)
                 put("lineage", value.lineage)
+                put("nodes", value.nodes)
                 value.prefetch?.let { put("prefetch", it) }
                 put("presentation_ref", value.presentationRef)
                 put("produced_at", value.producedAt)

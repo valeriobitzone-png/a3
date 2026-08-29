@@ -42,7 +42,8 @@ data class SharedElementPlan(
 
 data class SemanticGestureAction(
     val gesture: String,
-    val action: String
+    val action: String,
+    val targetNodeId: String
 )
 
 data class SemanticGestureActions(
@@ -69,7 +70,16 @@ data class RenderedPrefetch(
     val baseStateVersion: Long,
     val confidence: Double,
     val ttlMs: Long,
-    val status: PrefetchStatus
+    val status: PrefetchStatus,
+    val atomKeys: List<String> = emptyList()
+)
+
+data class RenderedNode(
+    val id: String,
+    val role: String,
+    val children: List<RenderedNode> = emptyList(),
+    val text: String = "",
+    val hint: String = ""
 )
 
 data class RenderedOutput(
@@ -85,6 +95,7 @@ data class RenderedOutput(
     val sharedElements: SharedElementPlan,
     val gestures: SemanticGestureActions,
     val haptics: SemanticHapticEvents,
+    val nodes: List<RenderedNode> = emptyList(),
     val prefetch: RenderedPrefetch?,
     val producedAt: Instant
 )

@@ -13,27 +13,35 @@ import androidx.compose.ui.unit.dp
 import a3.renderers.android.core.model.RenderedOutput
 
 @Composable
-fun ComposeRenderer(output: RenderedOutput) {
+fun ComposeRenderer(output: RenderedOutput, onAction: (String) -> Unit = {}) {
     ComposeMotionApplier(output.spring) {
         ComposeMorphApplier(output.sharedElements) {
-            ComposeGestureApplier(output.gestures) {
+            ComposeGestureApplier(
+                actions = output.gestures,
+                onAction = onAction,
+                attachSwipe = output.nodes.isEmpty()
+            ) {
                 ComposeHapticApplier(output.haptics) {
-                    Column(Modifier.testTag("a3-surface")) {
-                        for (token in output.resolvedTokens) {
-                            Spacer(
-                                Modifier
-                                    .size((8 * output.densityScale).dp)
-                                    .height((8 * output.densityScale).dp)
-                                    .background(
-                                        Color(
-                                            red = token.color.red / 255f,
-                                            green = token.color.green / 255f,
-                                            blue = token.color.blue / 255f
+                    if (output.nodes.isEmpty()) {
+                        Column(Modifier.testTag("a3-surface")) {
+                            for (token in output.resolvedTokens) {
+                                Spacer(
+                                    Modifier
+                                        .size((8 * output.densityScale).dp)
+                                        .height((8 * output.densityScale).dp)
+                                        .background(
+                                            Color(
+                                                red = token.color.red / 255f,
+                                                green = token.color.green / 255f,
+                                                blue = token.color.blue / 255f
+                                            )
                                         )
-                                    )
-                                    .testTag("token-" + token.token)
-                            )
+                                        .testTag("token-" + token.token)
+                                )
+                            }
                         }
+                    } else {
+                        ComposeCatalog(output.nodes, output.gestures.actions, onAction)
                     }
                 }
             }
