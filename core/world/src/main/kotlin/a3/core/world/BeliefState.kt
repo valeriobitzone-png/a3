@@ -27,38 +27,35 @@ enum class IntegrateMode {
 }
 
 /**
- * Sole belief-merge function. WorldState.apply uses this only for AcceptedObservation.
- * Planner simulation uses the same merge on a copy that is never committed WorldState.
+ * Copy-merge of an observation into a new [BeliefState]. Does not mutate [WorldState].
+ * [WorldState.apply] is the only commit gate; the planner uses this on counterfactual copies.
  */
-object ObservationAcceptance {
-    fun apply(
-        state: BeliefState,
-        observation: Observation,
-        mode: IntegrateMode = IntegrateMode.SUPERSEDE_KEYS
-    ): BeliefState {
-        val newVersion = state.version + 1
-        val incoming = observation.facts.mapIndexed { index, fact ->
-            val id = fact.id.ifBlank { "fact_v${newVersion}_${index}_${fact.k}" }
-            fact.copy(id = id, supersededBy = null)
-        }
-        val incomingByKey = java.util.TreeMap<String, Fact>()
-        for (fact in incoming.sortedWith(compareBy({ it.k }, { it.id }))) {
-            incomingByKey[fact.k] = fact
-        }
-        val rollbackId = "rb_${observation.id}"
-        val updated = state.facts.map { old ->
-            if (old.supersededBy != null) old
-            else when (mode) {
-                IntegrateMode.SUPERSEDE_KEYS -> {
-                    val replacement = incomingByKey[old.k]
-                    if (replacement != null) old.copy(supersededBy = replacement.id) else old
-                }
-                IntegrateMode.COMPENSATE -> {
-                    val replacement = incomingByKey[old.k]
-                    old.copy(supersededBy = replacement?.id ?: rollbackId)
-                }
+fun BeliefState.integrate(
+    observation: Observation,
+    mode: IntegrateMode = IntegrateMode.SUPERSEDE_KEYS
+): BeliefState {
+    val newVersion = version + 1
+    val incoming = observation.facts.mapIndexed { index, fact ->
+        val id = fact.id.ifBlank { "fact_v${newVersion}_${index}_${fact.k}" }
+        fact.copy(id = id, supersededBy = null)
+    }
+    val incomingByKey = java.util.TreeMap<String, Fact>()
+    for (fact in incoming.sortedWith(compareBy({ it.k }, { it.id }))) {
+        incomingByKey[fact.k] = fact
+    }
+    val rollbackId = "rb_${observation.id}"
+    val updated = facts.map { old ->
+        if (old.supersededBy != null) old
+        else when (mode) {
+            IntegrateMode.SUPERSEDE_KEYS -> {
+                val replacement = incomingByKey[old.k]
+                if (replacement != null) old.copy(supersededBy = replacement.id) else old
+            }
+            IntegrateMode.COMPENSATE -> {
+                val replacement = incomingByKey[old.k]
+                old.copy(supersededBy = replacement?.id ?: rollbackId)
             }
         }
-        return BeliefState(version = newVersion, facts = updated + incoming)
     }
+    return BeliefState(version = newVersion, facts = updated + incoming)
 }

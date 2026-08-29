@@ -1,6 +1,8 @@
 package a3.core.runtime
 
+import a3.core.policy.PolicyDecision
 import a3.core.world.AcceptedObservation
+import a3.core.world.IntegrateMode
 import a3.core.world.Observation
 import java.time.Instant
 
@@ -11,11 +13,32 @@ import java.time.Instant
 class AcceptedObservationToken internal constructor(
     observation: Observation,
     now: Instant,
-    causalId: String?
-) : AcceptedObservation(observation, now, causalId)
+    causalId: String?,
+    integrateMode: IntegrateMode,
+    policyDecision: String
+) : AcceptedObservation(observation, now, causalId, integrateMode, policyDecision)
+
+fun mintAcceptedObservation(
+    observation: Observation,
+    policyDecision: PolicyDecision,
+    now: Instant,
+    causalId: String? = null,
+    integrateMode: IntegrateMode = IntegrateMode.SUPERSEDE_KEYS
+): AcceptedObservation = AcceptedObservationToken(
+    observation,
+    now,
+    causalId,
+    integrateMode,
+    policyDecision.name
+)
 
 fun acceptedObservation(
     observation: Observation,
     now: Instant,
     causalId: String? = null
-): AcceptedObservation = AcceptedObservationToken(observation, now, causalId)
+): AcceptedObservation = mintAcceptedObservation(
+    observation,
+    PolicyDecision.ALLOW,
+    now,
+    causalId
+)

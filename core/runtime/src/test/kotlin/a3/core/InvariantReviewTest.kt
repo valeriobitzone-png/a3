@@ -1,7 +1,6 @@
 package a3.core
 
 import a3.core.capability.Transition
-import a3.core.events.EventLog
 import a3.core.model.*
 import a3.core.model.Fact
 import a3.core.model.Observation
@@ -12,7 +11,6 @@ import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
 import a3.core.world.AcceptedObservation
 import a3.core.world.BeliefState
-import a3.core.world.ObservationAcceptance
 import a3.core.world.WorldState
 import a3.core.world.WriteResult
 import java.time.Instant
@@ -105,8 +103,10 @@ class InvariantReviewTest {
             "o2", "e", t,
             listOf(Fact("ticket.owned", false, 0.8, "obs", t))
         )
-        val s1 = ObservationAcceptance.apply(BeliefState(), first)
-        val s2 = ObservationAcceptance.apply(s1, second)
+        val world = WorldState()
+        world.apply(acceptedObservation(first, t))
+        world.apply(acceptedObservation(second, t))
+        val s2 = world.committed
         val history = s2.facts.filter { it.k == "ticket.owned" }
         assertEquals(2, history.size)
         val old = history.first { it.v == true }
@@ -130,8 +130,9 @@ class InvariantReviewTest {
             val facts = if (calls <= 2) cap.effects else cap.effects.map { it.copy(v = false) }
             Observation("o_${cap.id}", "e", now, facts)
         }
-        val result = Runtime(Policy(), TrustGate(), EventLog()).execute(
-            plan.plan, BeliefState(), graph().capabilities, executor, t, grants()
+        val world = WorldState()
+        val result = Runtime(Policy(), TrustGate()).execute(
+            plan.plan, world, graph().capabilities, executor, t, grants()
         )
         assertTrue(result.rolledBack)
         assertFalse(result.committed)
@@ -238,14 +239,14 @@ class InvariantReviewTest {
             Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
-        val log = EventLog()
-        val result = Runtime(Policy(), TrustGate(), log).execute(
-            plan.plan, BeliefState(), graph().capabilities,
+        val world = WorldState()
+        val result = Runtime(Policy(), TrustGate()).execute(
+            plan.plan, world, graph().capabilities,
             Executor { cap, now -> Observation("o_${cap.id}", "e", now, cap.effects) },
             t, grants()
         )
         assertTrue(result.committed)
-        val reconstructed = log.replayState(BeliefState())
+        val reconstructed = world.eventLog().replayState(BeliefState())
         assertEquals(CanonicalJson.ofState(result.state), CanonicalJson.ofState(reconstructed))
         assertContentEquals(
             CanonicalJson.bytesState(result.state),

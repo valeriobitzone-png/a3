@@ -29,11 +29,16 @@ abstract class AcceptedObservation
 protected constructor(
     val observation: Observation,
     val now: Instant,
-    val causalId: String? = null
+    val causalId: String? = null,
+    val integrateMode: IntegrateMode = IntegrateMode.SUPERSEDE_KEYS,
+    val policyDecision: String = "ALLOW"
 )
 
 sealed class WriteResult {
-    data class Accepted(val state: BeliefState) : WriteResult()
+    data class Accepted(
+        val state: BeliefState,
+        val acceptedEventId: String
+    ) : WriteResult()
 }
 
 /**
@@ -50,19 +55,31 @@ class WorldState(
 
     fun apply(accepted: AcceptedObservation): WriteResult {
         val observation = accepted.observation
-        committed = ObservationAcceptance.apply(committed, observation)
+        committed = committed.integrate(observation, accepted.integrateMode)
+        val acceptedId = "ev_accepted_${committed.version}"
+        events.append(
+            Event(
+                id = acceptedId,
+                t = accepted.now,
+                source = "observation",
+                type = "observation.accepted",
+                causalId = accepted.causalId ?: observation.id,
+                stateVersion = committed.version,
+                payload = observation
+            )
+        )
         events.append(
             Event(
                 id = "ev_state_${committed.version}",
                 t = accepted.now,
                 source = "observation",
                 type = "state.updated",
-                causalId = accepted.causalId ?: observation.id,
+                causalId = acceptedId,
                 stateVersion = committed.version,
                 payload = observation
             )
         )
-        return WriteResult.Accepted(committed)
+        return WriteResult.Accepted(committed, acceptedId)
     }
 
     fun eventLog(): a3.core.events.EventLog = events
