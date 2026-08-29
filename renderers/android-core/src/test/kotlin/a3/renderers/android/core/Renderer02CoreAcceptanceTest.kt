@@ -187,8 +187,7 @@ class Renderer02CoreAcceptanceTest {
             "Card(",
             "Dialog(",
             "AlertDialog(",
-            "Snackbar(",
-            "TextField("
+            "Snackbar("
         )
         val roots = listOf(
             File("src/main"),
@@ -205,6 +204,11 @@ class Renderer02CoreAcceptanceTest {
                     assertFalse(text.contains(token), "${file.path} contains $token")
                 }
                 assertFalse(text.contains("androidx.compose.material"), file.path)
+                for (line in text.lineSequence()) {
+                    if (line.contains("TextField(") && !line.contains("BasicTextField(")) {
+                        throw AssertionError("${file.path} material TextField: $line")
+                    }
+                }
             }
         }
         val coreMain = File("src/main").walkTopDown().filter { it.extension == "kt" }
