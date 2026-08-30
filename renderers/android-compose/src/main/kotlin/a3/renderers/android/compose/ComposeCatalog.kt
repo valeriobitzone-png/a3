@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import a3.renderers.android.core.model.RenderedNode
 import a3.renderers.android.core.model.SemanticGestureAction
@@ -53,8 +55,8 @@ private fun CatalogNode(
                 CatalogNode(child, gestures, onAction)
             }
         }
-        "item" -> Box(modifier) { Children(node, gestures, onAction) }
-        "action" -> Box(modifier.size(48.dp)) { Children(node, gestures, onAction) }
+        "item" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node) }
+        "action" -> Box(modifier.size(48.dp)) { Children(node, gestures, onAction); BoundCopy(node) }
         "field" -> BasicTextField(
             value = node.text,
             onValueChange = {},
@@ -77,6 +79,13 @@ private fun Children(
     }
 }
 
+@Composable
+private fun BoundCopy(node: RenderedNode) {
+    if (node.text.isNotEmpty()) {
+        BasicText(text = node.text)
+    }
+}
+
 private fun nodeModifier(
     node: RenderedNode,
     targeted: List<SemanticGestureAction>,
@@ -85,6 +94,10 @@ private fun nodeModifier(
     var modifier: Modifier = Modifier
         .testTag(node.id)
         .sizeIn(minWidth = 8.dp, minHeight = 8.dp)
+    if (node.text.isNotEmpty() && (node.role == "item" || node.role == "action")) {
+        val copy = node.text
+        modifier = modifier.semantics { contentDescription = copy }
+    }
     if (node.role == "list") {
         modifier = modifier.height(160.dp)
     }
