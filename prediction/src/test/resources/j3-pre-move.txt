@@ -1,0 +1,15 @@
+null=null
+true=true
+false=false
+str="a\"b\\c\n"
+int=1
+double_int=1
+double=1.5
+instant="2026-08-27T08:00:00Z"
+map={"a":2,"b":1}
+list=[3,1,2]
+empty_obj={}
+empty_arr=[]
+fact={"confidence":0.9,"expires_at":"2026-08-27T08:01:00Z","k":"ticket.owned","observed_at":"2026-08-27T08:00:00Z","source":"train","v":true}
+forecast={"candidates":[{"capability_ref":"train.reserve","future_state_id":"fs1","id":"c1","rank":1,"score":0.8}],"context_ref":"ctx","context_signature":"sig","id":"fc1","policy_ref":"pol","produced_at":"2026-08-27T08:00:00Z"}
+candidate={"capability_ref":"train.reserve","future_state_id":"fs1","id":"c1","rank":1,"score":0.8}

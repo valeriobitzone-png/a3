@@ -1,0 +1,16 @@
+null=null
+true=true
+false=false
+str="a\"b\\c\n"
+int=1
+double_int=1
+double=1.5
+instant="2026-08-27T08:00:00Z"
+map={"a":2,"b":1}
+list=[3,1,2]
+empty_obj={}
+empty_arr=[]
+color={"blue":200,"green":90,"red":0}
+node={"children":[],"hint":"","id":"n","role":"text","text":"Ada"}
+spring={"curve":"standard","damping":20,"duration_hint":180,"stiffness":400}
+lineage={"causal_event_id":"ev1","source_state_version":1,"state_identity":"ctx"}

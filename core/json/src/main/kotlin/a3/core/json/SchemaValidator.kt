@@ -1,0 +1,151 @@
+package a3.core.json
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.TreeMap
+
+/**
+ * Draft-07 subset validator on a canonical JSON string.
+ * Jackson is never used to produce canonical bytes.
+ */
+object SchemaValidator {
+    private val mapper = ObjectMapper()
+    private val cache = TreeMap<String, JsonNode>()
+
+    fun validateCanonical(schemaFile: String, canonicalJson: String) {
+        val schema = loadSchema(schemaFile)
+        val instance = mapper.readTree(canonicalJson)
+        val errors = ArrayList<String>()
+        check(schema, instance, "$", errors, schema)
+        require(errors.isEmpty()) {
+            "schema $schemaFile failed: ${errors.joinToString("; ")}"
+        }
+    }
+
+    private fun loadSchema(schemaFile: String): JsonNode {
+        cache[schemaFile]?.let { return it }
+        val node = mapper.readTree(readSchema(schemaFile))
+        cache[schemaFile] = node
+        return node
+    }
+
+    private fun readSchema(schemaFile: String): String {
+        val resource = javaClass.classLoader.getResource("a3/schemas/$schemaFile")
+        if (resource != null) return resource.readText()
+        val candidates = listOf(
+            Paths.get("schemas", schemaFile),
+            Paths.get("..", "schemas", schemaFile),
+            Paths.get("..", "..", "schemas", schemaFile)
+        )
+        val path = candidates.firstOrNull { Files.isRegularFile(it) }
+            ?: throw IllegalStateException(
+                "JSON Schema not found: $schemaFile (looked on classpath and $candidates)"
+            )
+        return Files.readString(path)
+    }
+
+    private fun check(
+        schema: JsonNode,
+        instance: JsonNode,
+        path: String,
+        errors: MutableList<String>,
+        root: JsonNode
+    ) {
+        val effective = resolve(schema, root)
+        if (effective.has("type")) {
+            val types = typeList(effective.get("type"))
+            if (!matchesType(instance, types)) {
+                errors += "$path: expected type $types, got ${instance.nodeType}"
+                return
+            }
+        }
+        if (effective.has("enum")) {
+            val allowed = effective.get("enum").map { mapper.writeValueAsString(it) }
+            val actual = mapper.writeValueAsString(instance)
+            if (actual !in allowed) {
+                errors += "$path: value $actual not in enum $allowed"
+            }
+        }
+        if (instance.isNumber) {
+            val n = instance.doubleValue()
+            if (effective.has("minimum") && n < effective.get("minimum").doubleValue()) {
+                errors += "$path: $n < minimum"
+            }
+            if (effective.has("maximum") && n > effective.get("maximum").doubleValue()) {
+                errors += "$path: $n > maximum"
+            }
+        }
+        if (instance.isInt || instance.isLong) {
+            val n = instance.longValue()
+            if (effective.has("minimum") && n < effective.get("minimum").longValue()) {
+                errors += "$path: $n < minimum"
+            }
+        }
+        if (instance.isTextual && effective.path("format").asText("") == "date-time") {
+            if (!instance.asText().matches(DATE_TIME)) {
+                errors += "$path: not a date-time"
+            }
+        }
+        if (instance.isObject) {
+            if (effective.has("required")) {
+                for (req in effective.get("required")) {
+                    val name = req.asText()
+                    if (!instance.has(name)) errors += "$path: missing required '$name'"
+                }
+            }
+            val props = effective.get("properties")
+            val additional = effective.path("additionalProperties")
+            val fieldNames = ArrayList<String>()
+            instance.fieldNames().forEachRemaining { fieldNames.add(it) }
+            fieldNames.sorted().forEach { name ->
+                val child = instance.get(name)
+                if (props != null && props.has(name)) {
+                    check(props.get(name), child, "$path.$name", errors, root)
+                } else if (additional.isBoolean && !additional.booleanValue()) {
+                    errors += "$path: additional property '$name' not allowed"
+                } else if (additional.isObject) {
+                    check(additional, child, "$path.$name", errors, root)
+                }
+            }
+        }
+        if (instance.isArray && effective.has("items")) {
+            val items = effective.get("items")
+            instance.forEachIndexed { i, child -> check(items, child, "$path[$i]", errors, root) }
+        }
+    }
+
+    private fun resolve(schema: JsonNode, root: JsonNode): JsonNode {
+        if (!schema.has("\$ref")) return schema
+        val ref = schema.get("\$ref").asText()
+        require(ref.startsWith("#/")) { "unsupported \$ref $ref" }
+        var node = root
+        for (part in ref.removePrefix("#/").split('/')) {
+            node = node.get(part)
+                ?: throw IllegalArgumentException("unresolved \$ref $ref")
+        }
+        return node
+    }
+
+    private fun typeList(node: JsonNode): List<String> =
+        if (node.isArray) node.map { it.asText() } else listOf(node.asText())
+
+    private fun matchesType(instance: JsonNode, types: List<String>): Boolean =
+        types.any { type ->
+            when (type) {
+                "object" -> instance.isObject
+                "array" -> instance.isArray
+                "string" -> instance.isTextual
+                "number" -> instance.isNumber
+                "integer" -> instance.isIntegralNumber
+                "boolean" -> instance.isBoolean
+                "null" -> instance.isNull
+                else -> true
+            }
+        }
+
+    private val DATE_TIME = Regex(
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    )
+}
