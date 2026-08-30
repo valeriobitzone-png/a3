@@ -1,0 +1,60 @@
+package a3.launcher
+
+import java.io.File
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import org.junit.Test
+
+class LauncherArchitectureTest {
+    @Test
+    fun L1_gradle_does_not_depend_on_prediction_or_mcp() {
+        val gradle = File("build.gradle.kts").readText()
+        assertTrue(gradle.contains("project(\":renderers:android-compose\")"))
+        assertTrue(gradle.contains("project(\":intent-model\")"))
+        assertTrue(gradle.contains("project(\":core:runtime\")"))
+        assertFalse(gradle.contains(":prediction"))
+        assertFalse(gradle.contains(":adapters:mcp"))
+        assertTrue(gradle.contains("com.android.application"))
+    }
+
+    @Test
+    fun L5_main_does_not_write_world() {
+        val hits = File("src/main").walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .flatMap { file -> file.readLines().asSequence().map { line -> file to line } }
+            .filter { (_, line) ->
+                val trimmed = line.trim()
+                if (trimmed.startsWith("//")) return@filter false
+                line.contains("WorldState" + ".apply") ||
+                    line.contains("mint" + "Accepted" + "Observation")
+            }
+            .toList()
+        assertTrue(hits.isEmpty(), "write tokens in launcher main: $hits")
+    }
+
+    @Test
+    fun L1_main_has_no_material_widgets_or_network() {
+        val forbidden = listOf("Button(", "Card(", "Dialog(", "AlertDialog(", "Snackbar(")
+        val sources = File("src/main").walkTopDown().filter { it.extension == "kt" }.toList()
+        assertTrue(sources.isNotEmpty())
+        for (file in sources) {
+            val text = file.readText()
+            for (token in forbidden) {
+                assertFalse(text.contains(token), "${file.path} $token")
+            }
+            assertFalse(text.contains("androidx.compose.material"), file.path)
+            for (line in text.lineSequence()) {
+                if (line.contains("TextField(") && !line.contains("BasicTextField(")) {
+                    throw AssertionError("${file.path} TextField: $line")
+                }
+            }
+            for (line in text.lineSequence()) {
+                val trimmed = line.trim()
+                if (trimmed.startsWith("import") || trimmed.startsWith("//")) continue
+                for (token in listOf("http", "socket", "gemini", "cloud")) {
+                    assertFalse(line.contains(token), "${file.path} $token")
+                }
+            }
+        }
+    }
+}
