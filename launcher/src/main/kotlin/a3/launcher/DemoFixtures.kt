@@ -55,8 +55,11 @@ object DemoFixtures {
         producedAt = now,
         atoms = listOf(
             PresentationAtom("timetable", "train.slot.a", "08:45", 50),
+            PresentationAtom("timetable", "train.slot.b", "09:12", 50),
+            PresentationAtom("timetable", "train.slot.c", "10:03", 50),
             PresentationAtom("departure", "train.departure", "08:45", 90),
             PresentationAtom("passenger", "train.passenger", "Ada", 40),
+            PresentationAtom("price", "train.price", "12.40", 60),
             PresentationAtom("confirm", "ticket.owned", true, 97)
         ),
         lineage = lineage()

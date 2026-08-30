@@ -9,20 +9,17 @@ import androidx.compose.runtime.getValue
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.decorView.setBackgroundColor(0xFFFFFFFF.toInt())
         val vm = A3HostViewModel.train()
-        vm.start()
         setContent {
             val ui by vm.ui.collectAsState()
-            val output = ui.output
-            if (output != null) {
-                A3Screen(
-                    output = output,
-                    onAction = vm::onAction,
-                    trustVisible = ui.trustHold,
-                    rollbackVisible = ui.rollbackVisible,
-                    onApproveTrust = vm::approveTrust
-                )
-            }
+            A3Screen(
+                output = ui.output,
+                onAction = vm::onAction,
+                trustVisible = ui.trustHold,
+                rollbackVisible = ui.rollbackVisible,
+                onApproveTrust = vm::approveTrust
+            )
         }
     }
 }

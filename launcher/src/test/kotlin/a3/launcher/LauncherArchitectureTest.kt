@@ -57,4 +57,28 @@ class LauncherArchitectureTest {
             }
         }
     }
+
+    @Test
+    fun L10_main_has_no_confirm_loading_literals() {
+        val forbidden = listOf("Confirm", "Conferma", "loading")
+        val sources = File("src/main").walkTopDown().filter { it.extension == "kt" }.toList()
+        assertTrue(sources.isNotEmpty())
+        for (file in sources) {
+            val text = file.readText()
+            for (token in forbidden) {
+                assertFalse(text.contains(token), "${file.path} $token")
+            }
+        }
+    }
+
+    @Test
+    fun F3_frozen_catalog_does_not_paint_node_text_on_item_or_action() {
+        val catalog = File(
+            "../renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt"
+        ).readText()
+        assertTrue(catalog.contains("\"item\" -> Box(modifier) { Children"))
+        assertTrue(catalog.contains("\"action\" -> Box(modifier.size(48.dp)) { Children"))
+        assertTrue(catalog.contains("BasicText(text = node.text"))
+        assertTrue(catalog.contains("value = node.text"))
+    }
 }
