@@ -72,13 +72,14 @@ class LauncherArchitectureTest {
     }
 
     @Test
-    fun F3_frozen_catalog_does_not_paint_node_text_on_item_or_action() {
+    fun F3_catalog_paints_node_text_on_item_and_action() {
         val catalog = File(
             "../renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt"
         ).readText()
+        assertTrue(catalog.contains("BoundCopy(node)"))
+        assertTrue(catalog.contains("if (node.text.isNotEmpty())"))
+        assertTrue(catalog.contains("BasicText(text = node.text"))
         assertTrue(catalog.contains("\"item\" -> Box(modifier) { Children"))
         assertTrue(catalog.contains("\"action\" -> Box(modifier.size(48.dp)) { Children"))
-        assertTrue(catalog.contains("BasicText(text = node.text"))
-        assertTrue(catalog.contains("value = node.text"))
     }
 }
