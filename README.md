@@ -20,9 +20,11 @@ L'unico writer di `WorldState` è `WorldState.apply(AcceptedObservation)`: vero 
 | CORE | What should become true? | `core/` | `core-v0.2` |
 | PREDICTION | What could become true? | `prediction/` | `prediction-core-v0.1` |
 | PROJECTION | How should meaning be presented? | `projection/` | `projection-core-v0.1` |
-| A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-core-v0.1` |
-| RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.1` |
-| ADAPTERS | How does the existing world plug in? | `adapters/` | T6, in corso |
+| A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-core-v0.2` |
+| RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.3` |
+| ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.1` |
+| INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.1` |
+| LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.1` (+ T8b `7a9d03b` senza tag) |
 
 ## Tassonomia
 `BeliefState` = reality believed · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality.
@@ -36,9 +38,11 @@ L'unico writer di `WorldState` è `WorldState.apply(AcceptedObservation)`: vero 
 - `core/runtime` — planner, execution, mint di `AcceptedObservation`, replay fold
 - `prediction/` — forecast deterministico (dipende solo da `world-api`)
 - `projection/` — transformer read-only
-- `a3ui/` — compiler di intent temporale
-- `renderers/` — interprete A3UI (Android 0.1)
-- `adapters/` — MCP/A2UI (T6)
+- `a3ui/` — compiler di intent temporale (0.2)
+- `renderers/` — interprete A3UI (Android 0.3)
+- `adapters/` — MCP (`mcp-adapter-v0.1`)
+- `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.1`)
+- `launcher/` — composition root Android (`launcher-v0.1`; T8b `7a9d03b` senza tag)
 
 ## Accettazione
 T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 (a3ui) · P43–P56 (renderer) · W1–W5 (writer) · V1–V5 (replay) + barriere ArchUnit.
@@ -51,4 +55,6 @@ T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 
 prediction ↛ core:world/runtime · projection ↛ world/runtime/a3ui/renderers · a3ui ↛ world/runtime/renderers/adapters · renderers ↛ world/runtime/prediction · a3ui importa `ProjectionCandidate` solo da `a3.projection.model` · `:core:runtime` ↛ `:adapters` (l'adapter si inietta al composition root).
 
 ## Hardening aperto
-H3 duplicazione `ProjectionCandidate` (intenzionale, pre-1.0) · validator/CanonicalJson 3 copie (trigger 4ª → `:core:json` cieco) · `missingPrecondition` naming (deferred) · A3UI 0.2 language gap (P56) · live reject duplicate event id (R2, futuro).
+H3 duplicazione `ProjectionCandidate` (intenzionale, pre-1.0) · validator/CanonicalJson 3 copie (trigger 4ª → `:core:json` cieco) · `missingPrecondition` naming (deferred) · live reject duplicate event id (R2, futuro).
+
+P56 language gap: chiuso in payload (a3ui 0.2) e paint item/action (renderer 0.3).
