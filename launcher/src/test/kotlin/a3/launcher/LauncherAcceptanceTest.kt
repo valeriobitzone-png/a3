@@ -37,6 +37,36 @@ class LauncherAcceptanceTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun L9_first_composition_uses_output_not_empty_stack() {
+        val vm = A3HostViewModel.train()
+        composeRule.setContent {
+            val ui by vm.ui.collectAsState()
+            A3Screen(ui.output, vm::onAction, ui.trustHold, ui.rollbackVisible, vm::approveTrust)
+        }
+        composeRule.onNodeWithTag("a3-host").assertIsDisplayed()
+        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
+        composeRule.onNodeWithTag("a3-empty").assertDoesNotExist()
+        composeRule.onNodeWithTag("field_train.passenger").assertTextContains("Ada")
+        composeRule.onNodeWithTag("text_train.price").assertTextContains("12.40")
+    }
+
+    @Test
+    fun L9_null_output_shows_empty_stack_not_blank_host() {
+        composeRule.setContent {
+            A3Screen(
+                output = null,
+                onAction = {},
+                trustVisible = false,
+                rollbackVisible = false,
+                onApproveTrust = {}
+            )
+        }
+        composeRule.onNodeWithTag("a3-host").assertIsDisplayed()
+        composeRule.onNodeWithTag("a3-empty").assertIsDisplayed()
+        composeRule.onNodeWithTag("a3-catalog").assertDoesNotExist()
+    }
+
+    @Test
     fun L2_train_path_02_has_list_departure_and_clickable_confirm() {
         val vm = A3HostViewModel.train()
         vm.start()

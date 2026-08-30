@@ -58,6 +58,10 @@ class A3HostViewModel(
 
     private var prefetchSurface: A3UISurface? = null
 
+    init {
+        start()
+    }
+
     fun start() {
         val inferred = intentProvider.infer(DemoFixtures.intentContext())
         val goal = goalFor(inferred.id)
