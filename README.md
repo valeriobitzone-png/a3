@@ -55,6 +55,6 @@ T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 
 prediction ↛ core:world/runtime · projection ↛ world/runtime/a3ui/renderers · a3ui ↛ world/runtime/renderers/adapters · renderers ↛ world/runtime/prediction · a3ui importa `ProjectionCandidate` solo da `a3.projection.model` · `:core:runtime` ↛ `:adapters` (l'adapter si inietta al composition root).
 
 ## Hardening aperto
-H3 duplicazione `ProjectionCandidate` (intenzionale, pre-1.0) · validator/CanonicalJson 3 copie (trigger 4ª → `:core:json` cieco) · `missingPrecondition` naming (deferred) · live reject duplicate event id (R2, futuro).
+`missingPrecondition` naming (deferred) · live reject duplicate event id (R2, futuro).
 
 P56 language gap: chiuso in payload (a3ui 0.2) e paint item/action (renderer 0.3).

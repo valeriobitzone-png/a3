@@ -177,7 +177,7 @@ class PredictionAcceptanceTest {
     }
 
     @Test
-    fun P8_prediction_may_produce_ProjectionCandidate_but_never_Outcome() {
+    fun P8_prediction_may_produce_PrefetchHint_but_never_Outcome() {
         val events = PredictionEventLog()
         val result = engine(events = events).predict(PredictionRequest("ctx", ReadBelief(), loopHints()))
         assertTrue(result.projectionCandidates.isNotEmpty())

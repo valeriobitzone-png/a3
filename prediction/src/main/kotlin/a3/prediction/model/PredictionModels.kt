@@ -67,7 +67,7 @@ data class PreparedState(
     val ttlSeconds: Long
 )
 
-data class ProjectionCandidate(
+data class PrefetchHint(
     val id: String,
     val futureStateRef: String,
     val contextRef: String,

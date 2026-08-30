@@ -11,7 +11,7 @@ import a3.prediction.model.PreparedState
 import a3.prediction.model.PredictionInvalidation
 import a3.prediction.model.PredictionPolicy
 import a3.prediction.model.PredictionStatus
-import a3.prediction.model.ProjectionCandidate
+import a3.prediction.model.PrefetchHint
 import java.util.ArrayList
 
 data class PredictionRequest(
@@ -26,12 +26,12 @@ data class PredictionResult(
     val forecast: Forecast,
     val futureStates: List<FutureState>,
     val prepared: PreparedState?,
-    val projectionCandidates: List<ProjectionCandidate>,
+    val projectionCandidates: List<PrefetchHint>,
     val invalidation: PredictionInvalidation?
 )
 
 /**
- * Off-path prediction. Prepares FutureState / PreparedState / ProjectionCandidate.
+ * Off-path prediction. Prepares FutureState / PreparedState / PrefetchHint.
  * Never writes WorldState. Never produces Outcome. Depends only on :core:world-api.
  */
 class PredictionEngine(
@@ -82,7 +82,7 @@ class PredictionEngine(
             append("prediction.updated", state, causalId = state.id)
             state
         }
-        val projections = ArrayList<ProjectionCandidate>(bundle.futureStates.size)
+        val projections = ArrayList<PrefetchHint>(bundle.futureStates.size)
         for (future in bundle.futureStates) {
             projections += project(future)
         }
@@ -95,8 +95,8 @@ class PredictionEngine(
         )
     }
 
-    fun project(futureState: FutureState): ProjectionCandidate =
-        ProjectionCandidate(
+    fun project(futureState: FutureState): PrefetchHint =
+        PrefetchHint(
             id = ids.next("pjc"),
             futureStateRef = futureState.id,
             contextRef = futureState.contextRef,
