@@ -26,6 +26,9 @@ object Theme {
     val crackPeak = 0.97f
     val listenFrom = 0.98f
     val hapticGapMs = 40L
+    val airBedMs = 160L
+    val morphSemitones = -1
+    val voiceCeiling = 0.08f
 
     fun material(stage: String): ColorMatrix {
         val matrix = ColorMatrix()

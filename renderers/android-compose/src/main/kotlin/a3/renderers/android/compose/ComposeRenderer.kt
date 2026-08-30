@@ -27,16 +27,23 @@ fun ComposeRenderer(
     output: RenderedOutput,
     onAction: (String) -> Unit = {},
     stage: String = RendererContext.STAGE_PRONTO,
-    crack: Boolean = false
+    crack: Boolean = false,
+    foley: FoleySink? = null
 ) {
     val matrix = remember(stage) { Theme.material(stage) }
     val paint = remember(matrix) {
         Paint().apply { colorFilter = ColorFilter.colorMatrix(matrix) }
     }
+    val sink = foley ?: remember { AudioTrackFoleySink() }
     CompositionLocalProvider(
         LocalRendererStage provides stage,
         LocalCrack provides crack
     ) {
+        ComposeFoleyBinder(
+            plan = output.sharedElements,
+            durationHint = output.spring.durationHint,
+            sink = sink
+        ) {
         Box(
             Modifier
                 .fillMaxSize()
@@ -82,6 +89,7 @@ fun ComposeRenderer(
                     }
                 }
             }
+        }
         }
     }
 }
