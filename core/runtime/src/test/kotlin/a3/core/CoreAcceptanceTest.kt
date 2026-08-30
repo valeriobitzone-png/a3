@@ -63,7 +63,7 @@ class CoreAcceptanceTest {
         assertEquals(PlannerError.ConstraintConflict, (result as PlanResult.Failure).error)
     }
 
-    @Test fun T4_missingPrecondition() {
+    @Test fun T4_unmetPrecondition() {
         val result = planner().plan(
             Goal("g","i", listOf(Fact("train.selected",true,0.5,"goal",t))),
             BeliefState(), graph(), t

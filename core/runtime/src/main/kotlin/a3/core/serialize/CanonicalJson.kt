@@ -26,7 +26,7 @@ object CanonicalJson {
         PlannerError.NoPlanFound -> "NO_PLAN_FOUND"
         PlannerError.ConstraintConflict -> "CONSTRAINT_CONFLICT"
         PlannerError.MissingCapability -> "MISSING_CAPABILITY"
-        PlannerError.MissingPrecondition -> "MISSING_PRECONDITION"
+        PlannerError.UnmetPrecondition -> "UNMET_PRECONDITION"
         PlannerError.TrustBlocked -> "TRUST_BLOCKED"
         PlannerError.StaleState -> "STALE_STATE"
     }
