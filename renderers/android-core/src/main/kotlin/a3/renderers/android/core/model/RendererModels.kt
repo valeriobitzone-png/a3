@@ -23,8 +23,21 @@ data class RendererContext(
     val density: String,
     val tokens: TreeMap<String, ColorValue>,
     val clock: InstantSource,
-    val currentStateVersion: Long = 0
-)
+    val currentStateVersion: Long = 0,
+    val stage: String = STAGE_PRONTO
+) {
+    init {
+        require(stage in STAGES) { "unknown renderer stage" }
+    }
+
+    companion object {
+        const val STAGE_ASCOLTO = "ascolto"
+        const val STAGE_LAVORO = "lavoro"
+        const val STAGE_PRONTO = "pronto"
+        const val STAGE_APPROVA = "approva"
+        val STAGES = listOf(STAGE_ASCOLTO, STAGE_LAVORO, STAGE_PRONTO, STAGE_APPROVA)
+    }
+}
 
 data class SpringParams(
     val stiffness: Double,

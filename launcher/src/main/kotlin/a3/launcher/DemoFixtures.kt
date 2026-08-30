@@ -35,7 +35,9 @@ object DemoFixtures {
         goalRef = "g_train"
     )
 
-    fun rendererContext(): RendererContext = RendererContext(
+    fun rendererContext(
+        stage: String = RendererContext.STAGE_PRONTO
+    ): RendererContext = RendererContext(
         formFactor = "phone",
         density = "comfortable",
         tokens = TreeMap<String, ColorValue>().apply {
@@ -43,7 +45,8 @@ object DemoFixtures {
             put("success", ColorValue(0, 140, 70))
             put("anticipation_highlight", ColorValue(200, 140, 0))
         },
-        clock = clock
+        clock = clock,
+        stage = stage
     )
 
     fun lineage(version: Long = 0): CausalLineage =

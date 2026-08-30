@@ -41,7 +41,7 @@ class LauncherAcceptanceTest {
         val vm = A3HostViewModel.train()
         composeRule.setContent {
             val ui by vm.ui.collectAsState()
-            A3Screen(ui.output, vm::onAction, ui.trustHold, ui.rollbackVisible, vm::approveTrust)
+            A3Screen(ui.output, vm::onAction, ui.trustHold, ui.rollbackVisible, vm::approveTrust, ui.stage)
         }
         composeRule.onNodeWithTag("a3-host").assertIsDisplayed()
         composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
@@ -140,7 +140,7 @@ class LauncherAcceptanceTest {
         assertTrue(train.ui.value.plan!!.steps.any { it.trustTier == TrustTier.IRREVERSIBLE })
         composeRule.setContent {
             val ui by train.ui.collectAsState()
-            A3Screen(ui.output!!, train::onAction, ui.trustHold, ui.rollbackVisible, train::approveTrust)
+            A3Screen(ui.output!!, train::onAction, ui.trustHold, ui.rollbackVisible, train::approveTrust, ui.stage)
         }
         composeRule.onNodeWithTag("trust-dialog").assertDoesNotExist()
         composeRule.onNodeWithTag("action_ticket.owned").performClick()
@@ -169,7 +169,7 @@ class LauncherAcceptanceTest {
         assertTrue(bad.ui.value.lastExecution!!.rolledBack)
         composeRule.setContent {
             val ui = bad.ui.value
-            A3Screen(ui.output!!, {}, ui.trustHold, ui.rollbackVisible, {})
+            A3Screen(ui.output!!, {}, ui.trustHold, ui.rollbackVisible, {}, ui.stage)
         }
         composeRule.onNodeWithTag("rollback-overlay").assertIsDisplayed()
     }
@@ -184,7 +184,7 @@ class LauncherAcceptanceTest {
         assertFalse(good.ui.value.rollbackVisible)
         composeRule.setContent {
             val ui = good.ui.value
-            A3Screen(ui.output!!, {}, ui.trustHold, ui.rollbackVisible, {})
+            A3Screen(ui.output!!, {}, ui.trustHold, ui.rollbackVisible, {}, ui.stage)
         }
         composeRule.onNodeWithTag("rollback-overlay").assertDoesNotExist()
     }
@@ -194,7 +194,7 @@ class LauncherAcceptanceTest {
         val vm = A3HostViewModel.train()
         vm.start()
         composeRule.setContent {
-            A3Screen(vm.ui.value.output!!, {}, trustVisible = true, rollbackVisible = false, onApproveTrust = {})
+            A3Screen(vm.ui.value.output!!, {}, trustVisible = true, rollbackVisible = false, onApproveTrust = {}, stage = vm.ui.value.stage)
         }
         composeRule.onNodeWithTag("timetable").assert(
             SemanticsMatcher("collection") { node ->

@@ -18,7 +18,8 @@ class MainActivity : ComponentActivity() {
                 onAction = vm::onAction,
                 trustVisible = ui.trustHold,
                 rollbackVisible = ui.rollbackVisible,
-                onApproveTrust = vm::approveTrust
+                onApproveTrust = vm::approveTrust,
+                stage = ui.stage
             )
         }
     }

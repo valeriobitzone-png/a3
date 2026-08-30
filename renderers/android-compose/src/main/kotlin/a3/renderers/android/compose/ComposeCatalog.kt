@@ -2,11 +2,13 @@ package a3.renderers.android.compose
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,9 +31,14 @@ fun ComposeCatalog(
     gestures: List<SemanticGestureAction>,
     onAction: (String) -> Unit
 ) {
-    Column(Modifier.testTag("a3-catalog")) {
+    Column(
+        Modifier
+            .testTag("a3-catalog")
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(Theme.space)
+    ) {
         for (node in nodes) {
-            CatalogNode(node, gestures, onAction)
+            CatalogNode(node, gestures, onAction, extra = occupancy(node.role))
         }
     }
 }
@@ -40,30 +47,40 @@ fun ComposeCatalog(
 private fun CatalogNode(
     node: RenderedNode,
     gestures: List<SemanticGestureAction>,
-    onAction: (String) -> Unit
+    onAction: (String) -> Unit,
+    extra: Modifier = Modifier
 ) {
     val targeted = ArrayList<SemanticGestureAction>()
     for (gesture in gestures) {
         if (gesture.targetNodeId == node.id) targeted += gesture
     }
-    val modifier = nodeModifier(node, targeted, onAction)
+    val modifier = extra.then(nodeModifier(node, targeted, onAction))
     when (node.role) {
-        "stack" -> Column(modifier) { Children(node, gestures, onAction) }
-        "row" -> Row(modifier) { Children(node, gestures, onAction) }
+        "stack" -> Column(modifier, verticalArrangement = Arrangement.spacedBy(Theme.space)) {
+            for (child in node.children) {
+                CatalogNode(child, gestures, onAction, extra = occupancy(child.role))
+            }
+        }
+        "row" -> Row(modifier) {
+            for (child in node.children) {
+                CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth())
+            }
+        }
         "list" -> LazyColumn(modifier) {
             items(node.children, key = { it.id }) { child ->
-                CatalogNode(child, gestures, onAction)
+                CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth())
             }
         }
         "item" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node) }
-        "action" -> Box(modifier.size(48.dp)) { Children(node, gestures, onAction); BoundCopy(node) }
+        "action" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node) }
         "field" -> BasicTextField(
             value = node.text,
             onValueChange = {},
             readOnly = true,
+            textStyle = Theme.type,
             modifier = modifier
         )
-        "text" -> BasicText(text = node.text, modifier = modifier)
+        "text" -> BasicText(text = node.text, modifier = modifier, style = Theme.type)
         else -> Box(modifier)
     }
 }
@@ -82,8 +99,15 @@ private fun Children(
 @Composable
 private fun BoundCopy(node: RenderedNode) {
     if (node.text.isNotEmpty()) {
-        BasicText(text = node.text)
+        BasicText(text = node.text, style = Theme.type)
     }
+}
+
+private fun ColumnScope.occupancy(role: String): Modifier = when (role) {
+    "list" -> Modifier.weight(Theme.listWeight).fillMaxWidth()
+    "field", "text", "action" -> Modifier.weight(Theme.slotWeight).fillMaxWidth()
+    "stack", "row" -> Modifier.weight(Theme.slotWeight).fillMaxWidth()
+    else -> Modifier.fillMaxWidth()
 }
 
 private fun nodeModifier(
@@ -94,12 +118,12 @@ private fun nodeModifier(
     var modifier: Modifier = Modifier
         .testTag(node.id)
         .sizeIn(minWidth = 8.dp, minHeight = 8.dp)
+    if (node.role == "action") {
+        modifier = modifier.sizeIn(minWidth = Theme.actionMin, minHeight = Theme.actionMin)
+    }
     if (node.text.isNotEmpty() && (node.role == "item" || node.role == "action")) {
         val copy = node.text
         modifier = modifier.semantics { contentDescription = copy }
-    }
-    if (node.role == "list") {
-        modifier = modifier.height(160.dp)
     }
     var clickableAction: String? = null
     for (gesture in targeted) {

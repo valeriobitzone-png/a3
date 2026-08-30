@@ -24,6 +24,7 @@ import a3.intent.IntentProvider
 import a3.intent.RuleIntentProvider
 import a3.renderers.android.core.interp.A3UIInterpreter
 import a3.renderers.android.core.model.RenderedOutput
+import a3.renderers.android.core.model.RendererContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +37,8 @@ data class HostUi(
     val belief: BeliefState = BeliefState(),
     val trustHold: Boolean = false,
     val rollbackVisible: Boolean = false,
-    val lastExecution: ExecutionResult? = null
+    val lastExecution: ExecutionResult? = null,
+    val stage: String = RendererContext.STAGE_PRONTO
 )
 
 class A3HostViewModel(
@@ -57,6 +59,7 @@ class A3HostViewModel(
     val ui: StateFlow<HostUi> = _ui.asStateFlow()
 
     private var prefetchSurface: A3UISurface? = null
+    private var prefetchHit: Boolean = false
 
     init {
         start()
@@ -69,16 +72,22 @@ class A3HostViewModel(
         val plan = (planned as PlanResult.Success).plan
         val presentation = DemoFixtures.presentation()
         val surface = compiler.compile(DemoFixtures.projection(), presentation)
-        val output = interpreter.interpret(surface, presentation, DemoFixtures.rendererContext())
+        val listening = DemoFixtures.rendererContext(RendererContext.STAGE_ASCOLTO)
+        val output = interpreter.interpret(surface, presentation, listening)
         val prepared = compiler.compilePrefetch(DemoFixtures.candidate(world.committed.version))
         prefetchSurface = prepared
-        prefetch.composeOffscreen(prepared, DemoFixtures.rendererContext(), world.committed.version)
+        prefetchHit = prefetch.composeOffscreen(
+            prepared,
+            listening,
+            world.committed.version
+        ) != null
         _ui.value = HostUi(
             intent = inferred,
             plan = plan,
             surface = surface,
             output = output,
-            belief = world.committed
+            belief = world.committed,
+            stage = hostStage(trustHold = false, executed = null, prefetchHit = prefetchHit)
         )
     }
 
@@ -107,7 +116,10 @@ class A3HostViewModel(
         val plan = _ui.value.plan ?: return
         when (decisionFor(plan)) {
             PolicyDecision.CONFIRM -> {
-                _ui.value = _ui.value.copy(trustHold = true)
+                _ui.value = _ui.value.copy(
+                    trustHold = true,
+                    stage = RendererContext.STAGE_APPROVA
+                )
             }
             PolicyDecision.ALLOW -> execute(grants = emptyMap())
             PolicyDecision.DENY -> { }
@@ -151,15 +163,28 @@ class A3HostViewModel(
         )
         val presentation = DemoFixtures.presentation()
         val surface = compiler.compile(DemoFixtures.projection(), presentation)
-        val output = interpreter.interpret(surface, presentation, DemoFixtures.rendererContext())
+        val working = DemoFixtures.rendererContext(RendererContext.STAGE_LAVORO)
+        val output = interpreter.interpret(surface, presentation, working)
         _ui.value = _ui.value.copy(
             trustHold = false,
             rollbackVisible = result.rolledBack,
             lastExecution = result,
             belief = result.state,
             surface = surface,
-            output = output
+            output = output,
+            stage = hostStage(trustHold = false, executed = result, prefetchHit = prefetchHit)
         )
+    }
+
+    private fun hostStage(
+        trustHold: Boolean,
+        executed: ExecutionResult?,
+        prefetchHit: Boolean
+    ): String = when {
+        trustHold -> RendererContext.STAGE_APPROVA
+        executed != null -> RendererContext.STAGE_LAVORO
+        prefetchHit -> RendererContext.STAGE_ASCOLTO
+        else -> RendererContext.STAGE_PRONTO
     }
 
     companion object {

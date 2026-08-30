@@ -1,7 +1,10 @@
 package a3.launcher
 
 import a3.renderers.android.core.model.RenderedNode
+import a3.renderers.android.core.model.RendererContext
+import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -50,6 +53,30 @@ class LauncherHostTest {
         assertEquals("hold 08:45", find(output.nodes, "action_ticket.owned")!!.text)
         assertEquals("Ada", find(output.nodes, "field_train.passenger")!!.text)
         assertEquals("12.40", find(output.nodes, "text_train.price")!!.text)
+    }
+
+    @Test
+    fun G3_host_stage_follows_prefetch_trust_execute_and_overlay_copy_stays() {
+        val vm = A3HostViewModel.train()
+        assertEquals(RendererContext.STAGE_ASCOLTO, vm.ui.value.stage)
+        assertNotNull(vm.prefetchGet())
+        vm.onAction("confirm")
+        assertTrue(vm.ui.value.trustHold)
+        assertEquals(RendererContext.STAGE_APPROVA, vm.ui.value.stage)
+        vm.approveTrust()
+        assertEquals(RendererContext.STAGE_LAVORO, vm.ui.value.stage)
+        assertFalse(vm.ui.value.rollbackVisible)
+
+        val bad = A3HostViewModel.train(executor = DemoFixtures.mismatchExecutor())
+        bad.onAction("confirm")
+        bad.approveTrust()
+        assertTrue(bad.ui.value.rollbackVisible)
+        assertEquals(RendererContext.STAGE_LAVORO, bad.ui.value.stage)
+
+        val screen = File("src/main/kotlin/a3/launcher/A3Screen.kt").readText()
+        assertTrue(screen.contains("BasicText(\"approve\")"))
+        assertTrue(screen.contains("BasicText(\"return\")"))
+        assertTrue(screen.contains("crack = rollbackVisible"))
     }
 
     private fun find(nodes: List<RenderedNode>, id: String): RenderedNode? {

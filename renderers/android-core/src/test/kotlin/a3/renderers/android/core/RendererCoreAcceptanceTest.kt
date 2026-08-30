@@ -204,4 +204,18 @@ class RendererCoreAcceptanceTest {
         assertEquals("RenderedOutput", out::class.simpleName)
         assertTrue(RenderedOutput::class.java.declaredFields.none { it.name.contains("widget") })
     }
+
+    @Test
+    fun T9_stage_is_closed_renderer_owned_set() {
+        val empty = RendererContext("phone", "comfortable", TreeMap(), FixedClock(t))
+        assertEquals(RendererContext.STAGE_PRONTO, empty.stage)
+        assertFails { RendererContext("phone", "comfortable", TreeMap(), FixedClock(t), stage = "crack") }
+        for (stage in RendererContext.STAGES) {
+            assertEquals(stage, ctx().copy(stage = stage).stage)
+        }
+        assertEquals(
+            listOf("ascolto", "lavoro", "pronto", "approva"),
+            RendererContext.STAGES
+        )
+    }
 }

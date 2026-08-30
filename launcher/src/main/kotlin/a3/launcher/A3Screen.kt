@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import a3.renderers.android.compose.ComposeRenderer
 import a3.renderers.android.core.model.RenderedOutput
+import a3.renderers.android.core.model.RendererContext
 
 @Composable
 fun A3Screen(
@@ -21,7 +22,8 @@ fun A3Screen(
     onAction: (String) -> Unit,
     trustVisible: Boolean,
     rollbackVisible: Boolean,
-    onApproveTrust: () -> Unit
+    onApproveTrust: () -> Unit,
+    stage: String = RendererContext.STAGE_PRONTO
 ) {
     Column(
         Modifier
@@ -31,7 +33,7 @@ fun A3Screen(
     ) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (output != null) {
-                ComposeRenderer(output, onAction)
+                ComposeRenderer(output, onAction, stage, crack = rollbackVisible)
             } else {
                 Column(Modifier.fillMaxSize().testTag("a3-empty")) { }
             }

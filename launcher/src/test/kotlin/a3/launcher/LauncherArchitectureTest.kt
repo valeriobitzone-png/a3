@@ -80,6 +80,26 @@ class LauncherArchitectureTest {
         assertTrue(catalog.contains("if (node.text.isNotEmpty())"))
         assertTrue(catalog.contains("BasicText(text = node.text"))
         assertTrue(catalog.contains("\"item\" -> Box(modifier) { Children"))
-        assertTrue(catalog.contains("\"action\" -> Box(modifier.size(48.dp)) { Children"))
+        assertTrue(catalog.contains("\"action\" -> Box(modifier) { Children"))
+        assertTrue(catalog.contains("Theme.actionMin"))
+        assertFalse(catalog.contains("48.dp"))
+        assertFalse(catalog.contains("160.dp"))
+    }
+
+    @Test
+    fun G2_launcher_main_does_not_invent_spec_role_or_meaning() {
+        val spec = Regex("""(?:data\s+)?class\s+\w+Spec\b""")
+        val allowedMeanings = setOf("timetable", "departure", "passenger", "price", "confirm")
+        val meaningCall = Regex("""PresentationAtom\(\s*"([^"]+)"""")
+        val sources = File("src/main").walkTopDown().filter { it.extension == "kt" }.toList()
+        assertTrue(sources.isNotEmpty())
+        for (file in sources) {
+            val text = file.readText()
+            assertFalse(spec.containsMatchIn(text), file.path)
+            for (match in meaningCall.findAll(text)) {
+                assertTrue(match.groupValues[1] in allowedMeanings, "${file.path} ${match.groupValues[1]}")
+            }
+            assertFalse(text.contains("\"station\""), file.path)
+        }
     }
 }
