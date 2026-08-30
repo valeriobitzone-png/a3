@@ -9,7 +9,7 @@ import a3.prediction.model.PreparedState
 import a3.prediction.model.PredictionInvalidation
 import a3.prediction.model.PredictionPolicy
 import a3.prediction.model.PredictionStatus
-import a3.prediction.model.ProjectionCandidate
+import a3.prediction.model.PrefetchHint
 
 /**
  * Prediction typed facade. Engine rules live in :core:json.
@@ -64,7 +64,7 @@ object CanonicalJson {
             "ttl_seconds" to value.ttlSeconds
         )
         is PredictionStatus -> value.wire()
-        is ProjectionCandidate -> mapOf(
+        is PrefetchHint -> mapOf(
             "context_ref" to value.contextRef,
             "future_state_ref" to value.futureStateRef,
             "id" to value.id,
