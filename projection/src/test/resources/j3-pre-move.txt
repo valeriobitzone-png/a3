@@ -1,0 +1,17 @@
+null=null
+true=true
+false=false
+str="a\"b\\c\n"
+int=1
+double_int=1
+double=1.5
+instant="2026-08-27T08:00:00Z"
+map={"a":2,"b":1}
+list=[3,1,2]
+empty_obj={}
+empty_arr=[]
+atom_null={"k":"ticket.owned","meaning":"confirm","priority":97,"v":null}
+atom_val={"k":"train.passenger","meaning":"passenger","priority":40,"v":"Ada"}
+hints={"density":"comfortable","form_factor":"phone"}
+lineage={"causal_event_id":"ev1","source_state_version":1,"state_identity":"ctx"}
+presentation={"atoms":[{"k":"train.passenger","meaning":"passenger","priority":40,"v":"Ada"},{"k":"ticket.owned","meaning":"confirm","priority":97,"v":null}],"id":"ps1","lineage":{"causal_event_id":"ev1","source_state_version":1,"state_identity":"ctx"},"produced_at":"2026-08-27T08:00:00Z","source_state_version":1}

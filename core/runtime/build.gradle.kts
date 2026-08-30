@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
     api(project(":core:world"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    implementation(project(":core:json"))
     testImplementation(project(":prediction"))
     testImplementation(kotlin("test"))
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")

@@ -7,9 +7,7 @@ repositories {
 }
 
 dependencies {
-    api(project(":core:world-api"))
-    api(project(":prediction"))
-    implementation(project(":core:json"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation(kotlin("test"))
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
@@ -29,9 +27,6 @@ tasks.test {
 
 tasks.processResources {
     from(rootProject.projectDir.resolve("schemas")) {
-        include("presentationstate.schema.json")
-        include("projectioncandidate.schema.json")
-        include("projection-core.schema.json")
         into("a3/schemas")
     }
 }

@@ -9,6 +9,7 @@ repositories {
 dependencies {
     api(project(":a3ui"))
     api(project(":projection"))
+    implementation(project(":core:json"))
     testImplementation(kotlin("test"))
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }

@@ -1,0 +1,16 @@
+null=null
+true=true
+false=false
+str="a\"b\\c\n"
+int=1
+double_int=1
+double=1.5
+instant="2026-08-27T08:00:00Z"
+map={"a":2,"b":1}
+list=[3,1,2]
+empty_obj={}
+empty_arr=[]
+fact={"confidence":0.9,"expires_at":"2026-08-27T08:01:00Z","k":"ticket.owned","observed_at":"2026-08-27T08:00:00Z","source":"train","v":true}
+goal={"desired_state":[{"confidence":0.9,"expires_at":"2026-08-27T08:01:00Z","k":"ticket.owned","observed_at":"2026-08-27T08:00:00Z","source":"train","v":true}],"id":"g","intent_ref":"i","priority":0.5}
+intent={"confidence":0.8,"expression":"buy ticket","goal_ref":"g","id":"int","modality":"text","source":"explicit"}
+belief={"facts":[{"confidence":0.9,"expires_at":"2026-08-27T08:01:00Z","id":"f1","k":"ticket.owned","observed_at":"2026-08-27T08:00:00Z","source":"train","v":true}],"version":1}
