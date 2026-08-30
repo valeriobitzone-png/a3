@@ -60,7 +60,7 @@ object DemoFixtures {
             PresentationAtom("departure", "train.departure", "08:45", 90),
             PresentationAtom("passenger", "train.passenger", "Ada", 40),
             PresentationAtom("price", "train.price", "12.40", 60),
-            PresentationAtom("confirm", "ticket.owned", true, 97)
+            PresentationAtom("confirm", "ticket.owned", "hold 08:45", 97)
         ),
         lineage = lineage()
     )

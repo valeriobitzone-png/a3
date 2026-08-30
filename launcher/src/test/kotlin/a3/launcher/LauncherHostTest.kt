@@ -47,7 +47,7 @@ class LauncherHostTest {
         assertEquals("08:45", find(output.nodes, "item_train.slot.a")!!.text)
         assertEquals("09:12", find(output.nodes, "item_train.slot.b")!!.text)
         assertEquals("10:03", find(output.nodes, "item_train.slot.c")!!.text)
-        assertEquals("true", find(output.nodes, "action_ticket.owned")!!.text)
+        assertEquals("hold 08:45", find(output.nodes, "action_ticket.owned")!!.text)
         assertEquals("Ada", find(output.nodes, "field_train.passenger")!!.text)
         assertEquals("12.40", find(output.nodes, "text_train.price")!!.text)
     }
