@@ -97,7 +97,7 @@ class Renderer02ComposeAcceptanceTest {
             ctx()
         )
         val emitted = ArrayList<String>()
-        composeRule.setContent { ComposeRenderer(out) { emitted += it } }
+        composeRule.setContent { ComposeRenderer(out, onAction = { emitted += it }) }
         composeRule.onNodeWithTag("root").assertIsDisplayed()
         composeRule.onNodeWithTag("t").assertIsDisplayed()
         composeRule.onNodeWithTag("a").assertIsDisplayed()
