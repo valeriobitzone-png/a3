@@ -190,7 +190,7 @@ class InvariantReviewTest {
     }
 
     @Test
-    fun missing_precondition_when_producer_blocked() {
+    fun unmet_precondition_when_producer_blocked() {
         val onlySearch = CapabilityGraph(
             mapOf("train.search" to graph().capabilities.getValue("train.search"))
         )
@@ -198,7 +198,7 @@ class InvariantReviewTest {
             Goal("g", "i", listOf(Fact("train.selected", true, 0.5, "goal", t))),
             BeliefState(), onlySearch, t
         )
-        assertEquals(PlannerError.MissingPrecondition, (result as PlanResult.Failure).error)
+        assertEquals(PlannerError.UnmetPrecondition, (result as PlanResult.Failure).error)
     }
 
     @Test

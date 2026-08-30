@@ -13,7 +13,7 @@ sealed class PlannerError {
     data object NoPlanFound : PlannerError()
     data object ConstraintConflict : PlannerError()
     data object MissingCapability : PlannerError()
-    data object MissingPrecondition : PlannerError()
+    data object UnmetPrecondition : PlannerError()
     data object TrustBlocked : PlannerError()
     data object StaleState : PlannerError()
 }
@@ -42,7 +42,7 @@ class DeterministicPlanner {
         val visited = TreeSet<String>()
         val caps = Transition.orderedCapabilities(graph.capabilities)
         var sawConstraintConflict = false
-        var sawMissingPrecondition = false
+        var sawUnmetPrecondition = false
 
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
@@ -70,7 +70,7 @@ class DeterministicPlanner {
                 if (node.steps.any { it.capability == cap.id }) continue
                 if (!Transition.canApply(node.state, cap, now)) {
                     if (producesDesired(cap, goal) && missingSatisfiablePrecondition(node.state, cap, now)) {
-                        sawMissingPrecondition = true
+                        sawUnmetPrecondition = true
                     }
                     continue
                 }
@@ -88,7 +88,7 @@ class DeterministicPlanner {
         return PlanResult.Failure(
             when {
                 sawConstraintConflict -> PlannerError.ConstraintConflict
-                sawMissingPrecondition -> PlannerError.MissingPrecondition
+                sawUnmetPrecondition -> PlannerError.UnmetPrecondition
                 else -> PlannerError.NoPlanFound
             }
         )
