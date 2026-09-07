@@ -22,13 +22,13 @@ class IntentModelArchitectureTest {
         noClasses()
             .that().resideInAPackage("a3.intent..")
             .should().dependOnClassesThat()
-            .haveFullyQualifiedName("a3.core.world." + "Accepted" + "Observation")
+            .haveFullyQualifiedName("a3.core.admission." + "Accepted" + "Observation")
             .check(production)
 
         noClasses()
             .that().resideInAPackage("a3.intent..")
             .should().dependOnClassesThat()
-            .haveSimpleName("WorldState")
+            .haveSimpleName("BeliefWriter")
             .check(production)
 
         noClasses()
@@ -53,7 +53,8 @@ class IntentModelArchitectureTest {
                 val trimmed = line.trim()
                 if (trimmed.startsWith("//")) return@filter false
                 line.contains("Accepted" + "Observation") ||
-                    line.contains("WorldState" + ".apply") ||
+                    line.contains("BeliefWriter" + ".apply") ||
+                    line.contains("BeliefState" + ".apply") ||
                     line.contains("Fore" + "cast") ||
                     line.contains("predict" + "(") ||
                     Regex("""\bmi""" + """nt\s*\(""").containsMatchIn(line)

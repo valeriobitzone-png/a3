@@ -25,7 +25,7 @@ class LauncherArchitectureTest {
             .filter { (_, line) ->
                 val trimmed = line.trim()
                 if (trimmed.startsWith("//")) return@filter false
-                line.contains("WorldState" + ".apply") ||
+                line.contains("BeliefWriter" + ".apply") ||
                     line.contains("mint" + "Accepted" + "Observation")
             }
             .toList()

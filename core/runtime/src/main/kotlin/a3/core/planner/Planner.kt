@@ -137,9 +137,9 @@ class DeterministicPlanner {
             state.current(now).none { it.k == required.k && it.v == required.v }
         }
 
-    private fun violatesConstraints(constraints: List<Constraint>, cost: Cost, facts: List<Fact>): Boolean {
+    private fun violatesConstraints(constraints: List<Constraint>, cost: Cost, facts: List<Claim>): Boolean {
         if (constraints.isEmpty()) return false
-        val byKey = TreeMap<String, Fact>()
+        val byKey = TreeMap<String, Claim>()
         for (fact in facts.sortedWith(compareBy({ it.k }, { it.id }))) {
             byKey[fact.k] = fact
         }

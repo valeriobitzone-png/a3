@@ -8,20 +8,20 @@ import java.time.Instant
  */
 interface BeliefReader {
     val version: Long
-    fun validAt(fact: Fact, t: Instant): Boolean
-    fun current(t: Instant): List<Fact>
+    fun validAt(fact: Claim, t: Instant): Boolean
+    fun current(t: Instant): List<Claim>
 }
 
 /**
- * Snapshot BeliefReader for off-path consumers (prediction). Not WorldState.
+ * Snapshot BeliefReader for off-path consumers (prediction).
  */
 data class ReadBelief(
     override val version: Long = 0,
-    val facts: List<Fact> = emptyList()
+    val facts: List<Claim> = emptyList()
 ) : BeliefReader {
-    override fun validAt(fact: Fact, t: Instant): Boolean = fact.validAt(t)
+    override fun validAt(fact: Claim, t: Instant): Boolean = fact.validAt(t)
 
-    override fun current(t: Instant): List<Fact> =
+    override fun current(t: Instant): List<Claim> =
         facts.filter { it.validAt(t) }
-            .sortedWith(compareBy<Fact> { it.k }.thenBy { it.id })
+            .sortedWith(compareBy<Claim> { it.k }.thenBy { it.id })
 }

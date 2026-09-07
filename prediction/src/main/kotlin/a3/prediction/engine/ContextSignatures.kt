@@ -1,7 +1,7 @@
 package a3.prediction.engine
 
 import a3.core.world.api.BeliefReader
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.prediction.model.CapabilityHint
 import a3.prediction.model.GoalHint
 import java.time.Instant
@@ -15,7 +15,7 @@ object ContextSignatures {
         intentId: String? = null
     ): String {
         val facts = belief.current(now)
-            .sortedWith(compareBy<Fact> { it.k }.thenBy { it.id })
+            .sortedWith(compareBy<Claim> { it.k }.thenBy { it.id })
             .joinToString(";") { "${it.k}=${it.v}" }
         val goalId = goal?.id ?: ""
         val intent = intentId ?: ""
@@ -37,8 +37,8 @@ object CapabilityHints {
             belief.current(now).any { actual -> actual.k == required.k && actual.v == required.v }
         }
 
-    fun hypothesize(belief: BeliefReader, cap: CapabilityHint, now: Instant, score: Double): List<Fact> {
-        val byKey = java.util.TreeMap<String, Fact>()
+    fun hypothesize(belief: BeliefReader, cap: CapabilityHint, now: Instant, score: Double): List<Claim> {
+        val byKey = java.util.TreeMap<String, Claim>()
         for (fact in belief.current(now).sortedWith(FACT_ORDER)) {
             byKey[fact.k] = fact
         }
@@ -58,7 +58,7 @@ object CapabilityHints {
             goal.desired.any { desired -> desired.k == effect.k && desired.v == effect.v }
         }
 
-    val FACT_ORDER = compareBy<Fact> { it.k }
+    val FACT_ORDER = compareBy<Claim> { it.k }
         .thenBy { it.observedAt }
         .thenBy { it.id }
         .thenBy { it.source }

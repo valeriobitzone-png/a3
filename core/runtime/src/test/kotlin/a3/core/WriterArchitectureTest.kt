@@ -1,7 +1,7 @@
 package a3.core
 
-import a3.core.world.AcceptedObservation
-import a3.core.world.WorldState
+import a3.core.admission.AcceptedObservation
+import a3.core.world.BeliefWriter
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
@@ -24,40 +24,42 @@ class WriterArchitectureTest {
             Class.forName("a3.core.world." + "ObservationAcceptance")
         }
 
-        val applyMethods = WorldState::class.java.declaredMethods.filter { it.name == "apply" }
+        val applyMethods = BeliefWriter::class.java.declaredMethods.filter { it.name == "apply" }
         assertEquals(1, applyMethods.size)
         assertEquals(AcceptedObservation::class.java, applyMethods.single().parameterTypes.single())
-        assertTrue(WorldState::class.java.methods.none { it.name == "write" })
+        assertTrue(BeliefWriter::class.java.methods.none { it.name == "write" })
 
-        val committedField = WorldState::class.java.getDeclaredField("committed")
+        val committedField = BeliefWriter::class.java.getDeclaredField("committed")
         assertFalse(java.lang.reflect.Modifier.isPublic(committedField.modifiers))
 
         noClasses()
             .that().resideInAPackage("a3.core..")
             .and().doNotHaveFullyQualifiedName("a3.core.runtime.Runtime")
             .and().doNotHaveFullyQualifiedName("a3.core.runtime.WorldStateReplay")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
-            .because("WorldState.apply is the only committed writer; live Runtime and WorldStateReplay may call it")
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
+            .because("BeliefWriter.apply is the commit envelope; live Runtime and WorldStateReplay may call it")
             .check(production)
 
         classes()
             .that().haveFullyQualifiedName("a3.core.runtime.Runtime")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
         classes()
             .that().haveFullyQualifiedName("a3.core.runtime.WorldStateReplay")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
         noClasses()
             .that().resideInAPackage("a3.core.events..")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
         val runtimeSrc = File("src/main/kotlin/a3/core/runtime/Runtime.kt").readText()
         assertTrue(runtimeSrc.contains("world.apply("))
-        assertTrue(runtimeSrc.contains("mintAcceptedObservation"))
+        assertTrue(runtimeSrc.contains("evaluate(") || File("src/main/kotlin/a3/core/runtime/Admit.kt").readText().contains("evaluate("))
+        assertTrue(File("src/main/kotlin/a3/core/runtime/Admit.kt").readText().contains("toCandidate"))
+        assertFalse(runtimeSrc.contains("mintAcceptedObservation"))
         assertFalse(runtimeSrc.contains("Observation" + "Acceptance"))
         assertFalse(runtimeSrc.contains(".integrate("))
 
@@ -72,7 +74,7 @@ class WriterArchitectureTest {
                 .flatMap { file -> file.readLines().map { line -> file to line } }
         }.filter { (_, line) ->
             line.contains("Observation" + "Acceptance" + ".apply") &&
-                !line.contains("WorldState")
+                !line.contains("BeliefWriter")
         }
         assertTrue(hits.isEmpty(), "lateral write still present: $hits")
     }
@@ -86,7 +88,7 @@ class WriterArchitectureTest {
 
         noClasses()
             .that().resideInAPackage("a3.core.planner..")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
         noClasses()
@@ -96,7 +98,7 @@ class WriterArchitectureTest {
 
         noClasses()
             .that().resideInAPackage("a3.core.capability..")
-            .should().callMethod(WorldState::class.java, "apply", AcceptedObservation::class.java)
+            .should().callMethod(BeliefWriter::class.java, "apply", AcceptedObservation::class.java)
             .check(production)
 
         val plannerSrc = File("src/main/kotlin/a3/core/planner/Planner.kt").readText()
@@ -105,8 +107,8 @@ class WriterArchitectureTest {
             assertFalse(src.contains("mintAcceptedObservation"))
             assertFalse(src.contains("AcceptedObservationToken"))
             assertFalse(src.contains("world.apply"))
-            assertFalse(src.contains("import a3.core.world.WorldState"))
-            assertFalse(src.contains("WorldState.apply"))
+            assertFalse(src.contains("import a3.core.world.BeliefWriter"))
+            assertFalse(src.contains("BeliefWriter.apply"))
         }
         assertTrue(transitionSrc.contains(".integrate("))
         assertFalse(plannerSrc.contains("mintAccepted"))

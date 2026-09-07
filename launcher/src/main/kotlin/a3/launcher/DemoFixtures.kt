@@ -2,7 +2,7 @@ package a3.launcher
 
 import a3.core.model.Capability
 import a3.core.model.CapabilityGraph
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Goal
 import a3.core.model.Observation
 import a3.core.runtime.Executor
@@ -97,18 +97,18 @@ object DemoFixtures {
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
                 effects = listOf(
-                    Fact("calendar.next", "work@08:30", 1.0, "calendar", now, now.plusSeconds(3600))
+                    Claim("calendar.next", "work@08:30", 1.0, "calendar", now, now.plusSeconds(3600))
                 )
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", now)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", now))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", now)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", now))
             ),
             "train.reserve" to Capability(
                 "train.reserve", "train.reserve",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", now)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", now)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", now)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", now)),
                 reversible = false
             )
         )
@@ -119,7 +119,7 @@ object DemoFixtures {
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
                 effects = listOf(
-                    Fact("calendar.next", "work@08:30", 1.0, "calendar", now, now.plusSeconds(3600))
+                    Claim("calendar.next", "work@08:30", 1.0, "calendar", now, now.plusSeconds(3600))
                 )
             )
         )
@@ -128,13 +128,13 @@ object DemoFixtures {
     fun trainGoal(intentId: String): Goal = Goal(
         "g_train",
         intentId,
-        listOf(Fact("ticket.owned", true, 0.5, "goal", now))
+        listOf(Claim("ticket.owned", true, 0.5, "goal", now))
     )
 
     fun reversibleGoal(intentId: String): Goal = Goal(
         "g_cal",
         intentId,
-        listOf(Fact("calendar.next", "work@08:30", 0.5, "goal", now))
+        listOf(Claim("calendar.next", "work@08:30", 0.5, "goal", now))
     )
 
     fun matchingExecutor(): Executor = Executor { cap, t ->

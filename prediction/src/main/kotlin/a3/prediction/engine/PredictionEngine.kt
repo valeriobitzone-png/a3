@@ -32,7 +32,7 @@ data class PredictionResult(
 
 /**
  * Off-path prediction. Prepares FutureState / PreparedState / PrefetchHint.
- * Never writes WorldState. Never produces Outcome. Depends only on :core:world-api.
+ * Never writes BeliefWriter. Never produces Outcome. Depends only on :core:world-api.
  */
 class PredictionEngine(
     private val clock: InstantSource,

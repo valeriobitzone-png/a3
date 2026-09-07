@@ -2,7 +2,7 @@ package a3.core.model
 
 import java.time.Instant
 
-typealias Fact = a3.core.world.api.Fact
+typealias Claim = a3.core.world.api.Claim
 typealias Observation = a3.core.world.Observation
 typealias Event = a3.core.world.Event
 
@@ -29,7 +29,7 @@ data class Intent(
 data class Goal(
     val id: String,
     val intentRef: String,
-    val desiredState: List<Fact>,
+    val desiredState: List<Claim>,
     val constraints: List<Constraint> = emptyList(),
     val deadline: Instant? = null,
     val priority: Double = 0.0
@@ -83,9 +83,9 @@ data class Cost(
 data class Capability(
     val id: String,
     val name: String,
-    val preconditions: List<Fact>,
+    val preconditions: List<Claim>,
     val inputs: List<String> = emptyList(),
-    val effects: List<Fact>,
+    val effects: List<Claim>,
     val cost: Cost = Cost(),
     val risk: Risk = Risk.LOW,
     val reversible: Boolean = true,
@@ -117,7 +117,7 @@ data class PlanStep(
 
 data class ExpectedOutcome(
     val goalRef: String,
-    val facts: List<Fact>
+    val facts: List<Claim>
 )
 
 data class Plan(
@@ -139,13 +139,13 @@ data class Plan(
 
 data class ObservedOutcome(
     val executionRef: String,
-    val facts: List<Fact>
+    val facts: List<Claim>
 )
 
 data class Outcome(
     val id: String,
     val goalRef: String,
-    val stateDelta: List<Fact>,
+    val stateDelta: List<Claim>,
     val confidence: Double,
     val status: String,
     val cost: Cost? = null,
@@ -201,7 +201,7 @@ data class Projection(
 data class WorldStateSnapshot(
     val version: Long,
     val t: Instant,
-    val facts: List<Fact>,
+    val facts: List<Claim>,
     val schema: String = "a3/state",
     val transitions: List<StateTransition> = emptyList()
 )

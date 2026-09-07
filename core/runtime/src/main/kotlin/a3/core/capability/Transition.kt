@@ -1,7 +1,7 @@
 package a3.core.capability
 
 import a3.core.model.Capability
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Observation
 import a3.core.world.BeliefState
 import a3.core.world.integrate
@@ -15,7 +15,7 @@ object Transition {
         }
 
     /**
-     * Simulated transition for planning. Does not write committed WorldState.
+     * Simulated transition for planning. Does not write committed BeliefWriter.
      * Confidence = min(confidence of matching precondition facts) × reliability.
      * Empty preconditions use 1.0 as the min.
      */
@@ -49,12 +49,12 @@ object Transition {
      * canApply matching: k=v present in current(now), which is exactly validAt(now).
      * Confidence is not a canApply gate; it only feeds [propagatedConfidence].
      */
-    private fun matchingLive(state: BeliefState, required: Fact, now: Instant): Fact? {
+    private fun matchingLive(state: BeliefState, required: Claim, now: Instant): Claim? {
         val matches = state.current(now).filter { actual ->
             actual.k == required.k && actual.v == required.v
         }
         if (matches.isEmpty()) return null
-        return matches.minWith(compareBy<Fact> { it.k }.thenBy { it.id })
+        return matches.minWith(compareBy<Claim> { it.k }.thenBy { it.id })
     }
 
     fun orderedCapabilities(capabilities: Map<String, Capability>): List<Capability> =

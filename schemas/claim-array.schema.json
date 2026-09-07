@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "a3/claim-array",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "k",
+      "v",
+      "confidence",
+      "source",
+      "observed_at"
+    ],
+    "properties": {
+      "k": {
+        "type": "string"
+      },
+      "v": {},
+      "confidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "source": {
+        "type": "string"
+      },
+      "observed_at": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "expires_at": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  }
+}

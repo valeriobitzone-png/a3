@@ -1,13 +1,14 @@
 package a3.core.runtime
 
+import a3.core.admission.SourceId
 import a3.core.model.*
 import a3.core.policy.Policy
 import a3.core.policy.PolicyDecision
 import a3.core.schema.ModelValidator
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
+import a3.core.world.BeliefWriter
 import a3.core.world.IntegrateMode
-import a3.core.world.WorldState
 import a3.core.world.WriteResult
 import java.time.Instant
 import java.util.TreeMap
@@ -29,7 +30,7 @@ class Runtime(
 ) {
     fun execute(
         plan: Plan,
-        world: WorldState,
+        world: BeliefWriter,
         capabilities: Map<String, Capability>,
         executor: Executor,
         now: Instant,
@@ -40,8 +41,9 @@ class Runtime(
         val grantIndex = TreeMap(grants)
         val origin = world.committed
         val events = world.eventLog()
-        val observed = ArrayList<Fact>()
+        val observed = ArrayList<Claim>()
         var lastEventId: String? = null
+        val admittedIds = linkedSetOf<Pair<SourceId, String>>()
 
         fun append(event: Event) {
             events.append(event)
@@ -87,14 +89,8 @@ class Runtime(
 
             if (!matchesExpected(cap.effects, observation.facts)) {
                 val compensating = rollbackObservation(plan, origin, now)
-                val minted = mintAcceptedObservation(
-                    compensating,
-                    decision,
-                    now,
-                    lastEventId,
-                    IntegrateMode.COMPENSATE
-                )
-                val write = world.apply(minted) as WriteResult.Accepted
+                val minted = admit(compensating, now, admittedIds)
+                val write = world.applyCompensating(minted, lastEventId) as WriteResult.Accepted
                 lastEventId = write.acceptedEventId
                 append(
                     Event(
@@ -114,7 +110,7 @@ class Runtime(
                 )
             }
 
-            val minted = mintAcceptedObservation(observation, decision, now, lastEventId)
+            val minted = admit(observation, now, admittedIds)
             val write = world.apply(minted) as WriteResult.Accepted
             lastEventId = write.acceptedEventId
             append(
@@ -137,7 +133,7 @@ class Runtime(
         )
     }
 
-    private fun matchesExpected(expected: List<Fact>, observed: List<Fact>): Boolean {
+    private fun matchesExpected(expected: List<Claim>, observed: List<Claim>): Boolean {
         val actual = TreeMap<String, Any?>()
         for (fact in observed.sortedWith(compareBy({ it.k }, { it.id }))) {
             actual[fact.k] = fact.v
@@ -155,7 +151,7 @@ class Runtime(
         )
     }
 
-    private fun failure(plan: Plan, state: BeliefState, observed: List<Fact>) =
+    private fun failure(plan: Plan, state: BeliefState, observed: List<Claim>) =
         ExecutionResult(
             Outcome("out_${plan.id}", plan.goalRef, observed, 0.0, "failed"),
             committed = false,

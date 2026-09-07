@@ -1,7 +1,7 @@
 package a3.core.prediction
 
 import a3.core.model.*
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Observation
 import a3.core.planner.DeterministicPlanner
 import a3.core.planner.PlanResult
@@ -9,9 +9,9 @@ import a3.core.runtime.acceptedObservation
 import a3.core.serialize.CanonicalJson
 import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
-import a3.core.world.AcceptedObservation
+import a3.core.admission.AcceptedObservation
 import a3.core.world.BeliefState
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import a3.core.world.WriteResult
 import a3.prediction.engine.PredictionEngine
 import a3.prediction.engine.PredictionEventLog
@@ -30,7 +30,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * P1, P2, P7, P9 — require WorldState / AcceptedObservation (runtime module).
+ * P1, P2, P7, P9 — require BeliefWriter / AcceptedObservation (runtime module).
  */
 class PredictionWorldGateTest {
     private val t = Instant.parse("2026-08-27T08:00:00Z")
@@ -39,17 +39,17 @@ class PredictionWorldGateTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t))
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -79,7 +79,7 @@ class PredictionWorldGateTest {
 
     @Test
     fun P1_prediction_produces_FutureState_without_modifying_WorldState() {
-        val world = WorldState()
+        val world = BeliefWriter()
         val before = CanonicalJson.bytesState(world.committed)
         val result = engine().predict(PredictionRequest("ctx", world.committed, hints()))
         assertTrue(result.futureStates.isNotEmpty())
@@ -104,14 +104,14 @@ class PredictionWorldGateTest {
                 it.name in setOf("commitToWorldState", "toWorldState", "toBeliefState", "commit")
             }
         )
-        val applyMethods = WorldState::class.java.methods.filter { it.name == "apply" }
+        val applyMethods = BeliefWriter::class.java.methods.filter { it.name == "apply" }
         assertEquals(1, applyMethods.size)
         assertEquals(AcceptedObservation::class.java, applyMethods.single().parameterTypes.single())
         assertTrue(PreparedState::class.java != AcceptedObservation::class.java)
 
         // worldState.apply(preparedState)   ← NON COMPILA: nessun overload esiste.
-        val world = WorldState()
-        val obs = Observation("o_ok", "e", t, listOf(Fact("ticket.owned", true, 1.0, "obs", t)))
+        val world = BeliefWriter()
+        val obs = Observation("o_ok", "e", t, listOf(Claim("ticket.owned", true, 1.0, "obs", t)))
         val accepted = world.apply(acceptedObservation(obs, t))
         assertTrue(accepted is WriteResult.Accepted)
         assertEquals(1, world.committed.version)
@@ -119,17 +119,17 @@ class PredictionWorldGateTest {
 
     @Test
     fun P7_observation_accepted_remains_only_WorldState_writer() {
-        val world = WorldState()
+        val world = BeliefWriter()
         engine().predict(PredictionRequest("ctx", world.committed, hints()))
         assertEquals(0, world.committed.version)
 
-        val applyMethods = WorldState::class.java.declaredMethods.filter { it.name == "apply" }
+        val applyMethods = BeliefWriter::class.java.declaredMethods.filter { it.name == "apply" }
         assertTrue(applyMethods.all { it.parameterTypes.single() == AcceptedObservation::class.java })
-        assertTrue(WorldState::class.java.methods.none { it.name == "write" })
+        assertTrue(BeliefWriter::class.java.methods.none { it.name == "write" })
 
         val obs = Observation(
             "o_ok", "e", t,
-            listOf(Fact("ticket.owned", true, 1.0, "obs", t))
+            listOf(Claim("ticket.owned", true, 1.0, "obs", t))
         )
         val accepted = world.apply(acceptedObservation(obs, t))
         assertTrue(accepted is WriteResult.Accepted)
@@ -142,15 +142,15 @@ class PredictionWorldGateTest {
     fun P9_core_T1_T10_remain_green() {
         val planner = DeterministicPlanner()
         val planned = planner.plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(),
             graph(),
             t
         )
         assertTrue(planned is PlanResult.Success)
-        val world = WorldState()
+        val world = BeliefWriter()
         engine().predict(PredictionRequest("ctx", world.committed, hints()))
-        val obs = Observation("o_t1", "e", t, listOf(Fact("ticket.owned", true, 1.0, "obs", t)))
+        val obs = Observation("o_t1", "e", t, listOf(Claim("ticket.owned", true, 1.0, "obs", t)))
         val accepted = world.apply(acceptedObservation(obs, t))
         assertTrue(accepted is WriteResult.Accepted)
         assertEquals(1, world.committed.version)

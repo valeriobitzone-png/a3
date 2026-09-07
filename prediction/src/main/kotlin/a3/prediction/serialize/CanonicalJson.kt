@@ -1,7 +1,7 @@
 package a3.prediction.serialize
 
 import a3.core.json.CanonicalJson as JsonCanonical
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.prediction.model.Forecast
 import a3.prediction.model.ForecastCandidate
 import a3.prediction.model.FutureState
@@ -21,7 +21,7 @@ object CanonicalJson {
 
     private fun wire(value: Any?): Any? = when (value) {
         null, is Boolean, is Number, is String, is java.time.Instant -> value
-        is Fact -> factFields(value)
+        is Claim -> factFields(value)
         is Forecast -> buildMap {
             put("candidates", wire(value.candidates))
             put("context_ref", value.contextRef)
@@ -90,7 +90,7 @@ object CanonicalJson {
         else -> value.toString()
     }
 
-    private fun factFields(fact: Fact): Map<String, Any?> = buildMap {
+    private fun factFields(fact: Claim): Map<String, Any?> = buildMap {
         put("confidence", fact.confidence)
         fact.expiresAt?.let { put("expires_at", it) }
         put("k", fact.k)
@@ -99,9 +99,9 @@ object CanonicalJson {
         put("v", wire(fact.v))
     }
 
-    private fun sortedFacts(facts: List<Fact>): List<Fact> =
+    private fun sortedFacts(facts: List<Claim>): List<Claim> =
         facts.sortedWith(
-            compareBy<Fact> { it.k }
+            compareBy<Claim> { it.k }
                 .thenBy { it.observedAt }
                 .thenBy { it.id }
                 .thenBy { it.source }

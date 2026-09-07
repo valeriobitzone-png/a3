@@ -21,7 +21,7 @@ class McpAdapterArchitectureTest {
         noClasses()
             .that().resideInAPackage("a3.adapters.mcp..")
             .should().dependOnClassesThat()
-            .haveFullyQualifiedName("a3.core.world." + "Accepted" + "Observation")
+            .haveFullyQualifiedName("a3.core.admission." + "Accepted" + "Observation")
             .check(production)
 
         noClasses()
@@ -33,7 +33,7 @@ class McpAdapterArchitectureTest {
         noClasses()
             .that().resideInAPackage("a3.adapters.mcp..")
             .should().dependOnClassesThat()
-            .haveSimpleName("WorldState")
+            .haveSimpleName("BeliefWriter")
             .check(production)
 
         val execute = McpCapabilityExecutor::class.java.methods.single { it.name == "execute" }
@@ -46,7 +46,7 @@ class McpAdapterArchitectureTest {
             .flatMap { file -> file.readLines().asSequence().map { line -> file to line } }
             .filter { (_, line) ->
                 line.contains("Accepted" + "Observation") ||
-                    line.contains("WorldState" + ".apply") ||
+                    line.contains("BeliefWriter" + ".apply") ||
                     line.contains("mint" + "Accepted")
             }
             .toList()

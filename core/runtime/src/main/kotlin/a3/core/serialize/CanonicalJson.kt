@@ -33,7 +33,7 @@ object CanonicalJson {
 
     private fun wire(value: Any?, profile: Profile): Any? = when (value) {
         null, is Boolean, is Number, is String, is java.time.Instant -> value
-        is Fact -> factFields(value, profile)
+        is Claim -> factFields(value, profile)
         is Observation -> mapOf(
             "execution_ref" to value.executionRef,
             "facts" to wire(sortedFacts(value.facts), profile),
@@ -179,7 +179,7 @@ object CanonicalJson {
         put("risk", value.risk.wire())
     }
 
-    private fun factFields(fact: Fact, profile: Profile): Map<String, Any?> = buildMap {
+    private fun factFields(fact: Claim, profile: Profile): Map<String, Any?> = buildMap {
         put("confidence", fact.confidence)
         fact.expiresAt?.let { put("expires_at", it) }
         if (profile == Profile.STATE && fact.id.isNotBlank()) put("id", fact.id)
@@ -192,9 +192,9 @@ object CanonicalJson {
         put("v", wire(fact.v, profile))
     }
 
-    private fun sortedFacts(facts: List<Fact>): List<Fact> =
+    private fun sortedFacts(facts: List<Claim>): List<Claim> =
         facts.sortedWith(
-            compareBy<Fact> { it.k }
+            compareBy<Claim> { it.k }
                 .thenBy { it.observedAt }
                 .thenBy { it.id }
                 .thenBy { it.source }

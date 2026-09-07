@@ -14,7 +14,7 @@ import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
 import a3.core.world.Event
 import a3.core.world.Observation
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import java.io.File
 import java.time.Instant
 import kotlin.test.Test
@@ -32,17 +32,17 @@ class ReplayWriterTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t))
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -55,7 +55,7 @@ class ReplayWriterTest {
     )
 
     private fun plan() = DeterministicPlanner().plan(
-        Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+        Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
         BeliefState(),
         graph(),
         t
@@ -63,7 +63,7 @@ class ReplayWriterTest {
 
     @Test
     fun V1_every_accepted_event_carries_integrate_mode_and_main_does_not_branch_on_rollback_prefix() {
-        val world = WorldState()
+        val world = BeliefWriter()
         Runtime(Policy(), TrustGate()).execute(
             plan().plan,
             world,
@@ -96,7 +96,7 @@ class ReplayWriterTest {
     fun V2_apply_is_the_only_writer_event_log_does_not_apply_or_integrate() {
         val eventLogSrc = File("../world/src/main/kotlin/a3/core/events/EventLog.kt").readText()
         assertFalse(eventLogSrc.contains("integrate("))
-        assertFalse(eventLogSrc.contains("WorldState.apply"))
+        assertFalse(eventLogSrc.contains("BeliefWriter.apply"))
         assertFalse(eventLogSrc.contains("mintAccepted"))
         assertTrue(eventLogSrc.contains("fun replay()"))
         assertFalse(eventLogSrc.contains("replayState"))
@@ -116,7 +116,7 @@ class ReplayWriterTest {
             val facts = if (calls <= 2) cap.effects else cap.effects.map { it.copy(v = false) }
             Observation("o_${cap.id}", "e", now, facts)
         }
-        val world = WorldState()
+        val world = BeliefWriter()
         val result = Runtime(Policy(), TrustGate()).execute(
             plan().plan, world, graph().capabilities, executor, t, grants()
         )
@@ -141,7 +141,7 @@ class ReplayWriterTest {
             "o_orphan",
             "e",
             t,
-            listOf(Fact("ticket.owned", true, 1.0, "obs", t))
+            listOf(Claim("ticket.owned", true, 1.0, "obs", t))
         )
         val missing = EventLog()
         missing.append(

@@ -1,7 +1,7 @@
 package a3.core
 
 import a3.core.model.*
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Observation
 import a3.core.schema.ModelValidator
 import a3.core.serialize.CanonicalJson
@@ -15,7 +15,7 @@ class SchemaValidationTest {
 
     @Test
     fun every_model_validates_against_its_schema() {
-        val fact = Fact("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60))
+        val fact = Claim("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60))
         ModelValidator.goal(Goal("g", "i", listOf(fact), priority = 0.5))
         ModelValidator.intent(Intent("int", "buy ticket", "text", "explicit", 0.8, "g"))
         ModelValidator.plan(

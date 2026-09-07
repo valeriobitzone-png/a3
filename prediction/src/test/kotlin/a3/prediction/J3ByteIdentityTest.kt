@@ -1,6 +1,6 @@
 package a3.prediction
 
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.prediction.model.Forecast
 import a3.prediction.model.ForecastCandidate
 import a3.prediction.serialize.CanonicalJson
@@ -13,7 +13,7 @@ class J3ByteIdentityTest {
 
     @Test
     fun J3_bytes_match_corpus_fixed_before_move() {
-        val fact = Fact("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60), id = "f1")
+        val fact = Claim("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60), id = "f1")
         val candidate = ForecastCandidate("c1", "fs1", "train.reserve", 0.8, 1)
         val forecast = Forecast("fc1", "ctx", "sig", listOf(candidate), t, "pol")
         val got = mapOf(
