@@ -9,6 +9,7 @@ repositories {
 dependencies {
     api(project(":core:world"))
     implementation(project(":core:json"))
+    implementation(project(":core:action"))
     testImplementation(project(":prediction"))
     testImplementation(kotlin("test"))
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")

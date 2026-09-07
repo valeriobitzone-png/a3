@@ -17,17 +17,17 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 
 | Strato | Domanda | Modulo | Tag |
 |---|---|---|---|
-| CORE | What should become true? | `core/` | `core-v0.4` + `core-admission-v0.1` |
+| CORE | What should become true? | `core/` | `core-v0.5` + `core-admission-v0.1` + `core-action-v0.1` |
 | PREDICTION | What could become true? | `prediction/` | `prediction-v0.3` |
 | PROJECTION | How should meaning be presented? | `projection/` | `projection-v0.3` |
 | A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-v0.4` |
 | RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.7` |
-| ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.2` |
+| ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.3` |
 | INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.2` |
 | LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.2` |
 
 ## Tassonomia
-`Claim` = belief atom · `BeliefState` = reality believed · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality · `ObservationCandidate` = pre-admission.
+`Claim` = belief atom · `BeliefState` = reality believed · `ActionState` = executor/plan machine (not inside BeliefState) · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality · `ObservationCandidate` = pre-admission.
 
 ## Repository
 - `A3_SPEC_0.1.md` — master specification
@@ -35,14 +35,15 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 - `schemas/` — JSON Schema
 - `core/world-api` — `Claim`, `BeliefReader` (read-only)
 - `core/admission` — `evaluate` puro, cieco (`core-admission-v0.1`)
+- `core/action` — ActionState machine, cieca (`core-action-v0.1`)
 - `core/world` — `BeliefState.apply(AcceptedObservation)`; `BeliefWriter` envelope
-- `core/runtime` — planner, execution, admit via evaluate, replay fold
+- `core/runtime` — planner, execution, admit via evaluate, replay fold, action dispatch
 - `core/json` — canonical engine (`core-json-v0.1`, non bumpato)
 - `prediction/` — forecast deterministico (dipende solo da `world-api`)
 - `projection/` — transformer read-only
 - `a3ui/` — compiler di intent temporale
 - `renderers/` — interprete A3UI (Android)
-- `adapters/` — MCP (`mcp-adapter-v0.2`)
+- `adapters/` — MCP (`mcp-adapter-v0.3`)
 - `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.2`)
 - `launcher/` — composition root Android (`launcher-v0.2`)
 

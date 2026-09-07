@@ -159,6 +159,25 @@ class McpAdapterAcceptanceTest {
     }
 
     @Test
+    fun receipt_becomes_action_event_and_never_writes_belief() {
+        val caps = graph().capabilities
+        val mcp = McpCapabilityExecutor(McpToolCatalog(caps), serverId = "stub")
+        val receipt = mcp.receipt(caps.getValue("calendar.read"), t)
+        val event = mcp.actionEvent(receipt)
+        assertTrue(event is a3.core.action.ActionEvent.ExecutorCompleted)
+        val before = BeliefState()
+        assertFails {
+            a3.core.runtime.applyReceiptToBelief(before, receipt)
+        }
+        assertEquals(0, before.version)
+        assertTrue(before.facts.isEmpty())
+        val src = java.io.File("src/main/kotlin/a3/adapters/mcp/McpCapabilityExecutor.kt").readText()
+        assertFalse(src.contains("BeliefState"))
+        assertFalse(src.contains("BeliefWriter"))
+        assertFalse(src.contains("evaluate("))
+    }
+
+    @Test
     fun S3_runtime_gradle_does_not_depend_on_mcp_adapter() {
         val runtimeGradle = java.io.File("../../core/runtime/build.gradle.kts").readText()
         assertFalse(runtimeGradle.contains("project(\":adapters:mcp\")"))

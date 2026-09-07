@@ -1,5 +1,10 @@
 package a3.core.runtime
 
+import a3.core.action.ActionEvent
+import a3.core.action.ActionState
+import a3.core.action.ExecutionReceipt
+import a3.core.action.requestCompensation
+import a3.core.action.transition
 import a3.core.admission.SourceId
 import a3.core.model.*
 import a3.core.policy.Policy
@@ -8,7 +13,6 @@ import a3.core.schema.ModelValidator
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
 import a3.core.world.BeliefWriter
-import a3.core.world.IntegrateMode
 import a3.core.world.WriteResult
 import java.time.Instant
 import java.util.TreeMap
@@ -17,7 +21,8 @@ data class ExecutionResult(
     val outcome: Outcome,
     val committed: Boolean,
     val rolledBack: Boolean,
-    val state: BeliefState
+    val state: BeliefState,
+    val action: ActionState? = null
 )
 
 fun interface Executor {
@@ -44,6 +49,7 @@ class Runtime(
         val observed = ArrayList<Claim>()
         var lastEventId: String? = null
         val admittedIds = linkedSetOf<Pair<SourceId, String>>()
+        var lastAction: ActionState? = null
 
         fun append(event: Event) {
             events.append(event)
@@ -52,7 +58,7 @@ class Runtime(
 
         for (step in plan.steps.sortedBy { it.seq }) {
             val cap = caps[step.capability]
-                ?: return failure(plan, world.committed, observed)
+                ?: return failure(plan, world.committed, observed, lastAction)
 
             val decision = policy.evaluate(step.trustTier, step.reversible)
             val authorized = when (decision) {
@@ -70,7 +76,11 @@ class Runtime(
                         causalId = lastEventId
                     )
                 )
-                return failure(plan, world.committed, observed)
+                var denied = ActionState("${plan.id}_${step.seq}")
+                denied = transition(denied, ActionEvent.PlanProposed(now, plan.id))
+                denied = transition(denied, ActionEvent.PlanValidated(now, plan.id))
+                denied = transition(denied, ActionEvent.AuthorizationDenied(now, "trust"))
+                return failure(plan, world.committed, observed, denied)
             }
 
             append(
@@ -83,9 +93,21 @@ class Runtime(
                 )
             )
 
+            val revision = beliefRevisionHash(world.committed)
+            var action = seedAuthorizedAction("${plan.id}_${step.seq}", plan.id, now, revision)
+            action = dispatchCommand(action, "cmd_${plan.id}_${step.seq}", now, revision)
+
             val observation = executor.execute(cap, now)
             ModelValidator.observation(observation)
             observed += observation.facts
+            val receipt = ExecutionReceipt(
+                receiptId = observation.id,
+                commandId = "cmd_${plan.id}_${step.seq}",
+                dispatchId = "disp_cmd_${plan.id}_${step.seq}",
+                ok = true,
+                at = now
+            )
+            action = completeWithReceipt(action, receipt)
 
             if (!matchesExpected(cap.effects, observation.facts)) {
                 val compensating = rollbackObservation(plan, origin, now)
@@ -102,17 +124,21 @@ class Runtime(
                         stateVersion = write.state.version
                     )
                 )
+                val (compensated, _) = requestCompensation(action, now, "comp_${plan.id}")
                 return ExecutionResult(
                     Outcome("out_${plan.id}", plan.goalRef, observed, 0.0, "failed"),
                     committed = false,
                     rolledBack = true,
-                    state = world.committed
+                    state = world.committed,
+                    action = compensated
                 )
             }
 
             val minted = admit(observation, now, admittedIds)
             val write = world.apply(minted) as WriteResult.Accepted
             lastEventId = write.acceptedEventId
+            action = linkAccepted(action, minted.candidate.id, now)
+            lastAction = action
             append(
                 Event(
                     id = "ev_${step.seq}_commit",
@@ -129,7 +155,8 @@ class Runtime(
             Outcome("out_${plan.id}", plan.goalRef, observed, 1.0, "achieved"),
             committed = true,
             rolledBack = false,
-            state = world.committed
+            state = world.committed,
+            action = lastAction
         )
     }
 
@@ -151,11 +178,17 @@ class Runtime(
         )
     }
 
-    private fun failure(plan: Plan, state: BeliefState, observed: List<Claim>) =
+    private fun failure(
+        plan: Plan,
+        state: BeliefState,
+        observed: List<Claim>,
+        action: ActionState?
+    ) =
         ExecutionResult(
             Outcome("out_${plan.id}", plan.goalRef, observed, 0.0, "failed"),
             committed = false,
             rolledBack = false,
-            state = state
+            state = state,
+            action = action
         )
 }
