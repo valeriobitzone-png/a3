@@ -19,7 +19,7 @@ import a3.core.time.InstantSource
 import a3.core.time.SequentialIdGenerator
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import a3.intent.IntentProvider
 import a3.intent.RuleIntentProvider
 import a3.renderers.android.core.interp.A3UIInterpreter
@@ -42,7 +42,7 @@ data class HostUi(
 )
 
 class A3HostViewModel(
-    private val world: WorldState,
+    private val world: BeliefWriter,
     private val planner: DeterministicPlanner,
     private val runtime: Runtime,
     private val policy: Policy,
@@ -190,7 +190,7 @@ class A3HostViewModel(
     companion object {
         fun train(
             executor: Executor = DemoFixtures.matchingExecutor(),
-            world: WorldState = WorldState()
+            world: BeliefWriter = BeliefWriter()
         ): A3HostViewModel {
             val clock = DemoFixtures.clock
             return A3HostViewModel(
@@ -211,7 +211,7 @@ class A3HostViewModel(
 
         fun reversible(
             executor: Executor = DemoFixtures.matchingExecutor(),
-            world: WorldState = WorldState()
+            world: BeliefWriter = BeliefWriter()
         ): A3HostViewModel {
             val clock = DemoFixtures.clock
             return A3HostViewModel(

@@ -15,7 +15,7 @@ import a3.a3ui.schema.SchemaValidator
 import a3.a3ui.serialize.CanonicalJson
 import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.core.world.api.ReadBelief
 import a3.projection.engine.ProjectionEngine
 import a3.projection.engine.ProjectionEventLog
@@ -83,7 +83,7 @@ class A3UIAcceptanceTest {
     fun P28_a3ui_consumes_projection_without_mutating_it() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(4, listOf(Fact("ticket.owned", true, 0.97, "train", t, id = "f2"))),
+            ReadBelief(4, listOf(Claim("ticket.owned", true, 0.97, "train", t, id = "f2"))),
             hints()
         )
         val before = ProjectionCanonical.bytes(readOut.projection)
@@ -101,7 +101,7 @@ class A3UIAcceptanceTest {
     fun P29_a3ui_surface_is_deterministic() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(2, listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))),
+            ReadBelief(2, listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))),
             hints()
         )
         val a = compiler().compile(readOut.projection)
@@ -142,7 +142,7 @@ class A3UIAcceptanceTest {
     fun P31_morph_spec_shared_elements_are_declarative() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(1, listOf(Fact("ticket.owned", true, 0.97, "train", t))),
+            ReadBelief(1, listOf(Claim("ticket.owned", true, 0.97, "train", t))),
             hints()
         )
         val surface = compiler().compile(readOut.projection)
@@ -162,7 +162,7 @@ class A3UIAcceptanceTest {
     fun P32_gesture_map_is_semantic() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(1, listOf(Fact("ticket.owned", true, 0.97, "train", t))),
+            ReadBelief(1, listOf(Claim("ticket.owned", true, 0.97, "train", t))),
             hints()
         )
         val surface = compiler().compile(readOut.projection)
@@ -185,7 +185,7 @@ class A3UIAcceptanceTest {
     fun P33_haptic_map_is_semantic() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(1, listOf(Fact("ticket.owned", true, 0.97, "train", t))),
+            ReadBelief(1, listOf(Claim("ticket.owned", true, 0.97, "train", t))),
             hints()
         )
         val surface = compiler().compile(readOut.projection)
@@ -245,7 +245,7 @@ class A3UIAcceptanceTest {
     fun P35_surface_preserves_causal_lineage() {
         val readOut = projectionEngine().readBelief(
             "home",
-            ReadBelief(7, listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))),
+            ReadBelief(7, listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))),
             hints()
         )
         val surface = compiler().compile(readOut.projection)
@@ -266,7 +266,7 @@ class A3UIAcceptanceTest {
     fun P36_inherited_read_paths_still_compose() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(0, listOf(Fact("ticket.owned", true, 1.0, "obs", t, id = "t1"))),
+            ReadBelief(0, listOf(Claim("ticket.owned", true, 1.0, "obs", t, id = "t1"))),
             hints()
         )
         val surface = compiler().compile(readOut.projection)
@@ -318,7 +318,7 @@ class A3UIAcceptanceTest {
     fun P39_a3ui_does_not_mutate_projection_or_presentation() {
         val readOut = projectionEngine().readBelief(
             "ctx",
-            ReadBelief(1, listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))),
+            ReadBelief(1, listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))),
             hints()
         )
         val beforeProj = ProjectionCanonical.bytes(readOut.projection)

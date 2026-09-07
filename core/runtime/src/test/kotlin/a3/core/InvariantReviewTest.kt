@@ -2,16 +2,16 @@ package a3.core
 
 import a3.core.capability.Transition
 import a3.core.model.*
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Observation
 import a3.core.planner.*
 import a3.core.policy.Policy
 import a3.core.runtime.*
 import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
-import a3.core.world.AcceptedObservation
+import a3.core.admission.AcceptedObservation
 import a3.core.world.BeliefState
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import a3.core.world.WriteResult
 import java.time.Instant
 import kotlin.test.*
@@ -26,18 +26,18 @@ class InvariantReviewTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t)),
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t)),
                 reliability = 0.8
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -56,26 +56,26 @@ class InvariantReviewTest {
         assertFalse(Transition.canApply(missing, cap, t))
 
         val valid = BeliefState(
-            facts = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+            facts = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
         )
         assertTrue(Transition.canApply(valid, cap, t))
         assertTrue(valid.current(t).any { it.k == "calendar.next" && valid.validAt(it, t) })
 
         val expired = BeliefState(
-            facts = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(7200), t.minusSeconds(1)))
+            facts = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(7200), t.minusSeconds(1)))
         )
         assertFalse(Transition.canApply(expired, cap, t))
         assertTrue(expired.facts.none { expired.validAt(it, t) })
 
         val lowConfidence = BeliefState(
-            facts = listOf(Fact("calendar.next", "work@08:30", 0.1, "calendar", t, t.plusSeconds(3600)))
+            facts = listOf(Claim("calendar.next", "work@08:30", 0.1, "calendar", t, t.plusSeconds(3600)))
         )
         assertTrue(
             Transition.canApply(lowConfidence, cap, t),
             "canApply is k=v ∧ validAt(now); confidence is not a gate"
         )
         val wrongValue = BeliefState(
-            facts = listOf(Fact("calendar.next", "home@09:00", 1.0, "calendar", t, t.plusSeconds(3600)))
+            facts = listOf(Claim("calendar.next", "home@09:00", 1.0, "calendar", t, t.plusSeconds(3600)))
         )
         assertFalse(Transition.canApply(wrongValue, cap, t))
     }
@@ -84,7 +84,7 @@ class InvariantReviewTest {
     fun R2_confidence_min_precond_times_reliability() {
         val cap = graph().capabilities.getValue("train.search")
         val state = BeliefState(
-            facts = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t, t.plusSeconds(3600), id = "p1"))
+            facts = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t, t.plusSeconds(3600), id = "p1"))
         )
         val expected = 0.5 * 0.8
         assertEquals(expected, Transition.propagatedConfidence(state, cap, t))
@@ -97,13 +97,13 @@ class InvariantReviewTest {
     fun R3_contradictory_effect_supersedes_never_silent_overwrite() {
         val first = Observation(
             "o1", "e", t,
-            listOf(Fact("ticket.owned", true, 0.9, "train", t, id = "a"))
+            listOf(Claim("ticket.owned", true, 0.9, "train", t, id = "a"))
         )
         val second = Observation(
             "o2", "e", t,
-            listOf(Fact("ticket.owned", false, 0.8, "obs", t))
+            listOf(Claim("ticket.owned", false, 0.8, "obs", t))
         )
-        val world = WorldState()
+        val world = BeliefWriter()
         world.apply(acceptedObservation(first, t))
         world.apply(acceptedObservation(second, t))
         val s2 = world.committed
@@ -121,7 +121,7 @@ class InvariantReviewTest {
     @Test
     fun R4_compensatory_rollback_never_decrements_version() {
         val plan = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
         var calls = 0
@@ -130,7 +130,7 @@ class InvariantReviewTest {
             val facts = if (calls <= 2) cap.effects else cap.effects.map { it.copy(v = false) }
             Observation("o_${cap.id}", "e", now, facts)
         }
-        val world = WorldState()
+        val world = BeliefWriter()
         val result = Runtime(Policy(), TrustGate()).execute(
             plan.plan, world, graph().capabilities, executor, t, grants()
         )
@@ -145,32 +145,32 @@ class InvariantReviewTest {
 
     @Test
     fun R5_stale_state_only_when_expires_at_before_now() {
-        val stale = Fact("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(7200), t.minusSeconds(3600))
+        val stale = Claim("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(7200), t.minusSeconds(3600))
         val staleResult = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(facts = listOf(stale)), graph(), t
         )
         assertEquals(PlannerError.StaleState, (staleResult as PlanResult.Failure).error)
 
-        val futureObserved = Fact("calendar.next", "work@08:30", 1.0, "calendar", t.plusSeconds(60), null)
+        val futureObserved = Claim("calendar.next", "work@08:30", 1.0, "calendar", t.plusSeconds(60), null)
         val futureResult = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(facts = listOf(futureObserved)), graph(), t
         )
         assertTrue(futureResult is PlanResult.Success, "observed_at > now must not emit STALE_STATE, got $futureResult")
 
-        val live = Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))
+        val live = Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))
         val liveResult = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(facts = listOf(live)), graph(), t
         )
         assertTrue(liveResult is PlanResult.Success)
 
-        val unrelatedStale = Fact(
+        val unrelatedStale = Claim(
             "weather.temp", 3, 1.0, "weather", t.minusSeconds(7200), t.minusSeconds(3600)
         )
         val unrelated = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(facts = listOf(unrelatedStale)), graph(), t
         )
         assertTrue(
@@ -178,9 +178,9 @@ class InvariantReviewTest {
             "STALE_STATE only when a required fact has expires_at < now, got $unrelated"
         )
 
-        val atExpiry = Fact("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(60), t)
+        val atExpiry = Claim("calendar.next", "work@08:30", 1.0, "calendar", t.minusSeconds(60), t)
         val atExpiryResult = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(facts = listOf(atExpiry)), graph(), t
         )
         assertTrue(
@@ -195,7 +195,7 @@ class InvariantReviewTest {
             mapOf("train.search" to graph().capabilities.getValue("train.search"))
         )
         val result = planner().plan(
-            Goal("g", "i", listOf(Fact("train.selected", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("train.selected", true, 0.5, "goal", t))),
             BeliefState(), onlySearch, t
         )
         assertEquals(PlannerError.UnmetPrecondition, (result as PlanResult.Failure).error)
@@ -205,7 +205,7 @@ class InvariantReviewTest {
     fun R6_constraint_violation_is_constraint_conflict() {
         val result = planner().plan(
             Goal(
-                "g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t)),
+                "g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t)),
                 constraints = listOf(Constraint("budget", "<=", -1))
             ),
             BeliefState(), graph(), t
@@ -215,7 +215,7 @@ class InvariantReviewTest {
 
     @Test
     fun R7_determinism_canonical_bytes() {
-        val goal = Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t)))
+        val goal = Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t)))
         val a = planner().plan(goal, BeliefState(), graph(), t)
         val b = planner().plan(goal, BeliefState(), graph(), t)
         val ca = CanonicalJson.planResult(a)
@@ -236,10 +236,10 @@ class InvariantReviewTest {
     @Test
     fun R8_replay_state_equals_original() {
         val plan = planner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             BeliefState(), graph(), t
         ) as PlanResult.Success
-        val world = WorldState()
+        val world = BeliefWriter()
         val result = Runtime(Policy(), TrustGate()).execute(
             plan.plan, world, graph().capabilities,
             Executor { cap, now -> Observation("o_${cap.id}", "e", now, cap.effects) },
@@ -257,18 +257,18 @@ class InvariantReviewTest {
 
     @Test
     fun R9_epistemic_only_observation_accepted_writes() {
-        val world = WorldState()
+        val world = BeliefWriter()
         val now = t
         val obs = Observation(
             "o_ok", "e", now,
-            listOf(Fact("ticket.owned", true, 1.0, "obs", now))
+            listOf(Claim("ticket.owned", true, 1.0, "obs", now))
         )
-        val applyMethods = WorldState::class.java.methods.filter { it.name == "apply" }
+        val applyMethods = BeliefWriter::class.java.methods.filter { it.name == "apply" }
         assertEquals(1, applyMethods.size)
         assertEquals(AcceptedObservation::class.java, applyMethods.single().parameterTypes.single())
         assertTrue(
-            WorldState::class.java.methods.none { it.name == "write" },
-            "WorldState.write(source, observation) must not exist"
+            BeliefWriter::class.java.methods.none { it.name == "write" },
+            "BeliefWriter.write(source, observation) must not exist"
         )
 
         val accepted = world.apply(acceptedObservation(obs, now))

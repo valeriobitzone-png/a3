@@ -4,7 +4,7 @@ import a3.core.time.InstantSource
 import a3.core.time.SequentialIdGenerator
 import a3.core.world.api.BeliefReader
 import a3.core.world.api.FACT_ORDER
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.prediction.model.FutureState
 import a3.projection.model.CandidateStatus
 import a3.projection.model.CausalLineage
@@ -190,7 +190,7 @@ class ProjectionEngine(
 
     private fun presentationOf(
         version: Long,
-        facts: List<Fact>,
+        facts: List<Claim>,
         now: Instant,
         stateIdentity: String,
         causalEventId: String,
@@ -213,7 +213,7 @@ class ProjectionEngine(
         )
     }
 
-    private fun atomsFrom(facts: List<Fact>): List<PresentationAtom> {
+    private fun atomsFrom(facts: List<Claim>): List<PresentationAtom> {
         val atoms = ArrayList<PresentationAtom>(facts.size)
         for (fact in facts.sortedWith(FACT_ORDER)) {
             atoms += PresentationAtom(

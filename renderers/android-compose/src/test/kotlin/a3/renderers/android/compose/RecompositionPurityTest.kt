@@ -4,7 +4,7 @@ import a3.a3ui.engine.DeterministicA3UICompiler
 import a3.a3ui.serialize.CanonicalJson as SurfaceCanonical
 import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.core.world.api.ReadBelief
 import a3.projection.engine.ProjectionEngine
 import a3.projection.engine.ProjectionEventLog
@@ -46,7 +46,7 @@ class RecompositionPurityTest {
             ProjectionEngine(FixedClock(t), SequentialIdGenerator(), ProjectionEventLog())
                 .readBelief(
                     "ctx",
-                    ReadBelief(1, listOf(Fact("ticket.owned", true, 0.97, "train", t))),
+                    ReadBelief(1, listOf(Claim("ticket.owned", true, 0.97, "train", t))),
                     FormFactorHints("phone", Density.COMFORTABLE)
                 ).projection
         )

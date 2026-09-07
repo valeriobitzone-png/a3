@@ -1,6 +1,6 @@
 package a3.prediction.model
 
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import java.time.Instant
 
 enum class PredictionStatus {
@@ -45,14 +45,14 @@ data class FutureState(
     val id: String,
     val contextRef: String,
     val capabilityRef: String,
-    val facts: List<Fact>,
+    val facts: List<Claim>,
     val score: Double,
     val producedAt: Instant
 )
 
 /**
  * Prefetch artifact. Distinct from BeliefState. No commit / toWorldState / toBeliefState.
- * No may_commit flag: the type cannot reach WorldState.apply (no overload exists).
+ * No may_commit flag: the type cannot reach BeliefWriter.apply (no overload exists).
  */
 data class PreparedState(
     val id: String,
@@ -60,7 +60,7 @@ data class PreparedState(
     val futureStateId: String,
     val contextRef: String,
     val contextSignature: String,
-    val facts: List<Fact>,
+    val facts: List<Claim>,
     val status: PredictionStatus,
     val preparedAt: Instant,
     val expiresAt: Instant,
@@ -85,8 +85,8 @@ data class PredictionInvalidation(
 
 data class CapabilityHint(
     val id: String,
-    val preconditions: List<Fact>,
-    val effects: List<Fact>,
+    val preconditions: List<Claim>,
+    val effects: List<Claim>,
     val reliability: Double,
     val money: Double = 0.0,
     val timeMin: Double = 0.0

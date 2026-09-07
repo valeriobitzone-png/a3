@@ -8,7 +8,7 @@ import java.time.Instant
  *
  * validAt(f,t) := not superseded AND observed_at <= t AND (no expiry OR t < expires_at)
  */
-data class Fact(
+data class Claim(
     val k: String,
     val v: Any?,
     val confidence: Double,
@@ -31,7 +31,7 @@ data class Fact(
     }
 }
 
-val FACT_ORDER = compareBy<Fact> { it.k }
+val FACT_ORDER = compareBy<Claim> { it.k }
     .thenBy { it.observedAt }
     .thenBy { it.id }
     .thenBy { it.source }

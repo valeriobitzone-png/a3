@@ -11,38 +11,40 @@ MCP e A2UI sono adapter opzionali, non fondazione.
 ### Invariante
 > Prediction may prepare. Policy may authorize. Execution may change the world. Observation determines what actually happened.
 
-L'unico writer di `WorldState` è `WorldState.apply(AcceptedObservation)`: vero su classe, sul closed loop live, e sul replay (fold di apply su un world fresco).
+L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul closed loop live e sul replay (fold su un writer fresco). `BeliefWriter` è solo l'envelope EventLog.
 
 ## Strati
 
 | Strato | Domanda | Modulo | Tag |
 |---|---|---|---|
-| CORE | What should become true? | `core/` | `core-v0.2` |
-| PREDICTION | What could become true? | `prediction/` | `prediction-core-v0.1` |
-| PROJECTION | How should meaning be presented? | `projection/` | `projection-core-v0.1` |
-| A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-core-v0.2` |
-| RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.3` |
-| ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.1` |
-| INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.1` |
-| LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.1` (+ T8b `7a9d03b` senza tag) |
+| CORE | What should become true? | `core/` | `core-v0.4` + `core-admission-v0.1` |
+| PREDICTION | What could become true? | `prediction/` | `prediction-v0.3` |
+| PROJECTION | How should meaning be presented? | `projection/` | `projection-v0.3` |
+| A3UI | How does presentation evolve in time? | `a3ui/` | `a3ui-v0.4` |
+| RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.7` |
+| ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.2` |
+| INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.2` |
+| LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.2` |
 
 ## Tassonomia
-`BeliefState` = reality believed · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality.
+`Claim` = belief atom · `BeliefState` = reality believed · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality · `ObservationCandidate` = pre-admission.
 
 ## Repository
 - `A3_SPEC_0.1.md` — master specification
 - `spec/` — specifiche normative
 - `schemas/` — JSON Schema
-- `core/world-api` — `Fact`, `BeliefReader` (read-only)
-- `core/world` — `WorldState.apply(AcceptedObservation)` only
-- `core/runtime` — planner, execution, mint di `AcceptedObservation`, replay fold
+- `core/world-api` — `Claim`, `BeliefReader` (read-only)
+- `core/admission` — `evaluate` puro, cieco (`core-admission-v0.1`)
+- `core/world` — `BeliefState.apply(AcceptedObservation)`; `BeliefWriter` envelope
+- `core/runtime` — planner, execution, admit via evaluate, replay fold
+- `core/json` — canonical engine (`core-json-v0.1`, non bumpato)
 - `prediction/` — forecast deterministico (dipende solo da `world-api`)
 - `projection/` — transformer read-only
-- `a3ui/` — compiler di intent temporale (0.2)
-- `renderers/` — interprete A3UI (Android 0.3)
-- `adapters/` — MCP (`mcp-adapter-v0.1`)
-- `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.1`)
-- `launcher/` — composition root Android (`launcher-v0.1`; T8b `7a9d03b` senza tag)
+- `a3ui/` — compiler di intent temporale
+- `renderers/` — interprete A3UI (Android)
+- `adapters/` — MCP (`mcp-adapter-v0.2`)
+- `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.2`)
+- `launcher/` — composition root Android (`launcher-v0.2`)
 
 ## Accettazione
 T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 (a3ui) · P43–P56 (renderer) · W1–W5 (writer) · V1–V5 (replay) + barriere ArchUnit.

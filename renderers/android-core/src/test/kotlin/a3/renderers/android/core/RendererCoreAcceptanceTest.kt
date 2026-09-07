@@ -4,7 +4,7 @@ import a3.a3ui.engine.DeterministicA3UICompiler
 import a3.a3ui.serialize.CanonicalJson as SurfaceCanonical
 import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.core.world.api.ReadBelief
 import a3.projection.engine.ProjectionEngine
 import a3.projection.engine.ProjectionEventLog
@@ -63,9 +63,9 @@ class RendererCoreAcceptanceTest {
                     ReadBelief(
                         1,
                         listOf(
-                            Fact("calendar.next", "work@08:30", 1.0, "calendar", t, id = "c"),
-                            Fact("train.selected", true, 0.95, "train", t, id = "s"),
-                            Fact("ticket.owned", true, 0.97, "train", t, id = "o")
+                            Claim("calendar.next", "work@08:30", 1.0, "calendar", t, id = "c"),
+                            Claim("train.selected", true, 0.95, "train", t, id = "s"),
+                            Claim("ticket.owned", true, 0.97, "train", t, id = "o")
                         )
                     ),
                     FormFactorHints("phone", density)

@@ -3,7 +3,7 @@ package a3.projection
 import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
 import a3.core.world.api.BeliefReader
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.core.world.api.ReadBelief
 import a3.prediction.engine.PredictionEngine
 import a3.prediction.engine.PredictionEventLog
@@ -52,24 +52,24 @@ class ProjectionAcceptanceTest {
     private fun engine(events: ProjectionEventLog = ProjectionEventLog()) =
         ProjectionEngine(FixedClock(t), SequentialIdGenerator(), events)
 
-    private fun readConstruct(id: String, score: Double, k: String = "x.done"): FutureState = FutureState(id, "ctx", "cap", listOf(Fact(k, true, 1.0, "pred", t)), score, t)
+    private fun readConstruct(id: String, score: Double, k: String = "x.done"): FutureState = FutureState(id, "ctx", "cap", listOf(Claim(k, true, 1.0, "pred", t)), score, t)
 
     private fun loopHints() = listOf(
         CapabilityHint(
             "calendar.read", emptyList(),
-            listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))),
+            listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))),
             reliability = 1.0
         ),
         CapabilityHint(
             "train.search",
-            listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-            listOf(Fact("train.selected", true, 0.95, "train", t)),
+            listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+            listOf(Claim("train.selected", true, 0.95, "train", t)),
             reliability = 1.0
         ),
         CapabilityHint(
             "train.commit",
-            listOf(Fact("train.selected", true, 0.5, "train", t)),
-            listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+            listOf(Claim("train.selected", true, 0.5, "train", t)),
+            listOf(Claim("ticket.owned", true, 0.97, "train", t)),
             reliability = 1.0
         )
     )
@@ -95,13 +95,13 @@ class ProjectionAcceptanceTest {
     @Test
     fun P12_projection_reads_belief_without_mutating_it() {
         val liveFacts = arrayListOf(
-            Fact("calendar.next", "work@08:30", 1.0, "calendar", t, id = "f1"),
-            Fact("ticket.owned", true, 0.97, "train", t, id = "f2")
+            Claim("calendar.next", "work@08:30", 1.0, "calendar", t, id = "f1"),
+            Claim("ticket.owned", true, 0.97, "train", t, id = "f2")
         )
         val guarded: BeliefReader = object : BeliefReader {
             override val version: Long = 4L
-            override fun validAt(fact: Fact, t: Instant) = fact.validAt(t)
-            override fun current(t: Instant): List<Fact> = liveFacts
+            override fun validAt(fact: Claim, t: Instant) = fact.validAt(t)
+            override fun current(t: Instant): List<Claim> = liveFacts
         }
         val beforeVersion = guarded.version
         val beforeWire = liveFacts.map { listOf(it.id, it.k, it.v, it.confidence, it.source) }
@@ -131,8 +131,8 @@ class ProjectionAcceptanceTest {
         val reader = ReadBelief(
             version = 2,
             facts = listOf(
-                Fact("b.key", "two", 0.4, "s", t, id = "b"),
-                Fact("a.key", "one", 0.9, "s", t, id = "a")
+                Claim("b.key", "two", 0.4, "s", t, id = "b"),
+                Claim("a.key", "one", 0.9, "s", t, id = "a")
             )
         )
         val first = engine().readBelief("ctx", reader, hints()).presentation
@@ -156,7 +156,7 @@ class ProjectionAcceptanceTest {
     fun P14_presentation_state_is_device_agnostic() {
         val reader = ReadBelief(
             1,
-            listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, id = "f1"))
+            listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, id = "f1"))
         )
         val compact = engine().readBelief("ctx", reader, hints(Density.COMPACT))
         val spacious = engine().readBelief("ctx", reader, hints(Density.SPACIOUS))
@@ -222,9 +222,9 @@ class ProjectionAcceptanceTest {
         val reader = ReadBelief(
             1,
             listOf(
-                Fact("low.k", "L", 0.21, "s", t, id = "l"),
-                Fact("high.k", "H", 0.94, "s", t, id = "h"),
-                Fact("mid.k", "M", 0.50, "s", t, id = "m")
+                Claim("low.k", "L", 0.21, "s", t, id = "l"),
+                Claim("high.k", "H", 0.94, "s", t, id = "h"),
+                Claim("mid.k", "M", 0.50, "s", t, id = "m")
             )
         )
         val atoms = engine().readBelief("ctx", reader, hints()).presentation.atoms
@@ -265,7 +265,7 @@ class ProjectionAcceptanceTest {
         val eng = engine(events)
         val reader = ReadBelief(
             3,
-            listOf(Fact("ticket.owned", true, 0.97, "train", t, id = "f2"))
+            listOf(Claim("ticket.owned", true, 0.97, "train", t, id = "f2"))
         )
         val original = eng.readBelief("ctx", reader, hints())
         val readSources = listOf(
@@ -297,7 +297,7 @@ class ProjectionAcceptanceTest {
             "ctx",
             ReadBelief(
                 0,
-                listOf(Fact("ticket.owned", true, 1.0, "obs", t, id = "t1"))
+                listOf(Claim("ticket.owned", true, 1.0, "obs", t, id = "t1"))
             ),
             hints()
         )
@@ -311,15 +311,15 @@ class ProjectionAcceptanceTest {
 
     @Test
     fun P20_canonical_determinism_presentation_and_candidate() {
-        val hashed = HashMap<String, Fact>()
-        hashed["z"] = Fact("z.key", "Z", 0.3, "s", t, id = "z")
-        hashed["a"] = Fact("a.key", "A", 0.8, "s", t, id = "a")
-        hashed["m"] = Fact("m.key", "M", 0.8, "s", t, id = "m")
+        val hashed = HashMap<String, Claim>()
+        hashed["z"] = Claim("z.key", "Z", 0.3, "s", t, id = "z")
+        hashed["a"] = Claim("a.key", "A", 0.8, "s", t, id = "a")
+        hashed["m"] = Claim("m.key", "M", 0.8, "s", t, id = "m")
         val shuffled = ArrayList(hashed.values)
         val reader: BeliefReader = object : BeliefReader {
             override val version: Long = 5L
-            override fun validAt(fact: Fact, t: Instant) = fact.validAt(t)
-            override fun current(t: Instant): List<Fact> = shuffled
+            override fun validAt(fact: Claim, t: Instant) = fact.validAt(t)
+            override fun current(t: Instant): List<Claim> = shuffled
         }
         val a = engine().readBelief("ctx", reader, hints()).presentation
         val b = engine().readBelief("ctx", reader, hints()).presentation
@@ -344,7 +344,7 @@ class ProjectionAcceptanceTest {
     fun P21_renderer_independence() {
         val presentation = engine().readBelief(
             "ctx",
-            ReadBelief(1, listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))),
+            ReadBelief(1, listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))),
             hints()
         ).presentation
         val before = CanonicalJson.bytes(presentation)
@@ -395,7 +395,7 @@ class ProjectionAcceptanceTest {
     fun P24_causal_lineage_is_complete() {
         val believed = engine().readBelief(
             "home",
-            ReadBelief(7, listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))),
+            ReadBelief(7, listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))),
             hints()
         )
         val lin = believed.projection.lineage

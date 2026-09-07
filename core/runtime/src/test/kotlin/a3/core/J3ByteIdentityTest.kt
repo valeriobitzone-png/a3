@@ -1,6 +1,6 @@
 package a3.core
 
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Goal
 import a3.core.model.Intent
 import a3.core.serialize.CanonicalJson
@@ -14,7 +14,7 @@ class J3ByteIdentityTest {
 
     @Test
     fun J3_bytes_match_corpus_fixed_before_move() {
-        val fact = Fact("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60), id = "f1")
+        val fact = Claim("ticket.owned", true, 0.9, "train", t, t.plusSeconds(60), id = "f1")
         val got = mapOf(
             "null" to CanonicalJson.of(null),
             "true" to CanonicalJson.of(true),

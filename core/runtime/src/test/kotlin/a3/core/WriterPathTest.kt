@@ -11,7 +11,7 @@ import a3.core.runtime.WorldStateReplay
 import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -27,17 +27,17 @@ class WriterPathTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t))
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -50,7 +50,7 @@ class WriterPathTest {
     )
 
     private fun plan() = DeterministicPlanner().plan(
-        Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+        Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
         BeliefState(),
         graph(),
         t
@@ -58,7 +58,7 @@ class WriterPathTest {
 
     @Test
     fun W1_commit_goes_through_world_state_apply() {
-        val world = WorldState()
+        val world = BeliefWriter()
         val prev = world.committed.version
         val result = Runtime(Policy(), TrustGate()).execute(
             plan().plan,
@@ -102,7 +102,7 @@ class WriterPathTest {
             val facts = if (calls <= 2) cap.effects else cap.effects.map { it.copy(v = false) }
             Observation("o_${cap.id}", "e", now, facts)
         }
-        val world = WorldState()
+        val world = BeliefWriter()
         val prev = world.committed.version
         val result = Runtime(Policy(), TrustGate()).execute(
             plan().plan, world, graph().capabilities, executor, t, grants()
@@ -139,10 +139,10 @@ class WriterPathTest {
 
     @Test
     fun W5_planner_stays_on_copy_and_does_not_mint_or_apply() {
-        val world = WorldState()
+        val world = BeliefWriter()
         val before = CanonicalJson.bytesState(world.committed)
         val planned = DeterministicPlanner().plan(
-            Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+            Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
             world.committed,
             graph(),
             t

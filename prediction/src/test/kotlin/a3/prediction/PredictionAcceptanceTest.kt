@@ -3,7 +3,7 @@ package a3.prediction
 import a3.core.time.FixedClock
 import a3.core.time.InstantSource
 import a3.core.time.SequentialIdGenerator
-import a3.core.world.api.Fact
+import a3.core.world.api.Claim
 import a3.core.world.api.ReadBelief
 import a3.prediction.engine.PredictionEngine
 import a3.prediction.engine.PredictionEventLog
@@ -29,7 +29,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * P3–P6, P8, P10. P1/P2/P7/P9 live in :core:runtime (need WorldState).
+ * P3–P6, P8, P10. P1/P2/P7/P9 live in :core:runtime (need BeliefWriter).
  * P11 is ArchUnit.
  */
 class PredictionAcceptanceTest {
@@ -42,28 +42,28 @@ class PredictionAcceptanceTest {
     private fun loopHints() = listOf(
         CapabilityHint(
             "calendar.read", emptyList(),
-            listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))),
+            listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600))),
             reliability = 1.0
         ),
         CapabilityHint(
             "train.search",
-            listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-            listOf(Fact("train.selected", true, 0.95, "train", t)),
+            listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+            listOf(Claim("train.selected", true, 0.95, "train", t)),
             reliability = 1.0
         ),
         CapabilityHint(
             "train.commit",
-            listOf(Fact("train.selected", true, 0.5, "train", t)),
-            listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+            listOf(Claim("train.selected", true, 0.5, "train", t)),
+            listOf(Claim("ticket.owned", true, 0.97, "train", t)),
             reliability = 1.0
         )
     )
 
     private fun rankingHints() = listOf(
-        CapabilityHint("b.high", emptyList(), listOf(Fact("b.done", true, 1.0, "pred", t)), 1.0, 0.0, 0.0),
-        CapabilityHint("a.low", emptyList(), listOf(Fact("a.done", true, 1.0, "pred", t)), 1.0, 1.0, 0.0),
-        CapabilityHint("z.eq", emptyList(), listOf(Fact("z.done", true, 1.0, "pred", t)), 0.5, 0.0, 0.0),
-        CapabilityHint("m.eq", emptyList(), listOf(Fact("m.done", true, 1.0, "pred", t)), 0.5, 0.0, 0.0)
+        CapabilityHint("b.high", emptyList(), listOf(Claim("b.done", true, 1.0, "pred", t)), 1.0, 0.0, 0.0),
+        CapabilityHint("a.low", emptyList(), listOf(Claim("a.done", true, 1.0, "pred", t)), 1.0, 1.0, 0.0),
+        CapabilityHint("z.eq", emptyList(), listOf(Claim("z.done", true, 1.0, "pred", t)), 0.5, 0.0, 0.0),
+        CapabilityHint("m.eq", emptyList(), listOf(Claim("m.done", true, 1.0, "pred", t)), 0.5, 0.0, 0.0)
     )
 
     private fun engine(

@@ -5,7 +5,7 @@ import java.util.Collections
 
 /**
  * Append-only event log. Reconstruction of committed belief lives in :core:runtime
- * as a fold over a fresh world. This class does not mint, apply, or merge belief.
+ * as a fold over a fresh writer. This class does not mint, apply, or merge belief.
  */
 class EventLog {
     private val events = ArrayList<Event>()

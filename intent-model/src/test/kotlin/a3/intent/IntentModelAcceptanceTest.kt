@@ -3,7 +3,7 @@ package a3.intent
 import a3.core.model.Capability
 import a3.core.model.CapabilityGraph
 import a3.core.model.Constraint
-import a3.core.model.Fact
+import a3.core.model.Claim
 import a3.core.model.Goal
 import a3.core.model.Intent
 import a3.core.planner.DeterministicPlanner
@@ -41,17 +41,17 @@ class IntentModelAcceptanceTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t))
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -81,7 +81,7 @@ class IntentModelAcceptanceTest {
     @Test
     fun I2_infer_does_not_write_belief() {
         val belief = BeliefState(
-            facts = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t))
+            facts = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t))
         )
         val before = CanonicalJson.ofState(belief)
         val beforeBytes = CanonicalJson.bytesState(belief)
@@ -144,7 +144,7 @@ class IntentModelAcceptanceTest {
     @Test
     fun I5_goal_constraints_decide_not_the_provider() {
         val inferred = RuleIntentProvider(0.8).infer(ctx())
-        val desired = listOf(Fact("ticket.owned", true, 0.5, "goal", t))
+        val desired = listOf(Claim("ticket.owned", true, 0.5, "goal", t))
         val planner = DeterministicPlanner()
 
         val unconstrained = planner.plan(

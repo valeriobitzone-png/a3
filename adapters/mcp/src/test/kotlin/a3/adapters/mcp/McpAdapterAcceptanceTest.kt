@@ -9,12 +9,13 @@ import a3.core.runtime.Runtime
 import a3.core.serialize.CanonicalJson
 import a3.core.trust.TrustGate
 import a3.core.world.BeliefState
-import a3.core.world.WorldState
+import a3.core.world.BeliefWriter
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertFails
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
@@ -25,17 +26,17 @@ class McpAdapterAcceptanceTest {
         mapOf(
             "calendar.read" to Capability(
                 "calendar.read", "calendar.read", emptyList(),
-                effects = listOf(Fact("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
+                effects = listOf(Claim("calendar.next", "work@08:30", 1.0, "calendar", t, t.plusSeconds(3600)))
             ),
             "train.search" to Capability(
                 "train.search", "train.search",
-                preconditions = listOf(Fact("calendar.next", "work@08:30", 0.5, "calendar", t)),
-                effects = listOf(Fact("train.selected", true, 0.95, "train", t))
+                preconditions = listOf(Claim("calendar.next", "work@08:30", 0.5, "calendar", t)),
+                effects = listOf(Claim("train.selected", true, 0.95, "train", t))
             ),
             "train.commit" to Capability(
                 "train.commit", "train.commit",
-                preconditions = listOf(Fact("train.selected", true, 0.5, "train", t)),
-                effects = listOf(Fact("ticket.owned", true, 0.97, "train", t)),
+                preconditions = listOf(Claim("train.selected", true, 0.5, "train", t)),
+                effects = listOf(Claim("ticket.owned", true, 0.97, "train", t)),
                 reversible = false
             )
         )
@@ -48,7 +49,7 @@ class McpAdapterAcceptanceTest {
     )
 
     private fun plan() = DeterministicPlanner().plan(
-        Goal("g", "i", listOf(Fact("ticket.owned", true, 0.5, "goal", t))),
+        Goal("g", "i", listOf(Claim("ticket.owned", true, 0.5, "goal", t))),
         BeliefState(),
         graph(),
         t
@@ -64,14 +65,14 @@ class McpAdapterAcceptanceTest {
         val catalog = McpToolCatalog(caps)
         val mcp = McpCapabilityExecutor(catalog, serverId = "stub")
 
-        val nativeWorld = WorldState()
+        val nativeWorld = BeliefWriter()
         val nativeResult = Runtime(Policy(), TrustGate()).execute(
             plan().plan, nativeWorld, caps, nativeExecutor(), t, grants()
         )
         assertTrue(nativeResult.committed)
         val b1 = CanonicalJson.bytesState(nativeResult.state)
 
-        val mcpWorld = WorldState()
+        val mcpWorld = BeliefWriter()
         val mcpResult = Runtime(Policy(), TrustGate()).execute(
             plan().plan, mcpWorld, caps, mcp, t, grants()
         )
@@ -98,7 +99,7 @@ class McpAdapterAcceptanceTest {
                 cap.effects.map { it.copy(id = "", source = "mcp://stub/${cap.id}") }
             )
         }
-        val poisonedWorld = WorldState()
+        val poisonedWorld = BeliefWriter()
         val poisonedResult = Runtime(Policy(), TrustGate()).execute(
             plan().plan, poisonedWorld, caps, poisoned, t, grants()
         )
@@ -107,6 +108,54 @@ class McpAdapterAcceptanceTest {
             CanonicalJson.ofState(nativeResult.state),
             CanonicalJson.ofState(poisonedResult.state)
         )
+    }
+
+    @Test
+    fun MCP_BOUND_1_call_returns_candidate_apply_without_evaluate_throws() {
+        val caps = graph().capabilities
+        val mcp = McpCapabilityExecutor(McpToolCatalog(caps), serverId = "stub")
+        val candidate = mcp.call(caps.getValue("calendar.read"), t)
+        assertEquals(a3.core.admission.ObservationCandidate::class.java, candidate::class.java)
+        val before = BeliefState()
+        assertFails {
+            before.apply(candidate)
+        }
+        assertEquals(0, before.version)
+        assertTrue(before.facts.isEmpty())
+        assertTrue(
+            McpCapabilityExecutor::class.java.methods.none { method ->
+                method.returnType.name.contains("AcceptedObservation")
+            }
+        )
+    }
+
+    @Test
+    fun MCP_BOUND_2_admission_in_the_middle_keeps_belief_bytes_and_omits_admission_metadata() {
+        val caps = graph().capabilities
+        val catalog = McpToolCatalog(caps)
+        val mcp = McpCapabilityExecutor(catalog, serverId = "stub")
+
+        val nativeWorld = BeliefWriter()
+        val nativeResult = Runtime(Policy(), TrustGate()).execute(
+            plan().plan, nativeWorld, caps, nativeExecutor(), t, grants()
+        )
+        val mcpWorld = BeliefWriter()
+        val mcpResult = Runtime(Policy(), TrustGate()).execute(
+            plan().plan, mcpWorld, caps, mcp, t, grants()
+        )
+        assertTrue(nativeResult.committed)
+        assertTrue(mcpResult.committed)
+        assertContentEquals(
+            CanonicalJson.bytesState(nativeResult.state),
+            CanonicalJson.bytesState(mcpResult.state)
+        )
+        val json = CanonicalJson.ofState(nativeResult.state)
+        assertFalse(json.contains("reasonCode"))
+        assertFalse(json.contains("admittedAt"))
+        assertFalse(json.contains("\"policyVersion\""))
+        assertFalse(json.contains("\"policyId\""))
+        assertTrue(json.contains("\"facts\""))
+        assertTrue(json.contains("\"version\""))
     }
 
     @Test
