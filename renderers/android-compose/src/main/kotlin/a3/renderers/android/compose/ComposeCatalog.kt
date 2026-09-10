@@ -1,7 +1,6 @@
 package a3.renderers.android.compose
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -108,8 +107,8 @@ private fun CatalogNode(
                 }
             }
         }
-        "list" -> GlassSurface(modifier, nested) {
-            LazyColumn(Modifier.fillMaxSize()) {
+        "list" -> GlassSurface(extra, nested) {
+            LazyColumn(tagged.fillMaxSize().rubberBand()) {
                 items(node.children, key = { it.id }) { child ->
                     CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth(), depth = depth + 1)
                 }
@@ -118,7 +117,7 @@ private fun CatalogNode(
         "item" -> GlassSurface(modifier, nested) {
             Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); ExposureMarks(node)
         }
-        "action" -> Box(modifier) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); ExposureMarks(node) }
+        "action" -> Box(modifier.contactRipple()) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); ExposureMarks(node) }
         "field" -> Column(extra) {
             BasicTextField(
                 value = node.text,
@@ -255,6 +254,7 @@ private fun ColumnScope.occupancy(role: String): Modifier = when (role) {
     else -> Modifier.fillMaxWidth()
 }
 
+@Composable
 private fun nodeModifier(
     node: RenderedNode,
     targeted: List<SemanticGestureAction>,
@@ -300,7 +300,7 @@ private fun nodeModifier(
     if (emit != null || node.role == "action") {
         val actionName = emit ?: ""
         val gestureName = clickableGesture ?: ""
-        modifier = modifier.clickable(enabled = actionName.isNotEmpty()) {
+        modifier = modifier.actionPress(enabled = actionName.isNotEmpty()) {
             if (actionName.isNotEmpty()) {
                 onAction(IntentCandidate(gestureName, actionName, node.id).action)
             }

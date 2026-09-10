@@ -1,4 +1,4 @@
-package a3.renderers.android.compose
+package a3.renderers.mac.compose
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,40 +10,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import a3.renderers.android.core.model.SharedElementPlan
+import a3.renderers.android.core.model.SpringParams
 
 @Composable
-fun ComposeMorphApplier(plan: SharedElementPlan, content: @Composable () -> Unit) {
+fun MacMotionApplier(params: SpringParams, content: @Composable () -> Unit) {
     val reduced = LocalReducedMotion.current
-    val token = tokenSpring(plan.spring)
-    val morph = remember { mutableStateOf(MotionPhysics.State(1f, 0f)) }
+    if (reduced) {
+        Box(Modifier.fillMaxSize()) { content() }
+        return
+    }
+    val token = tokenSpring(params)
+    var state by remember { mutableStateOf(MotionPhysics.State(1f, 0f)) }
     var first by remember { mutableStateOf(true) }
-    LaunchedEffect(plan.to, plan.shared) {
+    LaunchedEffect(params.stiffness, params.damping, params.durationHint) {
         if (first) {
             first = false
             return@LaunchedEffect
         }
-        if (reduced) {
-            morph.value = MotionPhysics.State(1f, 0f)
-            return@LaunchedEffect
-        }
-        morph.value = MotionPhysics.State(0.4f, 0f)
-        runSpring(
+        state = runSpring(
             reduced = false,
-            initial = morph.value,
+            initial = MotionPhysics.inheritVelocity(state, state.v),
             target = 1f,
             mass = token.mass,
             stiffness = token.stiffness,
             damping = token.damping
-        ) { morph.value = it }
+        ) { state = it }
     }
     Box(
         Modifier
             .fillMaxSize()
             .graphicsLayer {
-                val s = morph.value.x
-                scaleX = s
-                scaleY = s
+                scaleX = state.x
+                scaleY = state.x
             }
     ) {
         content()

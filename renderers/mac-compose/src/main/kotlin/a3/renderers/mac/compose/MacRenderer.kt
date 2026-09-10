@@ -27,7 +27,13 @@ fun MacRenderer(
                 .background(Color.White)
                 .testTag("a3-material")
         ) {
-            MacCatalog(output.nodes, output.gestures.actions, onAction)
+            MacMotionApplier(output.spring) {
+                MacMorphApplier(output.sharedElements) {
+                    FluidResizeContainer {
+                        MacCatalog(output.nodes, output.gestures.actions, onAction)
+                    }
+                }
+            }
         }
     }
 }

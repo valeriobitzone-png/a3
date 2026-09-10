@@ -90,7 +90,9 @@ fun ComposeRenderer(
                                     }
                                 }
                             } else {
-                                ComposeCatalog(output.nodes, output.gestures.actions, onAction)
+                                FluidResizeContainer {
+                                    ComposeCatalog(output.nodes, output.gestures.actions, onAction)
+                                }
                             }
                         }
                     }

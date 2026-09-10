@@ -3,7 +3,7 @@ package a3.renderers.android.compose
 import java.io.File
 
 /**
- * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces).
+ * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces, motion).
  * Graphics repo is the source of truth; this module consumes the copied JSON.
  */
 internal object GraphicsTokens {
@@ -83,6 +83,86 @@ internal object GraphicsTokens {
         )
     }
 
+    data class SpringToken(
+        val name: String,
+        val mass: Float,
+        val stiffness: Float,
+        val damping: Float,
+        val durationHintMs: Int
+    )
+
+    data class MotionSnapshot(
+        val version: String,
+        val reducedZeroes: Boolean,
+        val keepChroma: Boolean,
+        val compact: SpringToken,
+        val comfortable: SpringToken,
+        val spacious: SpringToken,
+        val bezierStandard: FloatArray,
+        val bezierEmphasized: FloatArray,
+        val heldPulseMs: Int,
+        val unknownShimmerMs: Int,
+        val contradictedCrackMs: Int,
+        val staleFadeMs: Int,
+        val compensatedFadeMs: Int,
+        val crackMs: Int,
+        val crackPeak: Float,
+        val holdScale: Float
+    ) {
+        fun springs(): List<SpringToken> = listOf(compact, comfortable, spacious)
+
+        fun matching(stiffness: Double, damping: Double): SpringToken {
+            return springs().minBy {
+                kotlin.math.abs(it.stiffness - stiffness.toFloat()) +
+                    kotlin.math.abs(it.damping - damping.toFloat())
+            }
+        }
+    }
+
+    val motion: MotionSnapshot by lazy { loadMotion() }
+
+    private fun loadMotion(): MotionSnapshot {
+        val o = JsonMap.parse(readResource("motion.json"))
+        val springs = o.obj("springs")
+        val reduced = o.obj("reducedMotion")
+        val verbs = o.obj("epistemicVerbs")
+        val easings = o.obj("easings")
+        fun spring(name: String): SpringToken {
+            val s = springs.obj(name)
+            return SpringToken(
+                name = name,
+                mass = s.num("mass"),
+                stiffness = s.num("stiffness"),
+                damping = s.num("damping"),
+                durationHintMs = s.int("durationHintMs")
+            )
+        }
+        return MotionSnapshot(
+            version = o.str("version"),
+            reducedZeroes = reduced.bool("zeroAllDurations"),
+            keepChroma = reduced.bool("keepChroma"),
+            compact = spring("compact"),
+            comfortable = spring("comfortable"),
+            spacious = spring("spacious"),
+            bezierStandard = parseBezier(easings.str("standard")),
+            bezierEmphasized = parseBezier(easings.str("emphasized")),
+            heldPulseMs = verbs.int("heldPulseMs"),
+            unknownShimmerMs = verbs.int("unknownShimmerMs"),
+            contradictedCrackMs = verbs.int("contradictedCrackMs"),
+            staleFadeMs = verbs.int("staleFadeMs"),
+            compensatedFadeMs = verbs.int("compensatedFadeMs"),
+            crackMs = verbs.int("crackMs"),
+            crackPeak = verbs.num("crackPeak"),
+            holdScale = verbs.num("holdScale")
+        )
+    }
+
+    private fun parseBezier(text: String): FloatArray {
+        val nums = Regex("-?\\d+(?:\\.\\d+)?").findAll(text).map { it.value.toFloat() }.toList()
+        require(nums.size >= 4) { "bezier $text" }
+        return floatArrayOf(nums[0], nums[1], nums[2], nums[3])
+    }
+
     private fun stopAlpha(stop: Any?): Float {
         val rgba = (stop as Map<*, *>)["rgba"] as List<*>
         return (rgba[3] as Number).toFloat()
@@ -107,6 +187,7 @@ internal class JsonMap(private val map: Map<String, Any?>) {
     fun str(key: String) = map[key] as String
     fun num(key: String) = (map[key] as Number).toFloat()
     fun int(key: String) = (map[key] as Number).toInt()
+    fun bool(key: String) = map[key] as Boolean
     fun arr(key: String) = map[key] as List<*>
 
     companion object {

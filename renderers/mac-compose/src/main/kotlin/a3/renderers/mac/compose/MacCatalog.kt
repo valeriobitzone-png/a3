@@ -1,7 +1,6 @@
 package a3.renderers.mac.compose
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -95,8 +94,8 @@ private fun CatalogNode(
                 }
             }
         }
-        "list" -> MacGlassSurface(modifier, nested) {
-            LazyColumn(Modifier.fillMaxSize()) {
+        "list" -> MacGlassSurface(extra, nested) {
+            LazyColumn(tagged.fillMaxSize().rubberBand()) {
                 items(node.children, key = { it.id }) { child ->
                     CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth(), depth = depth + 1)
                 }
@@ -105,7 +104,7 @@ private fun CatalogNode(
         "item" -> MacGlassSurface(modifier, nested) {
             Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); Marks(node)
         }
-        "action" -> Box(modifier) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); Marks(node) }
+        "action" -> Box(modifier.contactRipple()) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); Marks(node) }
         "field" -> Column(extra) {
             BasicTextField(
                 value = node.text,
@@ -242,6 +241,7 @@ private fun ColumnScope.occupancy(role: String): Modifier = when (role) {
     else -> Modifier.fillMaxWidth()
 }
 
+@Composable
 private fun nodeModifier(
     node: RenderedNode,
     targeted: List<SemanticGestureAction>,
@@ -272,7 +272,7 @@ private fun nodeModifier(
         ?: if (node.role == "action") targeted.firstOrNull()?.action else null
     if (click != null || node.role == "action") {
         val actionName = click ?: ""
-        modifier = modifier.clickable(enabled = actionName.isNotEmpty()) {
+        modifier = modifier.actionPress(enabled = actionName.isNotEmpty()) {
             if (actionName.isNotEmpty()) onAction(actionName)
         }
     }

@@ -1,14 +1,14 @@
 package a3.renderers.android.compose
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import a3.renderers.android.core.model.RendererContext
@@ -23,37 +23,59 @@ fun ComposeMotionApplier(params: SpringParams, content: @Composable () -> Unit) 
         Box(Modifier.fillMaxSize()) { content() }
         return
     }
-    val anim = remember { Animatable(1f) }
+    val token = tokenSpring(params)
+    var state by remember { mutableStateOf(MotionPhysics.State(1f, 0f)) }
     LaunchedEffect(stage, crack, params.stiffness, params.damping, params.durationHint) {
         when {
             crack -> {
-                anim.snapTo(Theme.crackPeak)
-                anim.animateTo(1f, animationSpec = tween(Theme.crackMs))
+                state = MotionPhysics.State(Theme.crackPeak, 0f)
+                val easing = tokenEasing(emphasized = false)
+                val from = Theme.crackPeak
+                val start = withFrameNanos { it }
+                val dur = Theme.crackMs * 1_000_000L
+                while (true) {
+                    val now = withFrameNanos { it }
+                    val t = ((now - start).toFloat() / dur).coerceIn(0f, 1f)
+                    val x = from + (1f - from) * easing.transform(t)
+                    state = MotionPhysics.State(x, 0f)
+                    if (t >= 1f) break
+                }
+                state = MotionPhysics.State(1f, 0f)
             }
             stage == RendererContext.STAGE_APPROVA -> {
-                anim.animateTo(
-                    Theme.holdScale,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = params.stiffness.toFloat()
-                    )
-                )
+                state = runSpring(
+                    reduced = false,
+                    initial = MotionPhysics.inheritVelocity(state, state.v),
+                    target = Theme.holdScale,
+                    mass = token.mass,
+                    stiffness = token.stiffness,
+                    damping = token.damping
+                ) { state = it }
             }
             stage == RendererContext.STAGE_ASCOLTO -> {
-                anim.snapTo(Theme.listenFrom)
-                anim.animateTo(
-                    1f,
-                    animationSpec = tween(params.durationHint.toInt())
-                )
+                state = MotionPhysics.State(Theme.listenFrom, 0f)
+                val easing = tokenEasing(emphasized = true)
+                val from = Theme.listenFrom
+                val start = withFrameNanos { it }
+                val dur = params.durationHint * 1_000_000L
+                while (true) {
+                    val now = withFrameNanos { it }
+                    val t = ((now - start).toFloat() / dur).coerceIn(0f, 1f)
+                    val x = from + (1f - from) * easing.transform(t)
+                    state = MotionPhysics.State(x, 0f)
+                    if (t >= 1f) break
+                }
+                state = MotionPhysics.State(1f, 0f)
             }
             else -> {
-                anim.animateTo(
-                    1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = params.stiffness.toFloat()
-                    )
-                )
+                state = runSpring(
+                    reduced = false,
+                    initial = MotionPhysics.inheritVelocity(state, state.v),
+                    target = 1f,
+                    mass = token.mass,
+                    stiffness = token.stiffness,
+                    damping = token.damping
+                ) { state = it }
             }
         }
     }
@@ -61,8 +83,8 @@ fun ComposeMotionApplier(params: SpringParams, content: @Composable () -> Unit) 
         Modifier
             .fillMaxSize()
             .graphicsLayer {
-                scaleX = anim.value
-                scaleY = anim.value
+                scaleX = state.x
+                scaleY = state.x
             }
     ) {
         content()
