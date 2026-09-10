@@ -1,0 +1,44 @@
+{
+  "version": "0.1",
+  "status": "deferred",
+  "phase": "S-D2",
+  "doc": "docs/02-motion.md",
+  "reducedMotion": {
+    "zeroAllDurations": true,
+    "keepChroma": true
+  },
+  "springs": {
+    "compact": {
+      "mass": 1.0,
+      "stiffness": 400.0,
+      "damping": 28.0,
+      "durationHintMs": 180
+    },
+    "comfortable": {
+      "mass": 1.0,
+      "stiffness": 280.0,
+      "damping": 24.0,
+      "durationHintMs": 240
+    },
+    "spacious": {
+      "mass": 1.0,
+      "stiffness": 180.0,
+      "damping": 22.0,
+      "durationHintMs": 320
+    }
+  },
+  "easings": {
+    "standard": "cubic-bezier(0.4, 0.0, 0.2, 1)",
+    "emphasized": "cubic-bezier(0.2, 0.0, 0.0, 1)"
+  },
+  "epistemicVerbs": {
+    "heldPulseMs": 2800,
+    "unknownShimmerMs": 800,
+    "contradictedCrackMs": 240,
+    "staleFadeMs": 180,
+    "compensatedFadeMs": 220,
+    "crackMs": 80,
+    "crackPeak": 0.97,
+    "holdScale": 1.03
+  }
+}
