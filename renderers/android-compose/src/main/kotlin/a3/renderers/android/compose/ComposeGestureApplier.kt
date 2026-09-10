@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import a3.a3ui.model.IntentCandidate
 import a3.renderers.android.core.model.SemanticGestureActions
 
 @Composable
@@ -21,7 +22,11 @@ fun ComposeGestureApplier(
         modifier = if (attachSwipe && dismiss != null) {
             sized.pointerInput(dismiss.action) {
                 detectHorizontalDragGestures { _, dragAmount ->
-                    if (dragAmount < 0f) onAction(dismiss.action)
+                    if (dragAmount < 0f) {
+                        onAction(
+                            IntentCandidate(dismiss.gesture, dismiss.action, dismiss.targetNodeId).action
+                        )
+                    }
                 }
             }
         } else {

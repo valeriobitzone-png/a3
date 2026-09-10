@@ -315,6 +315,43 @@
           "items": {
             "$ref": "#/definitions/node"
           }
+        },
+        "axis": {
+          "type": "object",
+          "properties": {
+            "support": {
+              "enum": [
+                "high",
+                "medium",
+                "low",
+                "unknown"
+              ]
+            },
+            "freshness": {
+              "enum": [
+                "fresh",
+                "aging",
+                "stale"
+              ]
+            },
+            "status": {
+              "enum": [
+                "believed",
+                "held",
+                "contradicted"
+              ]
+            },
+            "action": {
+              "enum": [
+                "na",
+                "pending",
+                "unknown",
+                "done",
+                "compensated"
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

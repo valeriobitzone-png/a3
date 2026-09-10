@@ -2,6 +2,7 @@ package a3.a3ui.serialize
 
 import a3.a3ui.model.A3UISurface
 import a3.a3ui.model.Binding
+import a3.a3ui.model.EpistemicAxis
 import a3.a3ui.model.GestureBinding
 import a3.a3ui.model.GestureMap
 import a3.a3ui.model.HapticEvent
@@ -50,11 +51,13 @@ object CanonicalJson {
             "target_node_id" to value.targetNodeId
         )
         is GestureMap -> mapOf("bindings" to wire(value.bindings))
-        is Node -> mapOf(
-            "children" to wire(value.children),
-            "id" to value.id,
-            "role" to value.role
-        )
+        is EpistemicAxis -> wireAxis(value)
+        is Node -> buildMap {
+            wireAxis(value.resolvedAxis())?.let { put("axis", it) }
+            put("children", wire(value.children))
+            put("id", value.id)
+            put("role", value.role)
+        }
         is Binding -> mapOf(
             "atom_key" to value.atomKey,
             "node_id" to value.nodeId,
@@ -100,5 +103,23 @@ object CanonicalJson {
         is Iterable<*> -> value.map { wire(it) }
         is Enum<*> -> value.name.lowercase(java.util.Locale.ROOT)
         else -> value.toString()
+    }
+
+    private fun wireAxis(value: EpistemicAxis): Map<String, Any?>? {
+        if (value.isDefault()) return null
+        return buildMap {
+            if (value.action != a3.a3ui.model.EpistemicAction.NA) {
+                put("action", value.action.wire())
+            }
+            if (value.freshness != a3.a3ui.model.EpistemicFreshness.FRESH) {
+                put("freshness", value.freshness.wire())
+            }
+            if (value.status != a3.a3ui.model.EpistemicStatus.BELIEVED) {
+                put("status", value.status.wire())
+            }
+            if (value.support != a3.a3ui.model.EpistemicSupport.HIGH) {
+                put("support", value.support.wire())
+            }
+        }
     }
 }

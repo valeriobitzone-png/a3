@@ -1,8 +1,10 @@
 package a3.renderers.android.core.serialize
 
 import a3.a3ui.model.PrefetchStatus
+import a3.a3ui.model.EpistemicAxis
 import a3.core.json.CanonicalJson as JsonCanonical
 import a3.projection.model.CausalLineage
+import a3.renderers.android.core.model.CatalogProfile
 import a3.renderers.android.core.model.ColorValue
 import a3.renderers.android.core.model.RenderedNode
 import a3.renderers.android.core.model.RenderedOutput
@@ -67,14 +69,35 @@ object CanonicalJson {
             "status" to value.status.wire(),
             "ttl_ms" to value.ttlMs
         )
-        is RenderedNode -> mapOf(
-            "children" to wire(value.children),
-            "hint" to value.hint,
-            "id" to value.id,
-            "role" to value.role,
-            "text" to value.text
-        )
+        is RenderedNode -> buildMap {
+            if (value.accessibleName.isNotEmpty()) put("accessible_name", value.accessibleName)
+            value.axis?.takeUnless { it.isDefault() }?.let { put("axis", wire(it)) }
+            put("children", wire(value.children))
+            put("hint", value.hint)
+            put("id", value.id)
+            put("role", value.role)
+            if (value.stateDescription.isNotEmpty()) put("state_description", value.stateDescription)
+            put("text", value.text)
+        }
+        is EpistemicAxis -> buildMap {
+            if (value.action != a3.a3ui.model.EpistemicAction.NA) {
+                put("action", value.action.wire())
+            }
+            if (value.freshness != a3.a3ui.model.EpistemicFreshness.FRESH) {
+                put("freshness", value.freshness.wire())
+            }
+            if (value.status != a3.a3ui.model.EpistemicStatus.BELIEVED) {
+                put("status", value.status.wire())
+            }
+            if (value.support != a3.a3ui.model.EpistemicSupport.HIGH) {
+                put("support", value.support.wire())
+            }
+        }
         is RenderedOutput -> buildMap {
+            if (value.catalogProfile != CatalogProfile.V2) {
+                put("catalog_profile", value.catalogProfile.wire())
+            }
+            value.degradation?.let { put("degradation", it) }
             put("density_hint", value.densityHint)
             put("density_scale", value.densityScale)
             put("form_factor", value.formFactor)
@@ -86,6 +109,7 @@ object CanonicalJson {
             put("presentation_ref", value.presentationRef)
             put("produced_at", value.producedAt)
             put("projection_ref", value.projectionRef)
+            if (value.reducedMotion) put("reduced_motion", true)
             put("resolved_tokens", wire(value.resolvedTokens))
             put("shared_elements", wire(value.sharedElements))
             put("spring", wire(value.spring))

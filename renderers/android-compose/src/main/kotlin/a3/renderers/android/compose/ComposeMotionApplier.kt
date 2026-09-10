@@ -18,6 +18,11 @@ import a3.renderers.android.core.model.SpringParams
 fun ComposeMotionApplier(params: SpringParams, content: @Composable () -> Unit) {
     val stage = LocalRendererStage.current
     val crack = LocalCrack.current
+    val reduced = LocalReducedMotion.current
+    if (reduced) {
+        Box(Modifier.fillMaxSize()) { content() }
+        return
+    }
     val anim = remember { Animatable(1f) }
     LaunchedEffect(stage, crack, params.stiffness, params.damping, params.durationHint) {
         when {

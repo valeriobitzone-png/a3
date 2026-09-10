@@ -56,7 +56,7 @@ class RendererCoreAcceptanceTest {
     )
 
     private fun trainSurface(density: Density = Density.COMFORTABLE) =
-        DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator()).compile(
+        DeterministicA3UICompiler(t, SequentialIdGenerator()).compile(
             ProjectionEngine(FixedClock(t), SequentialIdGenerator(), ProjectionEventLog())
                 .readBelief(
                     "ctx",

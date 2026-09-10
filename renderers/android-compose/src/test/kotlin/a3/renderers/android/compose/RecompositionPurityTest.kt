@@ -42,7 +42,7 @@ class RecompositionPurityTest {
 
     @Test
     fun P55_recomposition_does_not_write_a3_state() {
-        val surface = DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator()).compile(
+        val surface = DeterministicA3UICompiler(t, SequentialIdGenerator()).compile(
             ProjectionEngine(FixedClock(t), SequentialIdGenerator(), ProjectionEventLog())
                 .readBelief(
                     "ctx",

@@ -9,7 +9,6 @@ import a3.a3ui.model.Node
 import a3.a3ui.schema.ModelValidator
 import a3.a3ui.schema.SchemaValidator
 import a3.a3ui.serialize.CanonicalJson
-import a3.core.time.FixedClock
 import a3.core.time.SequentialIdGenerator
 import a3.projection.model.CausalLineage
 import a3.projection.model.Density
@@ -33,7 +32,7 @@ class A3UI02AcceptanceTest {
     private val t = Instant.parse("2026-08-27T08:00:00Z")
 
     private fun compiler() =
-        DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator())
+        DeterministicA3UICompiler(t, SequentialIdGenerator())
 
     private fun lineage() = CausalLineage("ctx", 1, "evj_1")
 
@@ -99,8 +98,8 @@ class A3UI02AcceptanceTest {
         assertNull(BindingCopy.of(missing, present))
         assertNull(BindingCopy.of(bound, present.copy(atoms = emptyList())))
         assertNotNull(flatten(surface.nodes).singleOrNull { it.id == bound.nodeId })
-        val a = DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator()).compile(projection(listOf("attend")), present)
-        val b = DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator()).compile(projection(listOf("attend")), present)
+        val a = DeterministicA3UICompiler(t, SequentialIdGenerator()).compile(projection(listOf("attend")), present)
+        val b = DeterministicA3UICompiler(t, SequentialIdGenerator()).compile(projection(listOf("attend")), present)
         assertEquals(CanonicalJson.of(a), CanonicalJson.of(b))
         assertFalse(CanonicalJson.of(a).contains(" "))
         ModelValidator.surface(surface)

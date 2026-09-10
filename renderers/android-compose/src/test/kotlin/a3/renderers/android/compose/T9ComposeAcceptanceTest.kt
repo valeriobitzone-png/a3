@@ -55,7 +55,7 @@ class T9ComposeAcceptanceTest {
 
     private val t = Instant.parse("2026-08-27T08:00:00Z")
     private val interpreter = A3UIInterpreter()
-    private val compiler = DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator())
+    private val compiler = DeterministicA3UICompiler(t, SequentialIdGenerator())
 
     private fun ctx(stage: String = RendererContext.STAGE_PRONTO) = RendererContext(
         formFactor = "phone",

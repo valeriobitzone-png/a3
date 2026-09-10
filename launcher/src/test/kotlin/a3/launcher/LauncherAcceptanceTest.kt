@@ -103,7 +103,7 @@ class LauncherAcceptanceTest {
 
     @Test
     fun L3_two_outputs_carry_morph_ids_and_interpreted_stiffness() {
-        val compiler = DeterministicA3UICompiler(DemoFixtures.clock, SequentialIdGenerator())
+        val compiler = DeterministicA3UICompiler(DemoFixtures.now, SequentialIdGenerator())
         val interpreter = A3UIInterpreter()
         val presentationA = DemoFixtures.presentation().copy(id = "ps_compact")
         val presentationB = DemoFixtures.presentation().copy(id = "ps_spacious")

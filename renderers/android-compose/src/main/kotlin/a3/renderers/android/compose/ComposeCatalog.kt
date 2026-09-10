@@ -20,7 +20,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import a3.a3ui.model.IntentCandidate
 import a3.renderers.android.core.model.RenderedNode
 import a3.renderers.android.core.model.SemanticGestureAction
 import java.util.ArrayList
@@ -54,7 +56,8 @@ private fun CatalogNode(
     for (gesture in gestures) {
         if (gesture.targetNodeId == node.id) targeted += gesture
     }
-    val modifier = extra.then(nodeModifier(node, targeted, onAction))
+    val tagged = nodeModifier(node, targeted, onAction)
+    val modifier = extra.then(tagged)
     when (node.role) {
         "stack" -> Column(modifier, verticalArrangement = Arrangement.spacedBy(Theme.space)) {
             for (child in node.children) {
@@ -71,16 +74,22 @@ private fun CatalogNode(
                 CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth())
             }
         }
-        "item" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node) }
-        "action" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node) }
-        "field" -> BasicTextField(
-            value = node.text,
-            onValueChange = {},
-            readOnly = true,
-            textStyle = Theme.type,
-            modifier = modifier
-        )
-        "text" -> BasicText(text = node.text, modifier = modifier, style = Theme.type)
+        "item" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node); AxisCopy(node) }
+        "action" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node); AxisCopy(node) }
+        "field" -> Column(extra) {
+            BasicTextField(
+                value = node.text,
+                onValueChange = {},
+                readOnly = true,
+                textStyle = Theme.type,
+                modifier = tagged
+            )
+            AxisCopy(node)
+        }
+        "text" -> Column(extra) {
+            BasicText(text = node.text, modifier = tagged, style = Theme.type)
+            AxisCopy(node)
+        }
         else -> Box(modifier)
     }
 }
@@ -103,6 +112,17 @@ private fun BoundCopy(node: RenderedNode) {
     }
 }
 
+@Composable
+private fun AxisCopy(node: RenderedNode) {
+    if (node.stateDescription.isNotEmpty()) {
+        BasicText(
+            text = node.stateDescription,
+            modifier = Modifier.testTag(node.id + "-axis"),
+            style = Theme.type
+        )
+    }
+}
+
 private fun ColumnScope.occupancy(role: String): Modifier = when (role) {
     "list" -> Modifier.weight(Theme.listWeight).fillMaxWidth()
     "field", "text", "action" -> Modifier.weight(Theme.slotWeight).fillMaxWidth()
@@ -121,31 +141,45 @@ private fun nodeModifier(
     if (node.role == "action") {
         modifier = modifier.sizeIn(minWidth = Theme.actionMin, minHeight = Theme.actionMin)
     }
-    if (node.text.isNotEmpty() && (node.role == "item" || node.role == "action")) {
-        val copy = node.text
-        modifier = modifier.semantics { contentDescription = copy }
+    val copy = if (node.text.isNotEmpty() && (node.role == "item" || node.role == "action")) {
+        node.text
+    } else {
+        null
+    }
+    val axis = node.stateDescription.takeIf { it.isNotEmpty() }
+    if (copy != null || axis != null) {
+        modifier = modifier.semantics {
+            if (copy != null) contentDescription = copy
+            if (axis != null) stateDescription = axis
+        }
     }
     var clickableAction: String? = null
+    var clickableGesture: String? = null
     for (gesture in targeted) {
         if (gesture.gesture == "swipe-left") {
-            val action = gesture.action
-            modifier = modifier.pointerInput(action) {
+            val candidate = IntentCandidate(gesture.gesture, gesture.action, gesture.targetNodeId)
+            modifier = modifier.pointerInput(candidate.action) {
                 detectHorizontalDragGestures { _, dragAmount ->
-                    if (dragAmount < 0f) onAction(action)
+                    if (dragAmount < 0f) onAction(candidate.action)
                 }
             }
         } else {
             clickableAction = gesture.action
+            clickableGesture = gesture.gesture
         }
     }
     if (clickableAction == null && node.role == "action") {
         clickableAction = targeted.firstOrNull()?.action
+        clickableGesture = targeted.firstOrNull()?.gesture
     }
     val emit = clickableAction
     if (emit != null || node.role == "action") {
         val actionName = emit ?: ""
+        val gestureName = clickableGesture ?: ""
         modifier = modifier.clickable(enabled = actionName.isNotEmpty()) {
-            if (actionName.isNotEmpty()) onAction(actionName)
+            if (actionName.isNotEmpty()) {
+                onAction(IntentCandidate(gestureName, actionName, node.id).action)
+            }
         }
     }
     return modifier

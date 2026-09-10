@@ -1,8 +1,10 @@
 package a3.renderers.android.core.interp
 
 import a3.a3ui.model.A3UISurface
+import a3.a3ui.model.Node
 import a3.a3ui.model.PrefetchSpec
 import a3.projection.model.PresentationState
+import a3.renderers.android.core.model.CatalogProfile
 import a3.renderers.android.core.model.RenderedNode
 import a3.renderers.android.core.model.RenderedOutput
 import a3.renderers.android.core.model.RenderedPrefetch
@@ -23,23 +25,49 @@ class A3UIInterpreter(
     private val haptics: HapticInterpreter = HapticInterpreter()
 ) {
     fun interpret(surface: A3UISurface, ctx: RendererContext): RenderedOutput {
-        return assemble(surface, ctx, nodes = emptyList(), checkGestureTargets = false)
+        val axisPresent = hasNonDefaultAxis(surface.nodes)
+        return assemble(
+            surface,
+            ctx,
+            nodes = emptyList(),
+            checkGestureTargets = false,
+            profile = CatalogProfile.V1,
+            degradation = if (axisPresent) "axis-ignored" else null
+        )
     }
 
     fun interpret(
         surface: A3UISurface,
         presentation: PresentationState,
         ctx: RendererContext
+    ): RenderedOutput = interpret(surface, presentation, ctx, CatalogProfile.V2)
+
+    fun interpret(
+        surface: A3UISurface,
+        presentation: PresentationState,
+        ctx: RendererContext,
+        profile: CatalogProfile
     ): RenderedOutput {
-        val nodes = NodeInterpreter.interpret(surface.nodes, surface.bindings, presentation)
-        return assemble(surface, ctx, nodes = nodes, checkGestureTargets = true)
+        val nodes = NodeInterpreter.interpret(surface.nodes, surface.bindings, presentation, profile)
+        val axisPresent = hasNonDefaultAxis(surface.nodes)
+        val degradation = if (profile == CatalogProfile.V1 && axisPresent) "axis-ignored" else null
+        return assemble(
+            surface,
+            ctx,
+            nodes = nodes,
+            checkGestureTargets = true,
+            profile = profile,
+            degradation = degradation
+        )
     }
 
     private fun assemble(
         surface: A3UISurface,
         ctx: RendererContext,
         nodes: List<RenderedNode>,
-        checkGestureTargets: Boolean
+        checkGestureTargets: Boolean,
+        profile: CatalogProfile,
+        degradation: String?
     ): RenderedOutput {
         val scale = density.scale(ctx.density)
         val spring = motion.interpret(surface.motion)
@@ -65,8 +93,20 @@ class A3UIInterpreter(
             haptics = haptics.interpret(surface.haptics),
             nodes = nodes,
             prefetch = surface.prefetch?.let { prefetchOf(it) },
-            producedAt = ctx.clock.now()
+            producedAt = ctx.clock.now(),
+            catalogProfile = profile,
+            degradation = degradation,
+            reducedMotion = ctx.reducedMotion
         )
+    }
+
+    private fun hasNonDefaultAxis(nodes: List<Node>): Boolean {
+        for (node in nodes) {
+            val axis = node.axis
+            if (axis != null && !axis.isDefault()) return true
+            if (hasNonDefaultAxis(node.children)) return true
+        }
+        return false
     }
 
     private fun prefetchOf(spec: PrefetchSpec): RenderedPrefetch = RenderedPrefetch(
