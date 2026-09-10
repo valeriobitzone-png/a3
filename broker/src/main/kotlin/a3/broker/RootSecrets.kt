@@ -1,8 +1,15 @@
 package a3.broker
 
+import java.io.ByteArrayOutputStream
 import java.nio.file.Path
 import java.security.SecureRandom
+import java.time.Duration
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+
+class KeystoreUnavailable(message: String) : RuntimeException(message)
 
 fun interface RootSecrets {
     fun loadOrCreate(): String
@@ -21,35 +28,75 @@ class DevEnvSecrets(private val hex: String, private val warn: (String) -> Unit)
 
 class KeychainSecrets(
     private val home: Path,
-    private val runner: (List<String>) -> String = ::runSecurity
+    private val timeout: Duration = Duration.ofSeconds(5),
+    private val announce: () -> Unit = {},
+    private val runner: (List<String>) -> String = { args -> defaultSecurity(args, timeout) }
 ) : RootSecrets {
     private val service = "a3-broker.root"
     private val account: String = sha256Hex(home.toAbsolutePath().toString().toByteArray()).take(16)
 
     override fun loadOrCreate(): String {
-        val existing = runCatching { runner(listOf("find-generic-password", "-s", service, "-a", account, "-w")) }
-            .getOrNull()
-            ?.trim()
-            .orEmpty()
+        announce()
+        val existing = bounded { runner(listOf("find-generic-password", "-s", service, "-a", account, "-w")) }.trim()
         if (existing.isNotBlank()) return existing
         val created = ByteArray(32).also { SecureRandom().nextBytes(it) }
             .joinToString("") { b -> "%02x".format(b) }
-        runner(listOf("add-generic-password", "-s", service, "-a", account, "-w", created, "-U"))
+        bounded {
+            runner(listOf("add-generic-password", "-s", service, "-a", account, "-w", created, "-U"))
+        }
         return created
+    }
+
+    private fun <T> bounded(block: () -> T): T {
+        val exec = Executors.newSingleThreadExecutor()
+        return try {
+            exec.submit(block).get(timeout.toMillis(), TimeUnit.MILLISECONDS)
+        } catch (_: TimeoutException) {
+            throw KeystoreUnavailable(keystoreTimeoutMessage(timeout))
+        } catch (e: ExecutionException) {
+            when (val cause = e.cause) {
+                is KeystoreUnavailable -> throw cause
+                else -> throw KeystoreUnavailable(keystoreRefusedMessage())
+            }
+        } finally {
+            exec.shutdownNow()
+        }
     }
 }
 
-private fun runSecurity(args: List<String>): String {
+internal fun keystoreTimeoutMessage(timeout: Duration): String =
+    "system keystore did not respond in ${timeout.seconds}s\n" +
+        "unlock the keychain, grant access, or retry with --dev"
+
+internal fun keystoreRefusedMessage(): String =
+    "system keystore refused access\n" +
+        "unlock the keychain, grant access, or retry with --dev"
+
+internal fun defaultSecurity(args: List<String>, timeout: Duration): String {
+    val call = executeSecurity(args, timeout)
+    val find = args.firstOrNull() == "find-generic-password"
+    if (find) return if (call.exit == 0) call.out else ""
+    if (call.exit != 0) throw KeystoreUnavailable(keystoreRefusedMessage())
+    return call.out
+}
+
+internal data class SecurityCall(val exit: Int, val out: String)
+
+internal fun executeSecurity(args: List<String>, timeout: Duration): SecurityCall {
     val proc = ProcessBuilder(listOf("/usr/bin/security") + args)
         .redirectErrorStream(true)
         .start()
-    val out = proc.inputStream.readBytes().toString(Charsets.UTF_8)
-    if (!proc.waitFor(8, TimeUnit.SECONDS)) {
+    val buffer = ByteArrayOutputStream()
+    val gobbler = Thread {
+        runCatching { proc.inputStream.copyTo(buffer) }
+    }
+    gobbler.isDaemon = true
+    gobbler.start()
+    if (!proc.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
         proc.destroyForcibly()
-        throw IllegalStateException("keychain timed out")
+        gobbler.join(400)
+        throw KeystoreUnavailable(keystoreTimeoutMessage(timeout))
     }
-    if (proc.exitValue() != 0) {
-        throw IllegalStateException("keychain unavailable")
-    }
-    return out
+    gobbler.join(400)
+    return SecurityCall(proc.exitValue(), buffer.toString(Charsets.UTF_8))
 }
