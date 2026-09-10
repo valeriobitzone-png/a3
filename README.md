@@ -25,7 +25,7 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 | ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.3` |
 | INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.2` |
 | LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.2` |
-| BROKER | Gate on irreversible actions | `broker/` | `broker-v0.1` (private; DECISION-2 open) |
+| BROKER | Gate on irreversible actions | `broker/` | `broker-v0.2` (private; DECISION-2 open) |
 
 ## Tassonomia
 `Claim` = belief atom · `BeliefState` = reality believed · `ActionState` = executor/plan machine (not inside BeliefState) · `FutureState` = possible reality · `PreparedState` = speculative work · `PresentationState` = semantic presentation · `Projection` = presentation intent · `RenderedOutput` = renderer-owned · `Observation` = measured reality · `ObservationCandidate` = pre-admission.
@@ -47,7 +47,7 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 - `adapters/` — MCP (`mcp-adapter-v0.3`)
 - `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.2`)
 - `launcher/` — composition root Android (`launcher-v0.2`)
-- `broker/` — irreversible-action keys broker (`broker-v0.1`, private; excluded from a future first public release until DECISION-2)
+- `broker/` — irreversible-action keys broker (`broker-v0.2`, private; excluded from a future first public release until DECISION-2)
 
 ## Accettazione
 T1–T10 (core) · P1–P11 (prediction) · P12–P27 (projection) · P28–P42 (a3ui) · P43–P56 (renderer) · W1–W5 (writer) · V1–V5 (replay) + barriere ArchUnit.

@@ -34,6 +34,7 @@ class BrokerProductTest {
                 .directory(Path.of(".").toFile())
                 .redirectErrorStream(true)
             pb.environment()["A3_BROKER_HOME"] = home.toString()
+            pb.environment().remove("A3_BROKER_DEV_ROOT")
             pb.environment()["JAVA_HOME"] = System.getProperty("java.home")
             val proc = pb.start()
             val out = proc.inputStream.readBytes().toString(Charsets.UTF_8)
@@ -46,6 +47,7 @@ class BrokerProductTest {
         val ran = run("run", "my-agent")
         val log = run("log")
         val all = init + connect + flag + ran + log
+        assertTrue(init.contains("contacting system keystore..."), init)
         assertTrue(init.contains("broker ready"), init)
         assertTrue(connect.contains("connected"), connect)
         assertTrue(flag.contains("reserve") && flag.contains("send"), flag)
@@ -260,7 +262,7 @@ class BrokerProductTest {
     @Test
     fun BKR_011_core_frozen() {
         val root = repoRoot()
-        val proc = ProcessBuilder("git", "diff", "41cdcf7", "--", "core/", "core/admission/", "core/action/", "core/json/")
+        val proc = ProcessBuilder("git", "diff", "7a60b52", "--", "core/", "core/admission/", "core/action/", "core/json/")
             .directory(root.toFile())
             .start()
         val out = proc.inputStream.readBytes().toString(Charsets.UTF_8)

@@ -83,6 +83,7 @@ class Broker(
     }
 
     fun allow(intent: String, ttl: Duration): String = synchronized(lock) {
+        ensureAccess()
         val now = clock()
         val flagged = flags()
         val named = toolsNamedIn(intent)
@@ -122,6 +123,7 @@ $id"""
     }
 
     fun revoke(grantId: String): String = synchronized(lock) {
+        ensureAccess()
         val now = clock()
         val grant = loadGrants().firstOrNull { it.id == grantId } ?: return "unknown permission"
         endGrant(grant, "permission pulled", now)
