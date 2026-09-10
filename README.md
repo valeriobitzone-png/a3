@@ -24,7 +24,7 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 | RENDERER | How is it materialized here? | `renderers/` | `renderer-android-v0.9` |
 | ADAPTERS | How does the existing world plug in? | `adapters/` | `mcp-adapter-v0.3` |
 | INTENT | What intent is inferred? | `intent-model/` | `intent-model-v0.2` |
-| LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.4` |
+| LAUNCHER | Where is the composition root? | `launcher/` | `launcher-v0.5` |
 | BROKER | Gate on irreversible actions | `broker/` | `broker-v0.2` (private; DECISION-2 open) |
 
 ## Tassonomia
@@ -46,7 +46,7 @@ L'unico fold committed è `BeliefState.apply(AcceptedObservation)`: vero sul clo
 - `renderers/` — interprete A3UI (Android) (`renderer-android-v0.9`)
 - `adapters/` — MCP (`mcp-adapter-v0.3`)
 - `intent-model/` — Intent inferito, senza write su belief (`intent-model-v0.2`)
-- `launcher/` — composition root Android (`launcher-v0.4`)
+- `launcher/` — composition root Android (`launcher-v0.5`)
 - `broker/` — irreversible-action keys broker (`broker-v0.2`, private; excluded from a future first public release until DECISION-2)
 
 ## Accettazione
