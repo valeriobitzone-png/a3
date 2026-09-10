@@ -163,4 +163,12 @@ object DemoFixtures {
             actionPhase = actionPhase
         )
     )
+
+    fun uncertainFacts(): Map<String, EpistemicFacts> = mapOf(
+        "train.price" to EpistemicFacts(
+            claim = Claim("train.price", "12.40", 0.4, "train", now, now.minusSeconds(1)),
+            admissionHeld = true,
+            actionPhase = "unknown"
+        )
+    )
 }

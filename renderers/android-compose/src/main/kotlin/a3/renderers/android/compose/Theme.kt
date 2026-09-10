@@ -11,6 +11,10 @@ import a3.renderers.android.core.model.RendererContext
 internal val LocalRendererStage = staticCompositionLocalOf { RendererContext.STAGE_PRONTO }
 internal val LocalCrack = staticCompositionLocalOf { false }
 internal val LocalReducedMotion = staticCompositionLocalOf { false }
+internal val LocalHighContrast = staticCompositionLocalOf { false }
+internal val LocalEpistemicAnnounce = staticCompositionLocalOf<EpistemicAnnounce> {
+    EpistemicAnnounce.Silent
+}
 
 /**
  * Grammar numbers for occupancy, type, motion, and material temperature.
@@ -30,6 +34,11 @@ object Theme {
     val airBedMs = 160L
     val morphSemitones = -1
     val voiceCeiling = 0.08f
+    val heldPulseMs = 2800
+    val unknownShimmerMs = 800
+    val contradictedCrackMs = 240
+    val staleFadeMs = 180
+    val compensatedFadeMs = 220
 
     fun material(stage: String): ColorMatrix {
         val matrix = ColorMatrix()
