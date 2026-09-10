@@ -12,6 +12,7 @@ repositories {
 dependencies {
     implementation(project(":renderers:android-core"))
     implementation(compose.desktop.currentOs) // org.jetbrains.compose.desktop
+    // a3ui-graphics-v0.1 snapshot: src/main/resources/a3ui-graphics/
     testImplementation(compose.desktop.uiTestJUnit4)
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")

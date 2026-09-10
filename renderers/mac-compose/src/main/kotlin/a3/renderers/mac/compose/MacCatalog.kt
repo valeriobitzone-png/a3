@@ -44,14 +44,19 @@ fun MacCatalog(
     gestures: List<SemanticGestureAction>,
     onAction: (String) -> Unit
 ) {
-    Column(
-        Modifier
+    MacGlassSurface(
+        modifier = Modifier
             .testTag("a3-catalog")
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(MacTheme.space)
+        nested = false
     ) {
-        for (node in nodes) {
-            CatalogNode(node, gestures, onAction, extra = occupancy(node.role))
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(MacTheme.space)
+        ) {
+            for (node in nodes) {
+                CatalogNode(node, gestures, onAction, extra = occupancy(node.role), depth = 1)
+            }
         }
     }
 }
@@ -61,7 +66,8 @@ private fun CatalogNode(
     node: RenderedNode,
     gestures: List<SemanticGestureAction>,
     onAction: (String) -> Unit,
-    extra: Modifier = Modifier
+    extra: Modifier = Modifier,
+    depth: Int = 0
 ) {
     val targeted = ArrayList<SemanticGestureAction>()
     for (gesture in gestures) {
@@ -73,24 +79,33 @@ private fun CatalogNode(
         .macChrome(axis, highContrast)
         .macMotion(node)
     val modifier = extra.then(tagged)
+    val nested = depth > 0
     when (node.role) {
-        "stack" -> Column(modifier, verticalArrangement = Arrangement.spacedBy(MacTheme.space)) {
-            for (child in node.children) {
-                CatalogNode(child, gestures, onAction, extra = occupancy(child.role))
+        "stack" -> MacGlassSurface(modifier, nested) {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(MacTheme.space)) {
+                for (child in node.children) {
+                    CatalogNode(child, gestures, onAction, extra = occupancy(child.role), depth = depth + 1)
+                }
             }
         }
-        "row" -> Row(modifier) {
-            for (child in node.children) {
-                CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth())
+        "row" -> MacGlassSurface(modifier, nested) {
+            Row(Modifier.fillMaxWidth()) {
+                for (child in node.children) {
+                    CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth(), depth = depth + 1)
+                }
             }
         }
-        "list" -> LazyColumn(modifier) {
-            items(node.children, key = { it.id }) { child ->
-                CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth())
+        "list" -> MacGlassSurface(modifier, nested) {
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(node.children, key = { it.id }) { child ->
+                    CatalogNode(child, gestures, onAction, extra = Modifier.fillMaxWidth(), depth = depth + 1)
+                }
             }
         }
-        "item" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node); AxisCopy(node); Marks(node) }
-        "action" -> Box(modifier) { Children(node, gestures, onAction); BoundCopy(node); AxisCopy(node); Marks(node) }
+        "item" -> MacGlassSurface(modifier, nested) {
+            Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); Marks(node)
+        }
+        "action" -> Box(modifier) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); Marks(node) }
         "field" -> Column(extra) {
             BasicTextField(
                 value = node.text,
@@ -115,10 +130,11 @@ private fun CatalogNode(
 private fun Children(
     node: RenderedNode,
     gestures: List<SemanticGestureAction>,
-    onAction: (String) -> Unit
+    onAction: (String) -> Unit,
+    depth: Int
 ) {
     for (child in node.children) {
-        CatalogNode(child, gestures, onAction)
+        CatalogNode(child, gestures, onAction, depth = depth)
     }
 }
 

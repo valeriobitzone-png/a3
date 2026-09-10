@@ -1,0 +1,36 @@
+{
+  "version": "0.1",
+  "status": "fase-1",
+  "phase": "fase-1",
+  "doc": "docs/00-foundations.md",
+  "zIndex": {
+    "background": 0,
+    "content": 1,
+    "glass": 2,
+    "overlay": 3,
+    "chrome": 4
+  },
+  "ambientShadow": {
+    "color": "#000000",
+    "opacity": 0.35,
+    "offsetXPx": 0,
+    "offsetYPx": 8,
+    "blurPx": 28,
+    "spreadPx": 0
+  },
+  "keyShadow": {
+    "color": "#000000",
+    "opacity": 0.22,
+    "offsetXPx": -4,
+    "offsetYPx": 6,
+    "blurPx": 12,
+    "spreadPx": 0,
+    "azimuthDeg": 135
+  },
+  "deferred": {
+    "adaptiveAmbientLuminance": {
+      "status": "deferred",
+      "phase": "S-D5"
+    }
+  }
+}

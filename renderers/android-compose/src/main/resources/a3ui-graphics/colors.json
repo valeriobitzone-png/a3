@@ -1,0 +1,57 @@
+{
+  "version": "0.1",
+  "status": "fase-1",
+  "phase": "fase-1",
+  "doc": "docs/00-foundations.md",
+  "palette": {
+    "ink": {
+      "hex": "#000000",
+      "luminance": 0.0
+    },
+    "paper": {
+      "hex": "#FFFFFF",
+      "luminance": 1.0
+    },
+    "amber": {
+      "hex": "#CC8800",
+      "luminance": 0.302
+    }
+  },
+  "contrast": {
+    "minRatio": 4.5,
+    "highContrastMinRatio": 7.0
+  },
+  "stages": {
+    "ascolto": {
+      "saturation": 0.65,
+      "scaleRgb": [0.88, 0.9, 0.96]
+    },
+    "lavoro": {
+      "saturation": 1.0,
+      "scaleRgb": [1.08, 1.06, 1.02]
+    },
+    "pronto": {
+      "saturation": 1.0,
+      "scaleRgb": [1.0, 1.0, 1.0]
+    },
+    "approva": {
+      "saturation": 1.0,
+      "scaleRgb": [1.12, 1.0, 0.86]
+    }
+  },
+  "semantic": {
+    "accent": { "palette": "ink" },
+    "success": { "palette": "ink" },
+    "anticipation_highlight": { "palette": "amber" }
+  },
+  "deferred": {
+    "colorExtractionMonet": {
+      "status": "deferred",
+      "phase": "S-D5"
+    },
+    "adaptiveContrastRealtime": {
+      "status": "deferred",
+      "phase": "S-D5"
+    }
+  }
+}
