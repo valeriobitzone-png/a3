@@ -1,6 +1,7 @@
 package a3.renderers.android.core.model
 
 import a3.a3ui.model.PrefetchStatus
+import a3.a3ui.model.EpistemicAxis
 import a3.core.time.InstantSource
 import a3.projection.model.CausalLineage
 import java.time.Instant
@@ -24,7 +25,8 @@ data class RendererContext(
     val tokens: TreeMap<String, ColorValue>,
     val clock: InstantSource,
     val currentStateVersion: Long = 0,
-    val stage: String = STAGE_PRONTO
+    val stage: String = STAGE_PRONTO,
+    val reducedMotion: Boolean = false
 ) {
     init {
         require(stage in STAGES) { "unknown renderer stage" }
@@ -87,12 +89,22 @@ data class RenderedPrefetch(
     val atomKeys: List<String> = emptyList()
 )
 
+enum class CatalogProfile {
+    V1,
+    V2;
+
+    fun wire(): String = name.lowercase()
+}
+
 data class RenderedNode(
     val id: String,
     val role: String,
     val children: List<RenderedNode> = emptyList(),
     val text: String = "",
-    val hint: String = ""
+    val hint: String = "",
+    val axis: EpistemicAxis? = null,
+    val stateDescription: String = "",
+    val accessibleName: String = ""
 )
 
 data class RenderedOutput(
@@ -110,5 +122,8 @@ data class RenderedOutput(
     val haptics: SemanticHapticEvents,
     val nodes: List<RenderedNode> = emptyList(),
     val prefetch: RenderedPrefetch?,
-    val producedAt: Instant
+    val producedAt: Instant,
+    val catalogProfile: CatalogProfile = CatalogProfile.V2,
+    val degradation: String? = null,
+    val reducedMotion: Boolean = false
 )

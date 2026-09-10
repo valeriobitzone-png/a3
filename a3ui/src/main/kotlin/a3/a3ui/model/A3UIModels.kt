@@ -29,6 +29,19 @@ data class GestureBinding(
     val gesture: String,
     val action: String,
     val targetNodeId: String
+) {
+    fun emit(): IntentCandidate = IntentCandidate(
+        gesture = gesture,
+        action = action,
+        targetNodeId = targetNodeId
+    )
+}
+
+/** Gesture path product. Not a Command. Not a belief write. */
+data class IntentCandidate(
+    val gesture: String,
+    val action: String,
+    val targetNodeId: String
 )
 
 data class GestureMap(
@@ -45,11 +58,83 @@ data class HapticMap(
     val events: List<HapticEvent>
 )
 
+enum class EpistemicSupport {
+    HIGH,
+    MEDIUM,
+    LOW,
+    UNKNOWN;
+
+    fun wire(): String = name.lowercase()
+}
+
+enum class EpistemicFreshness {
+    FRESH,
+    AGING,
+    STALE;
+
+    fun wire(): String = name.lowercase()
+}
+
+enum class EpistemicStatus {
+    BELIEVED,
+    HELD,
+    CONTRADICTED;
+
+    fun wire(): String = name.lowercase()
+}
+
+enum class EpistemicAction {
+    NA,
+    PENDING,
+    UNKNOWN,
+    DONE,
+    COMPENSATED;
+
+    fun wire(): String = name.lowercase()
+}
+
+/**
+ * Additive catalog field (not a role). Omit-when-default:
+ * HIGH / FRESH / BELIEVED / NA is the implicit catalog default.
+ */
+data class EpistemicAxis(
+    val support: EpistemicSupport = EpistemicSupport.HIGH,
+    val freshness: EpistemicFreshness = EpistemicFreshness.FRESH,
+    val status: EpistemicStatus = EpistemicStatus.BELIEVED,
+    val action: EpistemicAction = EpistemicAction.NA
+) {
+    fun isDefault(): Boolean =
+        support == EpistemicSupport.HIGH &&
+            freshness == EpistemicFreshness.FRESH &&
+            status == EpistemicStatus.BELIEVED &&
+            action == EpistemicAction.NA
+
+    fun stateDescription(): String {
+        if (isDefault()) return ""
+        val parts = mutableListOf<String>()
+        if (support != EpistemicSupport.HIGH) parts += "support ${support.wire()}"
+        if (freshness != EpistemicFreshness.FRESH) parts += "freshness ${freshness.wire()}"
+        if (status != EpistemicStatus.BELIEVED) parts += "status ${status.wire()}"
+        if (action != EpistemicAction.NA) parts += "action ${action.wire()}"
+        return parts.joinToString(" ")
+    }
+
+    fun accessibleName(text: String = ""): String {
+        val axis = stateDescription()
+        if (axis.isEmpty()) return text
+        if (text.isEmpty()) return axis
+        return "$text $axis"
+    }
+}
+
 data class Node(
     val id: String,
     val role: String,
-    val children: List<Node> = emptyList()
-)
+    val children: List<Node> = emptyList(),
+    val axis: EpistemicAxis? = null
+) {
+    fun resolvedAxis(): EpistemicAxis = axis ?: EpistemicAxis()
+}
 
 data class Binding(
     val atomKey: String,

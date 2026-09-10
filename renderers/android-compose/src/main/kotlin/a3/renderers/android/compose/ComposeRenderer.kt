@@ -37,7 +37,8 @@ fun ComposeRenderer(
     val sink = foley ?: remember { AudioTrackFoleySink() }
     CompositionLocalProvider(
         LocalRendererStage provides stage,
-        LocalCrack provides crack
+        LocalCrack provides crack,
+        LocalReducedMotion provides output.reducedMotion
     ) {
         ComposeFoleyBinder(
             plan = output.sharedElements,

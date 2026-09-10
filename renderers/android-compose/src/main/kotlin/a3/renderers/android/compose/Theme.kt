@@ -10,6 +10,7 @@ import a3.renderers.android.core.model.RendererContext
 
 internal val LocalRendererStage = staticCompositionLocalOf { RendererContext.STAGE_PRONTO }
 internal val LocalCrack = staticCompositionLocalOf { false }
+internal val LocalReducedMotion = staticCompositionLocalOf { false }
 
 /**
  * Grammar numbers for occupancy, type, motion, and material temperature.

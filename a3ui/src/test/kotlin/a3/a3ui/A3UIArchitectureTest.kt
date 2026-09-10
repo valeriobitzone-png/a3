@@ -34,6 +34,20 @@ class A3UIArchitectureTest {
             .should().dependOnClassesThat()
             .haveFullyQualifiedName("a3." + "prediction" + ".model." + "ProjectionCandidate")
 
+    @ArchTest
+    val A3UI_5_gesture_path_does_not_depend_on_command_or_belief: ArchRule =
+        noClasses()
+            .that().resideInAPackage("a3.a3ui..")
+            .should().dependOnClassesThat()
+            .haveFullyQualifiedName("a3.core.action.Command")
+
+    @ArchTest
+    val A3UI_5_a3ui_does_not_depend_on_belief_state: ArchRule =
+        noClasses()
+            .that().resideInAPackage("a3.a3ui..")
+            .should().dependOnClassesThat()
+            .haveFullyQualifiedName("a3.core.world.BeliefState")
+
     @Test
     fun P11ter_gradle_module_depends_only_on_projection_and_world_api() {
         val gradle = File("build.gradle.kts").readText()

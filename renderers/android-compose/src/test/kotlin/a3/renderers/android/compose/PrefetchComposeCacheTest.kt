@@ -58,7 +58,7 @@ class PrefetchComposeCacheTest {
 
     @Test
     fun P52_prefetch_cache_is_offscreen_and_respects_invalidation() {
-        val compiler = DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator())
+        val compiler = DeterministicA3UICompiler(t, SequentialIdGenerator())
         val cache = PrefetchComposeCache()
         val prepared = compiler.compilePrefetch(candidate())
         assertEquals(PrefetchStatus.PREPARED, prepared.prefetch!!.status)

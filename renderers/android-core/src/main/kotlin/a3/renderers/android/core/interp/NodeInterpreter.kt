@@ -4,6 +4,7 @@ import a3.a3ui.engine.BindingCopy
 import a3.a3ui.model.Binding
 import a3.a3ui.model.Node
 import a3.projection.model.PresentationState
+import a3.renderers.android.core.model.CatalogProfile
 import a3.renderers.android.core.model.RenderedNode
 import java.util.ArrayList
 
@@ -17,13 +18,14 @@ object NodeInterpreter {
     fun interpret(
         nodes: List<Node>,
         bindings: List<Binding>,
-        presentation: PresentationState
+        presentation: PresentationState,
+        profile: CatalogProfile = CatalogProfile.V2
     ): List<RenderedNode> {
         val bound = ArrayList(bindings)
         bound.sortWith(compareBy({ it.nodeId }, { it.role }, { it.atomKey }))
         val out = ArrayList<RenderedNode>(nodes.size)
         for (node in nodes) {
-            out += render(node, bound, presentation)
+            out += render(node, bound, presentation, profile)
         }
         return out
     }
@@ -41,7 +43,8 @@ object NodeInterpreter {
     private fun render(
         node: Node,
         bindings: List<Binding>,
-        presentation: PresentationState
+        presentation: PresentationState,
+        profile: CatalogProfile
     ): RenderedNode {
         if (ROLES.none { it == node.role }) {
             throw IllegalArgumentException("unknown node role ${node.role}")
@@ -55,7 +58,7 @@ object NodeInterpreter {
         }
         val children = ArrayList<RenderedNode>(node.children.size)
         for (child in node.children) {
-            children += render(child, bindings, presentation)
+            children += render(child, bindings, presentation, profile)
         }
         var text = ""
         var hint = ""
@@ -68,12 +71,19 @@ object NodeInterpreter {
                 else -> throw IllegalArgumentException("unknown binding role ${binding.role}")
             }
         }
+        val expose = profile == CatalogProfile.V2
+        val axis = if (expose) node.axis?.takeUnless { it.isDefault() } else null
+        val description = axis?.stateDescription() ?: ""
+        val accessible = if (expose && axis != null) axis.accessibleName(text) else ""
         return RenderedNode(
             id = node.id,
             role = node.role,
             children = children,
             text = text,
-            hint = hint
+            hint = hint,
+            axis = axis,
+            stateDescription = description,
+            accessibleName = accessible
         )
     }
 

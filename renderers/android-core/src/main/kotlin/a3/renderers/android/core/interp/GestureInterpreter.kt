@@ -1,6 +1,7 @@
 package a3.renderers.android.core.interp
 
 import a3.a3ui.model.GestureMap
+import a3.a3ui.model.IntentCandidate
 import a3.renderers.android.core.model.SemanticGestureAction
 import a3.renderers.android.core.model.SemanticGestureActions
 import java.util.ArrayList
@@ -22,5 +23,14 @@ class GestureInterpreter {
         }
         actions.sortWith(compareBy({ it.gesture }, { it.action }, { it.targetNodeId }))
         return SemanticGestureActions(actions)
+    }
+
+    fun emit(map: GestureMap): List<IntentCandidate> {
+        val out = ArrayList<IntentCandidate>(map.bindings.size)
+        for (binding in map.bindings) {
+            out += binding.emit()
+        }
+        out.sortWith(compareBy({ it.gesture }, { it.action }, { it.targetNodeId }))
+        return out
     }
 }

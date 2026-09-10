@@ -3,22 +3,21 @@ package a3.a3ui.engine
 import a3.a3ui.model.A3UISurface
 import a3.a3ui.model.GestureMap
 import a3.a3ui.model.Node
-import a3.core.time.InstantSource
-import a3.core.time.SequentialIdGenerator
 import a3.projection.model.Density
 import a3.projection.model.PresentationState
 import a3.projection.model.Projection
 import a3.projection.model.ProjectionCandidate
+import a3.core.time.SequentialIdGenerator
+import java.time.Instant
 import java.util.ArrayList
 
 class DeterministicA3UICompiler(
-    private val clock: InstantSource,
+    private val producedAt: Instant,
     private val ids: SequentialIdGenerator,
     private val temporal: TemporalBuilder = TemporalBuilder(),
     val linker: PrefetchLinker = PrefetchLinker()
 ) : A3UICompiler {
     override fun compile(projection: Projection): A3UISurface {
-        val now = clock.now()
         val motion = temporal.motion(projection.formFactorHints.density)
         val req = projection.interactionRequirements
         val rawGestures = temporal.gestures(req, "root")
@@ -51,12 +50,11 @@ class DeterministicA3UICompiler(
             nodes = nodes,
             bindings = emptyList(),
             prefetch = null,
-            producedAt = now
+            producedAt = producedAt
         )
     }
 
     override fun compile(projection: Projection, presentation: PresentationState): A3UISurface {
-        val now = clock.now()
         val motion = temporal.motion(projection.formFactorHints.density)
         val composed = SurfaceComposer.compose(presentation)
         val req = ArrayList(projection.interactionRequirements)
@@ -81,12 +79,11 @@ class DeterministicA3UICompiler(
             nodes = composed.nodes,
             bindings = composed.bindings,
             prefetch = null,
-            producedAt = now
+            producedAt = producedAt
         )
     }
 
     override fun compilePrefetch(candidate: ProjectionCandidate): A3UISurface {
-        val now = clock.now()
         linker.remember(candidate)
         val req = temporal.requirementsFrom(candidate.presentation.atoms)
         val motion = temporal.motion(Density.COMFORTABLE)
@@ -110,8 +107,8 @@ class DeterministicA3UICompiler(
             haptics = temporal.haptics(req),
             nodes = composed.nodes,
             bindings = composed.bindings,
-            prefetch = linker.describe(candidate, candidate.baseStateVersion, now),
-            producedAt = now
+            prefetch = linker.describe(candidate, candidate.baseStateVersion, producedAt),
+            producedAt = producedAt
         )
     }
 

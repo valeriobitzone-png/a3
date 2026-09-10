@@ -6,6 +6,7 @@ import a3.a3ui.model.GestureMap
 import a3.a3ui.model.Node
 import a3.projection.model.PresentationAtom
 import a3.projection.model.PresentationState
+import java.time.Instant
 import java.util.ArrayList
 import java.util.TreeMap
 
@@ -21,6 +22,12 @@ data class ComposedTree(
 object SurfaceComposer {
     val ROLES = listOf("stack", "row", "list", "item", "action", "field", "text")
     val ACTIONS = listOf("confirm", "dismiss", "select", "next-step")
+
+    fun compose(
+        presentation: PresentationState,
+        asOf: Instant,
+        factsByKey: Map<String, EpistemicFacts>
+    ): ComposedTree = Epistemic.attach(compose(presentation), asOf, factsByKey)
 
     fun compose(presentation: PresentationState): ComposedTree {
         val atoms = presentation.atoms.sortedWith(compareBy({ it.k }, { it.meaning }))

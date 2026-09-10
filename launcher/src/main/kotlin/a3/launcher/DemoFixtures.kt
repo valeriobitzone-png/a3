@@ -1,5 +1,6 @@
 package a3.launcher
 
+import a3.a3ui.engine.EpistemicFacts
 import a3.core.model.Capability
 import a3.core.model.CapabilityGraph
 import a3.core.model.Claim
@@ -149,4 +150,17 @@ object DemoFixtures {
             cap.effects.map { it.copy(id = "", v = false) }
         )
     }
+
+    fun priceFacts(
+        confidence: Double = 0.6,
+        expiresAt: Instant? = now.plusSeconds(3600),
+        admissionHeld: Boolean = false,
+        actionPhase: String? = null
+    ): Map<String, EpistemicFacts> = mapOf(
+        "train.price" to EpistemicFacts(
+            claim = Claim("train.price", "12.40", confidence, "train", now, expiresAt),
+            admissionHeld = admissionHeld,
+            actionPhase = actionPhase
+        )
+    )
 }

@@ -20,24 +20,24 @@ class PrefetchLinker {
         return candidate
     }
 
-    fun bind(candidateRef: String, currentStateVersion: Long, now: Instant): PrefetchSpec {
+    fun bind(candidateRef: String, currentStateVersion: Long, asOf: Instant): PrefetchSpec {
         val candidate = known[candidateRef]
             ?: throw IllegalArgumentException(
                 "prefetch candidate_ref does not resolve in the projection domain"
             )
-        return describe(candidate, currentStateVersion, now)
+        return describe(candidate, currentStateVersion, asOf)
     }
 
     fun describe(
         candidate: ProjectionCandidate,
         currentStateVersion: Long,
-        now: Instant
+        asOf: Instant
     ): PrefetchSpec {
         val expiry = candidate.expiresAt
         val ttl = if (expiry == null) {
             0L
         } else {
-            val ms = expiry.toEpochMilli() - now.toEpochMilli()
+            val ms = expiry.toEpochMilli() - asOf.toEpochMilli()
             if (ms < 0L) 0L else ms
         }
         val raw = candidate.priority / 1000.0
@@ -50,7 +50,7 @@ class PrefetchLinker {
             candidate.baseStateVersion != currentStateVersion -> PrefetchStatus.INVALIDATED
             candidate.status == CandidateStatus.INVALIDATED -> PrefetchStatus.INVALIDATED
             candidate.status == CandidateStatus.EXPIRED -> PrefetchStatus.EXPIRED
-            expiry != null && !now.isBefore(expiry) -> PrefetchStatus.EXPIRED
+            expiry != null && !asOf.isBefore(expiry) -> PrefetchStatus.EXPIRED
             else -> PrefetchStatus.PREPARED
         }
         val atomKeys = ArrayList<String>()

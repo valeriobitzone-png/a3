@@ -51,7 +51,7 @@ class A3UIAcceptanceTest {
         ProjectionEngine(FixedClock(t), SequentialIdGenerator(), ProjectionEventLog())
 
     private fun compiler() =
-        DeterministicA3UICompiler(FixedClock(t), SequentialIdGenerator())
+        DeterministicA3UICompiler(t, SequentialIdGenerator())
 
     private fun samplePresentation(): PresentationState = PresentationState(
         id = "ps_1",

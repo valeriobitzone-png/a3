@@ -44,6 +44,13 @@ class RendererArchitectureTest {
                 "androidx.compose.material3.."
             )
 
+    @ArchTest
+    val A3UI_5_interpreter_does_not_depend_on_command: ArchRule =
+        noClasses()
+            .that().resideInAPackage("a3.renderers.android.core.interp..")
+            .should().dependOnClassesThat()
+            .haveFullyQualifiedName("a3.core.action.Command")
+
     @Test
     fun P43_gradle_android_core_depends_only_on_a3ui() {
         val gradle = File("build.gradle.kts").readText()
