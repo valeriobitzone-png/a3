@@ -10,7 +10,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.decorView.setBackgroundColor(0xFFFFFFFF.toInt())
-        val vm = A3HostViewModel.train()
+        val reduced = intent.getBooleanExtra(
+            EXTRA_REDUCED_MOTION,
+            DeviceAccessibility.reducedMotion(this)
+        )
+        val highContrast = intent.getBooleanExtra(
+            EXTRA_HIGH_CONTRAST,
+            DeviceAccessibility.highContrast(this)
+        )
+        val vm = A3HostViewModel.uncertain(reducedMotion = reduced)
         setContent {
             val ui by vm.ui.collectAsState()
             A3Screen(
@@ -19,8 +27,14 @@ class MainActivity : ComponentActivity() {
                 trustVisible = ui.trustHold,
                 rollbackVisible = ui.rollbackVisible,
                 onApproveTrust = vm::approveTrust,
-                stage = ui.stage
+                stage = ui.stage,
+                highContrast = highContrast
             )
         }
+    }
+
+    companion object {
+        const val EXTRA_REDUCED_MOTION = "a3_reduced_motion"
+        const val EXTRA_HIGH_CONTRAST = "a3_high_contrast"
     }
 }

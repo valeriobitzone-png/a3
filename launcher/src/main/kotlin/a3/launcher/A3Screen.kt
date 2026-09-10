@@ -23,7 +23,8 @@ fun A3Screen(
     trustVisible: Boolean,
     rollbackVisible: Boolean,
     onApproveTrust: () -> Unit,
-    stage: String = RendererContext.STAGE_PRONTO
+    stage: String = RendererContext.STAGE_PRONTO,
+    highContrast: Boolean = false
 ) {
     Column(
         Modifier
@@ -33,7 +34,13 @@ fun A3Screen(
     ) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (output != null) {
-                ComposeRenderer(output, onAction, stage, crack = rollbackVisible)
+                ComposeRenderer(
+                    output,
+                    onAction,
+                    stage,
+                    crack = rollbackVisible,
+                    highContrast = highContrast
+                )
             } else {
                 Column(Modifier.fillMaxSize().testTag("a3-empty")) { }
             }

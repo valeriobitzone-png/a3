@@ -1,6 +1,8 @@
 package a3.launcher
 
 import a3.a3ui.engine.DeterministicA3UICompiler
+import a3.a3ui.engine.PresentationHash
+import a3.a3ui.engine.SurfaceComposer
 import a3.a3ui.model.A3UISurface
 import a3.core.model.CapabilityGraph
 import a3.core.model.Goal
@@ -38,7 +40,8 @@ data class HostUi(
     val trustHold: Boolean = false,
     val rollbackVisible: Boolean = false,
     val lastExecution: ExecutionResult? = null,
-    val stage: String = RendererContext.STAGE_PRONTO
+    val stage: String = RendererContext.STAGE_PRONTO,
+    val presentationHash: String? = null
 )
 
 class A3HostViewModel(
@@ -53,7 +56,9 @@ class A3HostViewModel(
     private val clock: InstantSource,
     private val graph: CapabilityGraph,
     private val goalFor: (String) -> Goal,
-    private val executor: Executor
+    private val executor: Executor,
+    private val loadUncertain: Boolean = false,
+    private val reducedMotion: Boolean = false
 ) {
     private val _ui = MutableStateFlow(HostUi())
     val ui: StateFlow<HostUi> = _ui.asStateFlow()
@@ -70,9 +75,39 @@ class A3HostViewModel(
         val goal = goalFor(inferred.id)
         val planned = planner.plan(goal, world.committed, graph, clock.now())
         val plan = (planned as PlanResult.Success).plan
+        if (loadUncertain) {
+            startUncertain(inferred, plan)
+        } else {
+            startTrain(inferred, plan)
+        }
+    }
+
+    private fun startUncertain(inferred: Intent, plan: Plan) {
+        val presentation = DemoFixtures.uncertainCalendar()
+        val facts = DemoFixtures.uncertainCalendarFacts()
+        val tree = SurfaceComposer.compose(presentation, clock.now(), facts)
+        val hash = PresentationHash.of(tree)
+        val surface = compiler.compile(DemoFixtures.uncertainCalendarProjection(), presentation)
+            .copy(nodes = tree.nodes, bindings = tree.bindings)
+        val ctx = DemoFixtures.rendererContext(RendererContext.STAGE_PRONTO)
+            .copy(reducedMotion = reducedMotion)
+        val output = interpreter.interpret(surface, presentation, ctx)
+        _ui.value = HostUi(
+            intent = inferred,
+            plan = plan,
+            surface = surface,
+            output = output,
+            belief = world.committed,
+            stage = RendererContext.STAGE_PRONTO,
+            presentationHash = hash
+        )
+    }
+
+    private fun startTrain(inferred: Intent, plan: Plan) {
         val presentation = DemoFixtures.presentation()
         val surface = compiler.compile(DemoFixtures.projection(), presentation)
         val listening = DemoFixtures.rendererContext(RendererContext.STAGE_ASCOLTO)
+            .copy(reducedMotion = reducedMotion)
         val output = interpreter.interpret(surface, presentation, listening)
         val prepared = compiler.compilePrefetch(DemoFixtures.candidate(world.committed.version))
         prefetchSurface = prepared
@@ -87,7 +122,8 @@ class A3HostViewModel(
             surface = surface,
             output = output,
             belief = world.committed,
-            stage = hostStage(trustHold = false, executed = null, prefetchHit = prefetchHit)
+            stage = hostStage(trustHold = false, executed = null, prefetchHit = prefetchHit),
+            presentationHash = PresentationHash.of(surface)
         )
     }
 
@@ -227,6 +263,30 @@ class A3HostViewModel(
                 graph = DemoFixtures.reversibleGraph(),
                 goalFor = { DemoFixtures.reversibleGoal(it) },
                 executor = executor
+            )
+        }
+
+        fun uncertain(
+            reducedMotion: Boolean = false,
+            executor: Executor = DemoFixtures.matchingExecutor(),
+            world: BeliefWriter = BeliefWriter()
+        ): A3HostViewModel {
+            val clock = DemoFixtures.clock
+            return A3HostViewModel(
+                world = world,
+                planner = DeterministicPlanner(),
+                runtime = Runtime(Policy(), TrustGate()),
+                policy = Policy(),
+                intentProvider = RuleIntentProvider(0.8),
+                compiler = DeterministicA3UICompiler(clock.now(), SequentialIdGenerator()),
+                interpreter = A3UIInterpreter(),
+                prefetch = HostPrefetch(),
+                clock = clock,
+                graph = DemoFixtures.trainGraph(),
+                goalFor = { DemoFixtures.trainGoal(it) },
+                executor = executor,
+                loadUncertain = true,
+                reducedMotion = reducedMotion
             )
         }
     }

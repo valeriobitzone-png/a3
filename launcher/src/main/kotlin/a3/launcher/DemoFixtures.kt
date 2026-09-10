@@ -171,4 +171,80 @@ object DemoFixtures {
             actionPhase = "unknown"
         )
     )
+
+    fun uncertainCalendar(): PresentationState = PresentationState(
+        id = "ps_cal",
+        sourceStateVersion = 0,
+        producedAt = now,
+        atoms = listOf(
+            PresentationAtom("price", "cal.meeting", "Riunione 09:00 — Ada", 50),
+            PresentationAtom("price", "cal.flight", "Volo 14:30 — FCO→LIN", 50),
+            PresentationAtom("price", "cal.hotel", "Hotel Milano", 50),
+            PresentationAtom("price", "cal.dinner", "Prenotazione ristorante", 50)
+        ),
+        lineage = lineage()
+    )
+
+    fun uncertainCalendarProjection(): Projection = Projection(
+        id = "proj_cal",
+        presentationId = "ps_cal",
+        contextRef = "ctx",
+        formFactorHints = FormFactorHints("phone", Density.COMFORTABLE),
+        interactionRequirements = listOf("attend"),
+        lineage = lineage(),
+        status = ProjectionStatus.PROPOSED
+    )
+
+    fun uncertainCalendarFacts(): Map<String, EpistemicFacts> {
+        val agingObserved = now.minusSeconds(3600)
+        val agingExpires = now.plusSeconds(600)
+        return mapOf(
+            "cal.meeting" to EpistemicFacts(
+                claim = Claim(
+                    "cal.meeting",
+                    "Riunione 09:00 — Ada",
+                    1.0,
+                    "calendar",
+                    now,
+                    now.plusSeconds(86400)
+                ),
+                actionPhase = "completed"
+            ),
+            "cal.flight" to EpistemicFacts(
+                claim = Claim(
+                    "cal.flight",
+                    "Volo 14:30 — FCO→LIN",
+                    0.7,
+                    "calendar",
+                    agingObserved,
+                    agingExpires
+                ),
+                actionPhase = "created"
+            ),
+            "cal.hotel" to EpistemicFacts(
+                claim = Claim(
+                    "cal.hotel",
+                    "Hotel Milano",
+                    0.4,
+                    "calendar",
+                    now,
+                    now.minusSeconds(1)
+                ),
+                admissionHeld = true,
+                actionPhase = "unknown"
+            ),
+            "cal.dinner" to EpistemicFacts(
+                claim = Claim(
+                    "cal.dinner",
+                    "Prenotazione ristorante",
+                    0.9,
+                    "calendar",
+                    now,
+                    now.plusSeconds(86400)
+                ),
+                revisionContradicted = true,
+                compensationPhase = "compensated"
+            )
+        )
+    }
 }
