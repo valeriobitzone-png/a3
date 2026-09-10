@@ -1,5 +1,6 @@
 package a3.renderers.android.compose
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -121,7 +122,12 @@ object Exposure {
 
 fun Modifier.exposureChrome(axis: EpistemicAxis, highContrast: Boolean): Modifier {
     if (axis.isDefault()) return this
-    return this.drawBehind {
+    val boxed = if (axis.support == EpistemicSupport.UNKNOWN) {
+        this.padding(10.dp)
+    } else {
+        this
+    }
+    return boxed.drawBehind {
         val ink = Color.Black
         val amber = if (highContrast) ink else Color(0xFFCC8800)
         when (axis.support) {
@@ -148,11 +154,16 @@ fun Modifier.exposureChrome(axis: EpistemicAxis, highContrast: Boolean): Modifie
                 )
             }
             EpistemicSupport.UNKNOWN -> {
+                val inset = 3.dp.toPx()
                 drawRect(
                     color = ink,
+                    topLeft = Offset(inset, inset),
+                    size = Size(size.width - inset * 2f, size.height - inset * 2f),
                     style = Stroke(
-                        width = 2.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f))
+                        width = 3.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(8.dp.toPx(), 6.dp.toPx())
+                        )
                     )
                 )
             }

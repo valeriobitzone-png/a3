@@ -42,12 +42,12 @@ fun Modifier.exposureLayer(node: RenderedNode): Modifier {
             }
         }
         ExposureVerb.SHIMMER -> {
-            val alpha = remember(node.id) { Animatable(0.4f) }
+            val shift = remember(node.id) { Animatable(8f) }
             LaunchedEffect(node.id, verb) {
-                alpha.snapTo(0.4f)
-                alpha.animateTo(1f, tween(Theme.unknownShimmerMs, easing = LinearEasing))
+                shift.snapTo(8f)
+                shift.animateTo(0f, tween(Theme.unknownShimmerMs, easing = LinearEasing))
             }
-            graphicsLayer { this.alpha = alpha.value }
+            graphicsLayer { translationX = shift.value }
         }
         ExposureVerb.CRACK_REVERSE -> {
             val scale = remember(node.id) { Animatable(1.06f) }
