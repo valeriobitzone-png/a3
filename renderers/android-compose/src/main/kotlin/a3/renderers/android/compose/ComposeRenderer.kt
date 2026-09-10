@@ -28,7 +28,9 @@ fun ComposeRenderer(
     onAction: (String) -> Unit = {},
     stage: String = RendererContext.STAGE_PRONTO,
     crack: Boolean = false,
-    foley: FoleySink? = null
+    foley: FoleySink? = null,
+    announce: EpistemicAnnounce = EpistemicAnnounce.Silent,
+    highContrast: Boolean = false
 ) {
     val matrix = remember(stage) { Theme.material(stage) }
     val paint = remember(matrix) {
@@ -38,7 +40,9 @@ fun ComposeRenderer(
     CompositionLocalProvider(
         LocalRendererStage provides stage,
         LocalCrack provides crack,
-        LocalReducedMotion provides output.reducedMotion
+        LocalReducedMotion provides output.reducedMotion,
+        LocalHighContrast provides highContrast,
+        LocalEpistemicAnnounce provides announce
     ) {
         ComposeFoleyBinder(
             plan = output.sharedElements,
