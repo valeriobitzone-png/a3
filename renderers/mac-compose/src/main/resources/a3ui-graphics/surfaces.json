@@ -1,0 +1,55 @@
+{
+  "version": "0.1",
+  "status": "fase-1",
+  "phase": "fase-1",
+  "doc": "docs/00-foundations.md",
+  "glass": {
+    "blurRadiusPx": 12,
+    "fillColor": "#000000",
+    "fillOpacity": 0.38,
+    "vibrancySaturation": 1.4,
+    "innerHighlight": {
+      "widthPx": 1,
+      "kind": "gradient-light",
+      "stops": [
+        { "position": 0.0, "rgba": [1.0, 1.0, 1.0, 0.28] },
+        { "position": 1.0, "rgba": [1.0, 1.0, 1.0, 0.06] }
+      ]
+    },
+    "outerHighlight": {
+      "widthPx": 1,
+      "kind": "gradient-dark",
+      "stops": [
+        { "position": 0.0, "rgba": [0.0, 0.0, 0.0, 0.4] },
+        { "position": 1.0, "rgba": [0.0, 0.0, 0.0, 0.08] }
+      ]
+    }
+  },
+  "acrylic": {
+    "blurRadiusPx": 20,
+    "fillColor": "#000000",
+    "fillOpacity": 0.55,
+    "vibrancySaturation": 1.2
+  },
+  "container": {
+    "corner": {
+      "kind": "squircle",
+      "superellipseN": 5,
+      "radiusPx": 14
+    },
+    "nestedRadius": {
+      "minPx": 4,
+      "formula": "max(minPx, outerRadiusPx - paddingPx)"
+    }
+  },
+  "deferred": {
+    "refraction": {
+      "status": "deferred",
+      "phase": "S-D5"
+    },
+    "noiseTexture": {
+      "status": "deferred",
+      "phase": "S-D5"
+    }
+  }
+}

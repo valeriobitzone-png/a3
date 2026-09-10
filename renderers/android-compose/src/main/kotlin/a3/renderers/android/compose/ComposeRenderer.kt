@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -42,7 +43,8 @@ fun ComposeRenderer(
         LocalCrack provides crack,
         LocalReducedMotion provides output.reducedMotion,
         LocalHighContrast provides highContrast,
-        LocalEpistemicAnnounce provides announce
+        LocalEpistemicAnnounce provides announce,
+        LocalGlassBlurEnabled provides (Build.VERSION.SDK_INT >= 31)
     ) {
         ComposeFoleyBinder(
             plan = output.sharedElements,
