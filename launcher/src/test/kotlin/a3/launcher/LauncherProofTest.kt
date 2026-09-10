@@ -233,7 +233,7 @@ class LauncherProofTest {
             "prediction/",
             "projection/",
             "a3ui/",
-            "renderers/",
+            "renderers/android-core/",
             "adapters/",
             "intent-model/",
             "broker/"

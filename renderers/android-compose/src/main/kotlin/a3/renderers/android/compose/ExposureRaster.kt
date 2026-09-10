@@ -21,6 +21,9 @@ import java.util.ArrayList
 object ExposureRaster {
     const val SEED_WIDTH = 320
     const val SEED_HEIGHT = 80
+    const val LOW_BAR_X1 = 2
+    const val LOW_BAR_X2 = 7
+    const val UNKNOWN_INSET = 12
 
     fun paint(
         output: RenderedOutput,
@@ -65,15 +68,28 @@ object ExposureRaster {
         when (axis.support) {
             EpistemicSupport.MEDIUM -> canvas.drawLine(2f, 0f, 2f, height.toFloat(), stroke)
             EpistemicSupport.LOW -> {
-                canvas.drawLine(2f, 0f, 2f, height.toFloat(), stroke)
-                canvas.drawLine(7f, 0f, 7f, height.toFloat(), stroke)
+                canvas.drawLine(
+                    LOW_BAR_X1.toFloat(),
+                    0f,
+                    LOW_BAR_X1.toFloat(),
+                    height.toFloat(),
+                    stroke
+                )
+                canvas.drawLine(
+                    LOW_BAR_X2.toFloat(),
+                    0f,
+                    LOW_BAR_X2.toFloat(),
+                    height.toFloat(),
+                    stroke
+                )
             }
             EpistemicSupport.UNKNOWN -> {
                 val dashed = Paint(stroke).apply {
-                    pathEffect = DashPathEffect(floatArrayOf(12f, 8f), 0f)
-                    strokeWidth = 2f
+                    pathEffect = DashPathEffect(floatArrayOf(16f, 10f), 0f)
+                    strokeWidth = 3f
                 }
-                canvas.drawRect(1f, 1f, width - 1f, height - 1f, dashed)
+                val inset = UNKNOWN_INSET.toFloat()
+                canvas.drawRect(inset, inset, width - inset, height - inset, dashed)
             }
             EpistemicSupport.HIGH -> { }
         }
@@ -133,6 +149,26 @@ object ExposureRaster {
             canvas.drawArc(RectF(280f, 8f, 304f, 32f), 0f, 270f, false, stroke)
         }
         return bitmap
+    }
+
+    fun inkCount(bitmap: Bitmap, x: Int): Int {
+        var count = 0
+        var y = 0
+        while (y < bitmap.height) {
+            if (bitmap.getPixel(x, y) != android.graphics.Color.WHITE) count++
+            y++
+        }
+        return count
+    }
+
+    fun rowInk(bitmap: Bitmap, y: Int): Int {
+        var count = 0
+        var x = 0
+        while (x < bitmap.width) {
+            if (bitmap.getPixel(x, y) != android.graphics.Color.WHITE) count++
+            x++
+        }
+        return count
     }
 
     fun fingerprint(bitmap: Bitmap): Long {
