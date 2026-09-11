@@ -5,8 +5,9 @@ import a3.core.truth.Provenance
 import a3.core.truth.TruthBearer
 import a3.core.truth.TruthClass
 import a3.core.truth.VerificationEnvironment
-import kotlin.math.max
-import kotlin.math.pow
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 fun parseVector(fields: Map<String, Any?>): ConfidenceVector {
     fun req(name: String): Double {
@@ -47,9 +48,26 @@ fun aggregate(vector: ConfidenceVector, weights: AggregationWeights): Double {
     return min
 }
 
+/**
+ * `2^(-(t_present - t_observe) / half_life)`, age clamped at 0.
+ *
+ * JDK libm `pow` (the same bits as StrictMath on 21) sits 1 ULP above
+ * the IEEE-754 binary64 nearest-even value of the exact power for
+ * Δt=10799s (`0.7071294727113613` vs `0.7071294727113612`). Recency is
+ * therefore `exp(ln(2) * -age/halfLife)` in [BigDecimal] (80 decimal
+ * digits, HALF_EVEN) then rounded to binary64 via [BigDecimal.doubleValue],
+ * which matches ECMAScript/CPython correctly rounded exponentiation.
+ * Integer multiples of the half-life stay exact via [StrictMath.scalb].
+ */
 fun recencyFromAge(ageSeconds: Long, law: RecencyLaw = RecencyLaw.DEFAULT): Double {
-    val age = max(0.0, ageSeconds.toDouble())
-    return 2.0.pow(-age / law.halfLifeSeconds.toDouble())
+    val age = if (ageSeconds < 0L) 0L else ageSeconds
+    if (age == 0L) return 1.0
+    val halfLife = law.halfLifeSeconds
+    if (age % halfLife == 0L) {
+        val generations = age / halfLife
+        if (generations <= 1023L) return StrictMath.scalb(1.0, -generations.toInt())
+    }
+    return exp2Rational(-age, halfLife)
 }
 
 fun recency(stamp: TemporalStamp, law: RecencyLaw = RecencyLaw.DEFAULT): Double {
@@ -168,4 +186,30 @@ fun assessVector(
         truthClass = truthClass,
         weights = weights
     )
+}
+
+private val RECENCY_MATH = MathContext(80, RoundingMode.HALF_EVEN)
+
+/** ln(2) to >80 digits (OEIS A002162). */
+private val LN2 = BigDecimal(
+    "0.693147180559945309417232121458176568075500134360255254120680009493393621969694715605863326996418687"
+)
+
+private fun exp2Rational(numerator: Long, denominator: Long): Double {
+    val exponent = BigDecimal.valueOf(numerator).divide(BigDecimal.valueOf(denominator), RECENCY_MATH)
+    return exp(exponent.multiply(LN2, RECENCY_MATH)).toDouble()
+}
+
+private fun exp(x: BigDecimal): BigDecimal {
+    var term = BigDecimal.ONE
+    var sum = BigDecimal.ONE
+    var n = 1
+    while (n <= 256) {
+        term = term.multiply(x, RECENCY_MATH).divide(BigDecimal.valueOf(n.toLong()), RECENCY_MATH)
+        val next = sum.add(term, RECENCY_MATH)
+        if (next.compareTo(sum) == 0) return next
+        sum = next
+        n++
+    }
+    return sum
 }

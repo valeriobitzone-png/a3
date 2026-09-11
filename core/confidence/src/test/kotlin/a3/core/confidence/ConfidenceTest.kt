@@ -317,6 +317,85 @@ class ConfidenceTest {
         assertTrue(vectors.exists())
     }
 
+    @Test
+    fun ULP_001_fixture_recency_is_ieee754_nearest_even() {
+        val value = recencyFromAge(10799)
+        assertEquals(0.7071294727113612, value)
+        assertEquals("0.7071294727113612", value.toString())
+        assertEquals(0x3fe6a0cdfceaa81bL, java.lang.Double.doubleToRawLongBits(value))
+        assertNotEquals(0.7071294727113613, value)
+        assertEquals(value, recency(stamp()))
+        val law = File("src/main/kotlin/a3/core/confidence/Law.kt").readText()
+        assertTrue(law.contains("BigDecimal"))
+        assertFalse(law.contains("kotlin.math.pow"))
+        assertFalse(law.contains("2.0.pow"))
+        assertFalse(law.contains("StrictMath.pow"))
+    }
+
+    @Test
+    fun ULP_002_score_and_category_unchanged() {
+        val recency = recencyFromAge(10799)
+        val score = aggregate(ones(recency = recency), AggregationWeights.DEFAULT)
+        assertEquals(0.565703578169089, score)
+        assertEquals(ConfidenceCategory.MEDIUM, categoryOf(score, TruthClass.FACT))
+        dumpCorpus()
+        val lock = vectors.readText()
+        assertTrue(lock.contains("\"score\":0.565703578169089"))
+        assertTrue(lock.contains("\"recency\":0.7071294727113612"))
+        assertFalse(lock.contains("0.7071294727113613"))
+        assertTrue(lock.contains("\"category\":\"medium\""))
+    }
+
+    @Test
+    fun ULP_003_regression_CF_001_through_008() {
+        CF_001_vector_is_complete_or_explicit_reject()
+        CF_002_zero_dimension_is_not_compensated()
+        CF_003_recency_exponential_decay()
+        CF_004_corroboration_needs_distinct_source_ids()
+        CF_005_verification_grades()
+        CF_006_truth_class_mapping()
+        CF_007_same_input_same_score()
+        CF_008_freeze_only_confidence()
+    }
+
+    @Test
+    fun ULP_004_freeze_only_confidence_module() {
+        fun diff(vararg paths: String): String {
+            val proc = ProcessBuilder("git", "diff", "--stat", "--", *paths)
+                .directory(root)
+                .redirectErrorStream(true)
+                .start()
+            val out = proc.inputStream.bufferedReader().readText()
+            assertEquals(0, proc.waitFor())
+            return out
+        }
+        val frozen = diff(
+            "core/admission", "core/action", "core/json", "core/envelope",
+            "core/temporal", "core/truth", "core/t12", "core/world", "core/world-api",
+            "core/runtime", "a3ui/", "renderers/", "broker/", "agent/", "showcase/",
+            "settings.gradle.kts"
+        )
+        assertTrue(frozen.isBlank(), frozen)
+        val status = ProcessBuilder("git", "status", "--porcelain")
+            .directory(root).redirectErrorStream(true).start()
+        val porcelain = status.inputStream.bufferedReader().readText()
+        assertEquals(0, status.waitFor())
+        val allowed = listOf("core/confidence/", "REVIEW_CORE_CONFIDENCE.md")
+        val ignore = listOf(".kotlin/", ".DS_Store")
+        for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
+            val path = line.drop(3).trim().removePrefix("?? ").let {
+                if (it.contains(" -> ")) it.substringAfter(" -> ") else it
+            }
+            if (ignore.any { path.startsWith(it) }) continue
+            assertTrue(allowed.any { path == it || path.startsWith(it) }, "unexpected path $line")
+        }
+        val review = File(root, "REVIEW_CORE_CONFIDENCE.md").readText()
+        assertTrue(review.contains("ULP-001"))
+        assertTrue(review.contains("0.7071294727113612"))
+        assertTrue(review.contains("core-confidence-v0.2"))
+        assertTrue(review.contains("3694ca51543fc803be733977b01de7725c6a41a0"))
+    }
+
     private fun dumpCorpus() {
         val fixture = assess(
             TruthBearer(TruthClass.FACT, Provenance.OBSERVED_SIGNED, "ver-1"),
