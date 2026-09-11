@@ -1,0 +1,19 @@
+{
+  "version": "0.1",
+  "status": "deferred",
+  "phase": "remainder-l2",
+  "doc": "docs/01-micro-geometry.md",
+  "stack": ["system-ui", "sans-serif"],
+  "fase1Fallback": {
+    "sizeSp": 18,
+    "weight": 400,
+    "colorToken": "ink"
+  },
+  "variable": {
+    "status": "deferred",
+    "axes": ["wght", "opsz"]
+  },
+  "opticalSizing": {
+    "status": "deferred"
+  }
+}

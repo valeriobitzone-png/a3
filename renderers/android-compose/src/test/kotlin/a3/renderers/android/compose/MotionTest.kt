@@ -347,6 +347,7 @@ class MotionTest {
             "renderers/android-compose/",
             "renderers/mac-compose/",
             "REVIEW_RENDERER_MOTION.md",
+            "REVIEW_RENDERER_DYNAMIC.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

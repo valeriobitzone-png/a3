@@ -2,6 +2,8 @@ package a3.renderers.android.compose
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,6 +28,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -35,7 +41,9 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import a3.a3ui.model.EpistemicAction
 import a3.a3ui.model.EpistemicFreshness
 import a3.a3ui.model.EpistemicStatus
@@ -82,12 +90,15 @@ private fun CatalogNode(
     }
     val axis = Exposure.of(node)
     val highContrast = LocalHighContrast.current
+    val densityHint = LocalDensityHint.current
     val announce = LocalEpistemicAnnounce.current
     val phrases = Exposure.announcePhrases(axis)
     LaunchedEffect(node.id, phrases) {
         for (phrase in phrases) announce.announce(node.id, phrase)
     }
-    val tagged = nodeModifier(node, targeted, onAction)
+    val pressSource = remember(node.id) { MutableInteractionSource() }
+    val pressed by pressSource.collectIsPressedAsState()
+    val tagged = nodeModifier(node, targeted, onAction, pressSource)
         .exposureChrome(axis, highContrast)
         .exposureLayer(node)
     val modifier = extra.then(tagged)
@@ -115,22 +126,26 @@ private fun CatalogNode(
             }
         }
         "item" -> GlassSurface(modifier, nested) {
-            Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); ExposureMarks(node)
+            Children(node, gestures, onAction, depth + 1); BoundCopy(node, pressed); AxisCopy(node); ExposureMarks(node)
         }
-        "action" -> Box(modifier.contactRipple()) { Children(node, gestures, onAction, depth + 1); BoundCopy(node); AxisCopy(node); ExposureMarks(node) }
+        "action" -> Box(modifier.contactRipple()) { Children(node, gestures, onAction, depth + 1); BoundCopy(node, pressed); AxisCopy(node); ExposureMarks(node) }
         "field" -> Column(extra) {
             BasicTextField(
                 value = node.text,
                 onValueChange = {},
                 readOnly = true,
-                textStyle = Exposure.style(node, highContrast),
-                modifier = tagged
+                textStyle = typedStyle(node, false),
+                modifier = tagged.graphicsLayer { scaleX = DynamicType.width(densityHint) }
             )
             AxisCopy(node)
             ExposureMarks(node)
         }
         "text" -> Column(extra) {
-            BasicText(text = node.text, modifier = tagged, style = Exposure.style(node, highContrast))
+            BasicText(
+                text = node.text,
+                modifier = tagged.graphicsLayer { scaleX = DynamicType.width(densityHint) },
+                style = typedStyle(node, false)
+            )
             AxisCopy(node)
             ExposureMarks(node)
         }
@@ -151,10 +166,24 @@ private fun Children(
 }
 
 @Composable
-private fun BoundCopy(node: RenderedNode) {
+private fun BoundCopy(node: RenderedNode, pressed: Boolean = false) {
     if (node.text.isNotEmpty()) {
-        BasicText(text = node.text, style = Exposure.style(node, LocalHighContrast.current))
+        val width = DynamicType.width(LocalDensityHint.current)
+        BasicText(
+            text = node.text,
+            style = typedStyle(node, pressed && node.role == "action"),
+            modifier = Modifier.graphicsLayer { scaleX = width }
+        )
     }
+}
+
+@Composable
+private fun typedStyle(node: RenderedNode, pressed: Boolean): androidx.compose.ui.text.TextStyle {
+    val base = Exposure.style(node, LocalHighContrast.current)
+    return base.copy(
+        fontWeight = FontWeight(DynamicType.weight(pressed)),
+        letterSpacing = DynamicType.trackingEm(base.fontSize.value).em
+    )
 }
 
 @Composable
@@ -211,6 +240,7 @@ private fun ExposureMarks(node: RenderedNode) {
         if (axis.action == EpistemicAction.COMPENSATED) {
             BasicText("compensated", Modifier.testTag(node.id + "-compensated"), Theme.type)
         }
+        EpistemicGlyph(node)
     }
 }
 
@@ -237,13 +267,21 @@ private fun PendingMark(id: String) {
             .testTag(id + "-pending")
             .graphicsLayer { rotationZ = angle }
     ) {
-        drawArc(
-            color = Color.Black,
-            startAngle = 0f,
-            sweepAngle = 270f,
-            useCenter = false,
-            style = Stroke(width = 2.dp.toPx())
-        )
+        val pts = GlyphGeometry.points(GlyphGeometry.Kind.SPINNER, if (reduced) 1f else angle / 360f, reduced)
+        if (pts.size >= 2) {
+            val path = Path()
+            path.moveTo(pts[0].x * size.width, pts[0].y * size.height)
+            var i = 1
+            while (i < pts.size) {
+                path.lineTo(pts[i].x * size.width, pts[i].y * size.height)
+                i++
+            }
+            drawPath(
+                path,
+                color = Color.Black,
+                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+            )
+        }
     }
 }
 
@@ -258,7 +296,8 @@ private fun ColumnScope.occupancy(role: String): Modifier = when (role) {
 private fun nodeModifier(
     node: RenderedNode,
     targeted: List<SemanticGestureAction>,
-    onAction: (String) -> Unit
+    onAction: (String) -> Unit,
+    pressSource: MutableInteractionSource
 ): Modifier {
     var modifier: Modifier = Modifier
         .testTag(node.id)
@@ -300,7 +339,7 @@ private fun nodeModifier(
     if (emit != null || node.role == "action") {
         val actionName = emit ?: ""
         val gestureName = clickableGesture ?: ""
-        modifier = modifier.actionPress(enabled = actionName.isNotEmpty()) {
+        modifier = modifier.actionPress(enabled = actionName.isNotEmpty(), source = pressSource) {
             if (actionName.isNotEmpty()) {
                 onAction(IntentCandidate(gestureName, actionName, node.id).action)
             }

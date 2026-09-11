@@ -3,7 +3,7 @@ package a3.renderers.mac.compose
 import java.io.File
 
 /**
- * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces, motion).
+ * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces, motion, typography).
  * Graphics repo is the source of truth; this module consumes the copied JSON.
  */
 internal object GraphicsTokens {
@@ -120,6 +120,69 @@ internal object GraphicsTokens {
     }
 
     val motion: MotionSnapshot by lazy { loadMotion() }
+
+    data class ColorSnapshot(
+        val version: String,
+        val ink: Int,
+        val paper: Int,
+        val amber: Int,
+        val inkLum: Float,
+        val paperLum: Float,
+        val amberLum: Float,
+        val minRatio: Float,
+        val highContrastMinRatio: Float
+    )
+
+    val colors: ColorSnapshot by lazy { loadColors() }
+
+    private fun loadColors(): ColorSnapshot {
+        val o = JsonMap.parse(readResource("colors.json"))
+        val palette = o.obj("palette")
+        val contrast = o.obj("contrast")
+        fun swatch(name: String): Pair<Int, Float> {
+            val s = palette.obj(name)
+            return parseHex(s.str("hex")) to s.num("luminance")
+        }
+        val ink = swatch("ink")
+        val paper = swatch("paper")
+        val amber = swatch("amber")
+        return ColorSnapshot(
+            version = o.str("version"),
+            ink = ink.first,
+            paper = paper.first,
+            amber = amber.first,
+            inkLum = ink.second,
+            paperLum = paper.second,
+            amberLum = amber.second,
+            minRatio = contrast.num("minRatio"),
+            highContrastMinRatio = contrast.num("highContrastMinRatio")
+        )
+    }
+
+    data class TypeSnapshot(
+        val version: String,
+        val sizeSp: Int,
+        val weight: Int,
+        val colorToken: String,
+        val stack: List<String>,
+        val axes: List<String>
+    )
+
+    val typography: TypeSnapshot by lazy { loadType() }
+
+    private fun loadType(): TypeSnapshot {
+        val o = JsonMap.parse(readResource("typography.json"))
+        val fallback = o.obj("fase1Fallback")
+        val variable = o.obj("variable")
+        return TypeSnapshot(
+            version = o.str("version"),
+            sizeSp = fallback.int("sizeSp"),
+            weight = fallback.int("weight"),
+            colorToken = fallback.str("colorToken"),
+            stack = o.arr("stack").map { it as String },
+            axes = variable.arr("axes").map { it as String }
+        )
+    }
 
     private fun loadMotion(): MotionSnapshot {
         val o = JsonMap.parse(readResource("motion.json"))

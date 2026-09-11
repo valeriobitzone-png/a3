@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.sp
 
 internal val LocalReducedMotion = staticCompositionLocalOf { false }
 internal val LocalHighContrast = staticCompositionLocalOf { false }
+internal val LocalDensityHint = staticCompositionLocalOf { "comfortable" }
 
 object MacTheme {
     val space = 16.dp
