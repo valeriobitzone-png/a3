@@ -164,18 +164,19 @@ fun ShowcaseApp(
                     .testTag("showcase-wallpaper-gutter")
             ) {
                 ShowcaseGlassPlate(Modifier.fillMaxSize(), frost = true) {
-                    ShowcaseWallpaperLayer(blurred = true, Modifier.fillMaxSize())
                     if (flags.gradient) {
                         ShowcaseGradient(staticChrome = staticChrome || reduced)
                     }
                     if (flags.parallax) {
                         ShowcaseParallax()
                     }
-                    ComposeRenderer(
-                        output = output,
-                        onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
-                        announce = announce
-                    )
+                    Box(Modifier.fillMaxSize().padding(12.dp).testTag("showcase-glass-inset")) {
+                        ComposeRenderer(
+                            output = output,
+                            onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
+                            announce = announce
+                        )
+                    }
                     if (flags.optics) {
                         ShowcaseGrain()
                         GlassOpticsLayer(refract = true, noise = true)
@@ -209,14 +210,13 @@ fun ShowcaseApp(
                     onAmbient = { ambientExpanded = !ambientExpanded },
                     onSensory = { fireSensory(ShowcaseSensory.Cause.CONFIRM, ShowcaseSensory.Cause.TAP) }
                 )
-                BasicText(
-                    text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} ${level.wire()}",
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .background(Color.White.copy(alpha = 0.62f))
-                        .testTag("showcase-status"),
-                    style = Theme.type.copy(fontSize = 12.sp, color = ink)
-                )
+                ShowcaseGlassPlate(Modifier.padding(8.dp), nested = true, frost = true) {
+                    BasicText(
+                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} ${level.wire()}",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag("showcase-status"),
+                        style = Theme.type.copy(fontSize = 12.sp, color = ink)
+                    )
+                }
             }
         }
     }
