@@ -1,0 +1,82 @@
+{
+  "type": "OBJECT",
+  "required": [
+    "specversion",
+    "type",
+    "source",
+    "id",
+    "time",
+    "datacontenttype",
+    "subject",
+    "data"
+  ],
+  "properties": {
+    "specversion": { "type": "STRING", "enum": ["1.0"] },
+    "type": { "type": "STRING", "description": "CloudEvents type, e.g. a3.observation.admitted" },
+    "source": { "type": "STRING", "description": "URI urn:a3:source:gemini" },
+    "id": {
+      "type": "STRING",
+      "description": "Placeholder string. Runtime replaces with SHA-256 of JCS payload."
+    },
+    "time": { "type": "STRING", "description": "ISO-8601, must equal data.temporal.t_present" },
+    "datacontenttype": { "type": "STRING", "enum": ["application/json"] },
+    "subject": { "type": "STRING" },
+    "data": {
+      "type": "OBJECT",
+      "required": ["temporal", "truth", "content"],
+      "properties": {
+        "temporal": {
+          "type": "OBJECT",
+          "required": ["t_event", "t_observe", "t_admit", "t_present"],
+          "properties": {
+            "t_event": { "type": "STRING" },
+            "t_observe": { "type": "STRING" },
+            "t_admit": { "type": "STRING" },
+            "t_present": { "type": "STRING" }
+          }
+        },
+        "truth": {
+          "type": "OBJECT",
+          "required": ["truth_class", "provenance"],
+          "properties": {
+            "truth_class": {
+              "type": "STRING",
+              "enum": ["observation", "unknown"],
+              "description": "Receipt is OBSERVATION never FACT. UNKNOWN if evidence is insufficient."
+            },
+            "provenance": {
+              "type": "STRING",
+              "enum": ["observed_signed", "derived_model"]
+            },
+            "ref": { "type": "STRING" }
+          }
+        },
+        "content": {
+          "type": "OBJECT",
+          "required": ["postcondition_verified"],
+          "properties": {
+            "postcondition_verified": {
+              "type": "BOOLEAN",
+              "description": "Must be false: postcondition is not verifiable in the real environment."
+            },
+            "exit_code": { "type": "INTEGER" },
+            "printed": { "type": "STRING" },
+            "note": { "type": "STRING" }
+          }
+        },
+        "confidence": {
+          "type": "OBJECT",
+          "properties": {
+            "source_reliability": { "type": "NUMBER" },
+            "evidence_strength": { "type": "NUMBER" },
+            "recency": { "type": "NUMBER" },
+            "corroboration": { "type": "NUMBER" },
+            "verification": { "type": "NUMBER" },
+            "score": { "type": "NUMBER" }
+          }
+        },
+        "fold_ref": { "type": "STRING" }
+      }
+    }
+  }
+}
