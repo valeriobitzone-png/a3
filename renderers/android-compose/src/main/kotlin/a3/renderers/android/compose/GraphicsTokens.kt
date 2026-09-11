@@ -3,7 +3,7 @@ package a3.renderers.android.compose
 import java.io.File
 
 /**
- * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces, motion, typography).
+ * Snapshot of a3ui-graphics-v0.1 (colors, elevation, surfaces, motion, typography, audio, haptic).
  * Graphics repo is the source of truth; this module consumes the copied JSON.
  */
 internal object GraphicsTokens {
@@ -182,6 +182,50 @@ internal object GraphicsTokens {
 
     val typography: TypeSnapshot by lazy { loadType() }
 
+    data class AudioTone(
+        val frequencyHz: Float,
+        val semitones: Int,
+        val durationMs: Int,
+        val attackMs: Int,
+        val decayMs: Int,
+        val sustain: Float,
+        val releaseMs: Int
+    )
+
+    data class AudioSnapshot(
+        val version: String,
+        val invariant: String,
+        val synthesis: String,
+        val files: Boolean,
+        val voiceCeiling: Float,
+        val morph: AudioTone
+    )
+
+    val audio: AudioSnapshot by lazy { loadAudio() }
+
+    data class HapticIntensity(
+        val amplitude: Float,
+        val durationMs: Int,
+        val texture: String
+    )
+
+    data class HapticPattern(
+        val intensity: String,
+        val count: Int,
+        val gapMs: Int
+    )
+
+    data class HapticSnapshot(
+        val version: String,
+        val gapMs: Int,
+        val light: HapticIntensity,
+        val medium: HapticIntensity,
+        val tap: HapticPattern,
+        val doubleTap: HapticPattern
+    )
+
+    val haptic: HapticSnapshot by lazy { loadHaptic() }
+
     private fun loadType(): TypeSnapshot {
         val o = JsonMap.parse(readResource("typography.json"))
         val fallback = o.obj("fase1Fallback")
@@ -193,6 +237,51 @@ internal object GraphicsTokens {
             colorToken = fallback.str("colorToken"),
             stack = o.arr("stack").map { it as String },
             axes = variable.arr("axes").map { it as String }
+        )
+    }
+
+    private fun loadAudio(): AudioSnapshot {
+        val o = JsonMap.parse(readResource("audio.json"))
+        val morph = o.obj("tones").obj("morph")
+        val env = morph.obj("envelope")
+        return AudioSnapshot(
+            version = o.str("version"),
+            invariant = o.str("invariant"),
+            synthesis = o.str("synthesis"),
+            files = o.bool("files"),
+            voiceCeiling = o.num("voiceCeiling"),
+            morph = AudioTone(
+                frequencyHz = morph.num("frequencyHz"),
+                semitones = morph.int("semitones"),
+                durationMs = morph.int("durationMs"),
+                attackMs = env.int("attackMs"),
+                decayMs = env.int("decayMs"),
+                sustain = env.num("sustain"),
+                releaseMs = env.int("releaseMs")
+            )
+        )
+    }
+
+    private fun loadHaptic(): HapticSnapshot {
+        val o = JsonMap.parse(readResource("haptic.json"))
+        val intensities = o.obj("intensities")
+        val patterns = o.obj("patterns")
+        val gap = o.int("gapMs")
+        fun intensity(name: String): HapticIntensity {
+            val s = intensities.obj(name)
+            return HapticIntensity(s.num("amplitude"), s.int("durationMs"), s.str("texture"))
+        }
+        fun pattern(name: String): HapticPattern {
+            val p = patterns.obj(name)
+            return HapticPattern(p.str("intensity"), p.int("count"), p.intOr("gapMs", gap))
+        }
+        return HapticSnapshot(
+            version = o.str("version"),
+            gapMs = gap,
+            light = intensity("light"),
+            medium = intensity("medium"),
+            tap = pattern("tap"),
+            doubleTap = pattern("double-tap")
         )
     }
 
@@ -262,6 +351,7 @@ internal class JsonMap(private val map: Map<String, Any?>) {
     fun str(key: String) = map[key] as String
     fun num(key: String) = (map[key] as Number).toFloat()
     fun int(key: String) = (map[key] as Number).toInt()
+    fun intOr(key: String, fallback: Int) = (map[key] as? Number)?.toInt() ?: fallback
     fun bool(key: String) = map[key] as Boolean
     fun arr(key: String) = map[key] as List<*>
 

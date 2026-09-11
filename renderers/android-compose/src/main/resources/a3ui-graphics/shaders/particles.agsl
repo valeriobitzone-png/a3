@@ -1,0 +1,16 @@
+uniform float2 iResolution;
+uniform float iTime;
+uniform float emit;
+
+half4 main(float2 fragCoord) {
+  if (emit < 0.5) return half4(0.0);
+  float2 uv = fragCoord / iResolution;
+  float d = 1.0;
+  for (int i = 0; i < 12; i++) {
+    float a = float(i) * 0.5235988;
+    float2 p = float2(0.5) + float2(cos(a), sin(a)) * (0.08 + 0.12 * fract(float(i) * 0.17)) * iTime;
+    d = min(d, length(uv - p));
+  }
+  float spark = smoothstep(0.04, 0.0, d) * (1.0 - iTime);
+  return half4(half3(spark), spark);
+}

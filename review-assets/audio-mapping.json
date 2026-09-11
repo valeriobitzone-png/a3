@@ -1,0 +1,19 @@
+{
+  "invariant": "oneSoundOneVisibleCause",
+  "synthesis": "realtime",
+  "files": false,
+  "voiceCeiling": 0.0800,
+  "morphTokenHz": 440.0000,
+  "morphSemitones": -1,
+  "morphDurationMs": 160,
+  "tones": {
+    "HELD": {"frequencyHz": 220.0000, "endFrequencyHz": 220.0000, "durationMs": 160, "amplitude": 0.0400},
+    "UNKNOWN": {"frequencyHz": 440.0000, "endFrequencyHz": 440.0000, "durationMs": 48, "amplitude": 0.0800},
+    "DONE": {"frequencyHz": 440.0000, "endFrequencyHz": 660.0000, "durationMs": 160, "amplitude": 0.0800},
+    "CONTRADICTED": {"frequencyHz": 440.0000, "endFrequencyHz": 415.3047, "durationMs": 160, "amplitude": 0.0800},
+    "CONFIRM": {"frequencyHz": 440.0000, "endFrequencyHz": 660.0000, "durationMs": 160, "amplitude": 0.0800},
+    "CLOSE": {"frequencyHz": 415.3047, "endFrequencyHz": 415.3047, "durationMs": 160, "amplitude": 0.0800},
+    "NOTIFY": {"frequencyHz": 440.0000, "endFrequencyHz": 440.0000, "durationMs": 48, "amplitude": 0.0800}
+  },
+  "gates": { "reducedMotion": "off", "silent": "off" }
+}

@@ -11,13 +11,26 @@ import kotlinx.coroutines.delay
 @Composable
 fun ComposeHapticApplier(events: SemanticHapticEvents, content: @Composable () -> Unit) {
     val view = LocalView.current
-    LaunchedEffect(events.events) {
-        performHapticMap(view, events)
+    val reduced = LocalReducedMotion.current
+    LaunchedEffect(events.events, reduced) {
+        performHapticMap(view, events, reduced = reduced)
     }
     content()
 }
 
-internal suspend fun performHapticMap(view: View, events: SemanticHapticEvents) {
+internal suspend fun performHapticMap(
+    view: View,
+    events: SemanticHapticEvents,
+    reduced: Boolean = false,
+    engine: Boolean = true,
+    log: (String) -> Unit = {}
+) {
+    if (reduced) return
+    if (!engine) {
+        log(SystemHaptic.UNAVAILABLE)
+        return
+    }
+    val gap = GraphicsTokens.haptic.gapMs.toLong()
     for (event in events.events) {
         when (event.pattern) {
             "tap" -> {
@@ -25,7 +38,7 @@ internal suspend fun performHapticMap(view: View, events: SemanticHapticEvents) 
             }
             "double-tap" -> {
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                delay(Theme.hapticGapMs)
+                delay(gap)
                 view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             }
         }

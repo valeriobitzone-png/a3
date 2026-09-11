@@ -1,0 +1,17 @@
+{
+  "host": "VibrationEffect",
+  "gapMs": 40,
+  "light": {"amplitude": 0.3500, "durationMs": 12, "texture": "tick"},
+  "medium": {"amplitude": 0.6500, "durationMs": 20, "texture": "tap"},
+  "patterns": {
+    "HELD": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "UNKNOWN": {"intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "texture": "tap", "count": 2, "gapMs": 40},
+    "DONE": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "CONTRADICTED": {"intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "texture": "tap", "count": 1, "gapMs": 40},
+    "CONFIRM": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "TAP": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40}
+  },
+  "gates": { "reducedMotion": "off", "engineMissing": "haptic engine unavailable" },
+  "deferred": ["localized", "pressure"],
+  "mac": { "host": "NSHapticFeedbackManager", "pattern": "generic", "limit": "Mac haptic is limited to generic trackpad Force Touch; not localized." }
+}

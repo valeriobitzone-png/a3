@@ -1,0 +1,40 @@
+{
+  "version": "0.1",
+  "status": "deferred",
+  "phase": "S-D5",
+  "doc": "docs/07-haptic.md",
+  "gapMs": 40,
+  "intensities": {
+    "light": {
+      "amplitude": 0.35,
+      "durationMs": 12,
+      "texture": "tick"
+    },
+    "medium": {
+      "amplitude": 0.65,
+      "durationMs": 20,
+      "texture": "tap"
+    }
+  },
+  "patterns": {
+    "tap": {
+      "intensity": "light",
+      "count": 1
+    },
+    "double-tap": {
+      "intensity": "medium",
+      "count": 2,
+      "gapMs": 40
+    }
+  },
+  "deferred": {
+    "localized": {
+      "status": "deferred",
+      "phase": "S-D5"
+    },
+    "pressure": {
+      "status": "deferred",
+      "phase": "S-D5"
+    }
+  }
+}
