@@ -33,7 +33,12 @@ internal object GraphicsTokens {
         val key: KeyShadow,
         val superellipseN: Float,
         val radiusPx: Float,
-        val nestedMinPx: Float
+        val nestedMinPx: Float,
+        val acrylicBlurPx: Float,
+        val acrylicFillOpacity: Float,
+        val acrylicVibrancy: Float,
+        val zOverlay: Int,
+        val zChrome: Int
     )
 
     val snapshot: Snapshot by lazy { load() }
@@ -46,8 +51,10 @@ internal object GraphicsTokens {
         val outerStops = glass.obj("outerHighlight").arr("stops")
         val corner = surfaces.obj("container").obj("corner")
         val nested = surfaces.obj("container").obj("nestedRadius")
+        val acrylic = surfaces.obj("acrylic")
         val ambient = elevation.obj("ambientShadow")
         val key = elevation.obj("keyShadow")
+        val z = elevation.obj("zIndex")
         return Snapshot(
             version = surfaces.str("version"),
             blurRadiusPx = glass.num("blurRadiusPx"),
@@ -79,7 +86,12 @@ internal object GraphicsTokens {
             ),
             superellipseN = corner.num("superellipseN"),
             radiusPx = corner.num("radiusPx"),
-            nestedMinPx = nested.num("minPx")
+            nestedMinPx = nested.num("minPx"),
+            acrylicBlurPx = acrylic.num("blurRadiusPx"),
+            acrylicFillOpacity = acrylic.num("fillOpacity"),
+            acrylicVibrancy = acrylic.num("vibrancySaturation"),
+            zOverlay = z.int("overlay"),
+            zChrome = z.int("chrome")
         )
     }
 

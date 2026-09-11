@@ -1,0 +1,17 @@
+uniform float2 iResolution;
+uniform float iTime;
+uniform float speed;
+uniform float amplitude;
+uniform float3 cPaper;
+uniform float3 cAmber;
+uniform float3 cInk;
+uniform float mixAmt;
+
+half4 main(float2 fragCoord) {
+  float2 uv = fragCoord / iResolution;
+  float t = iTime * speed;
+  float n = 0.5 + 0.5 * sin(6.2831853 * (uv.x * 0.70 + uv.y * 0.40 + t));
+  float m = 0.5 + 0.5 * sin(6.2831853 * (uv.x * 0.30 - uv.y * 0.80 + t * 0.73) + amplitude);
+  float3 blob = mix(cAmber, cInk, n);
+  return half4(mix(cPaper, blob, m * mixAmt), 1.0);
+}
