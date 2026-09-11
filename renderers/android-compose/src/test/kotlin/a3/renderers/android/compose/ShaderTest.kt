@@ -230,6 +230,7 @@ class ShaderTest {
             "REVIEW_RENDERER_MOTION.md",
             "REVIEW_RENDERER_DYNAMIC.md",
             "REVIEW_RENDERER_SHADERS.md",
+            "REVIEW_RENDERER_SENSORY.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

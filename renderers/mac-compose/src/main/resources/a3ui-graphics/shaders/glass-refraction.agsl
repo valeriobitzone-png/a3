@@ -1,0 +1,7 @@
+uniform shader src;
+uniform float2 iResolution;
+
+half4 main(float2 fragCoord) {
+  float2 off = float2(1.25 * sin(fragCoord.y * 0.21), 0.85 * sin(fragCoord.x * 0.17));
+  return src.eval(clamp(fragCoord + off, float2(0.0), iResolution - float2(1.0)));
+}

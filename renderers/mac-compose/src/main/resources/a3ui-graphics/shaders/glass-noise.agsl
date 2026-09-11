@@ -1,0 +1,9 @@
+uniform shader src;
+uniform float2 iResolution;
+
+half4 main(float2 fragCoord) {
+  half4 base = src.eval(fragCoord);
+  float n = fract(sin(dot(fragCoord, float2(12.9898, 78.233))) * 43758.5453);
+  float g = (n - 0.5) * 2.0 * 0.04;
+  return half4(clamp(base.rgb + g, 0.0, 1.0), base.a);
+}

@@ -1,0 +1,23 @@
+{
+  "version": "0.1",
+  "status": "deferred",
+  "phase": "S-D5",
+  "doc": "docs/06-audio.md",
+  "invariant": "oneSoundOneVisibleCause",
+  "synthesis": "realtime",
+  "files": false,
+  "voiceCeiling": 0.08,
+  "tones": {
+    "morph": {
+      "frequencyHz": 440,
+      "semitones": -1,
+      "durationMs": 160,
+      "envelope": {
+        "attackMs": 8,
+        "decayMs": 40,
+        "sustain": 0.35,
+        "releaseMs": 112
+      }
+    }
+  }
+}
