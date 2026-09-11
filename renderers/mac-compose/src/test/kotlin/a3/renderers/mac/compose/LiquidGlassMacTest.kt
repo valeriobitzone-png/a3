@@ -49,8 +49,9 @@ class LiquidGlassMacTest {
         assertTrue(ratio < MacGlassRaster.BLUR_ENERGY_RATIO_MAX, "blur ratio $ratio")
         val overlay = MacRaster.paint(unknownOutput())
         save("mac-glass.png", MacGlassRaster.paint(raw, blur = true, overlayInk = overlay))
-        val surface = File("src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
+        val surface = File("src/main/kotlin/a3/renderers/mac/compose/GlassBackdrop.kt").readText()
         assertTrue(surface.contains(".blur(") && surface.contains("setToSaturation"))
+        assertTrue(!File("src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText().contains(".background(Color.White)"))
     }
 
     @Test

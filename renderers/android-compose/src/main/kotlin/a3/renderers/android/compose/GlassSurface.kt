@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -14,10 +15,8 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -48,7 +47,6 @@ internal fun GlassSurface(
         blue = android.graphics.Color.blue(tokens.fillColor) / 255f,
         alpha = tokens.fillOpacity
     )
-    val effect = if (blurOn) AndroidGlassEffect.create(tokens) else null
     Box(
         modifier
             .drawBehind {
@@ -84,20 +82,15 @@ internal fun GlassSurface(
             }
             .clip(shape)
     ) {
-        Box(
+        GlassBackdropReplica(
             Modifier
                 .matchParentSize()
-                .testTag(if (blurOn) "glass-surface" else "glass-fallback")
                 .semantics {
                     if (!blurOn) contentDescription = GlassRaster.BLUR_UNAVAILABLE
-                }
-                .graphicsLayer {
-                    if (effect != null) {
-                        renderEffect = effect.asComposeRenderEffect()
-                    }
-                }
-                .background(Color.White)
+                },
+            blurOn = blurOn
         )
+        Box(Modifier.size(1.dp).testTag("glass-backdrop-replica"))
         Box(Modifier.matchParentSize().background(fill))
         Box(
             Modifier

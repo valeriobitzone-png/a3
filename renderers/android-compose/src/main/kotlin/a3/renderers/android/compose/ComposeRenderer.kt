@@ -52,54 +52,56 @@ fun ComposeRenderer(
             durationHint = output.spring.durationHint,
             sink = sink
         ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .testTag("a3-material")
-                .drawWithContent {
-                    drawIntoCanvas { canvas ->
-                        canvas.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
-                        drawContent()
-                        canvas.restore()
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .testTag("a3-material")
+                    .drawWithContent {
+                        drawIntoCanvas { canvas ->
+                            canvas.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
+                            drawContent()
+                            canvas.restore()
+                        }
                     }
-                }
-        ) {
-            ComposeMotionApplier(output.spring) {
-                ComposeMorphApplier(output.sharedElements) {
-                    ComposeGestureApplier(
-                        actions = output.gestures,
-                        onAction = onAction,
-                        attachSwipe = output.nodes.isEmpty()
-                    ) {
-                        ComposeHapticApplier(output.haptics) {
-                            if (output.nodes.isEmpty()) {
-                                Column(Modifier.testTag("a3-surface")) {
-                                    for (token in output.resolvedTokens) {
-                                        Spacer(
-                                            Modifier
-                                                .size((8 * output.densityScale).dp)
-                                                .height((8 * output.densityScale).dp)
-                                                .background(
-                                                    Color(
-                                                        red = token.color.red / 255f,
-                                                        green = token.color.green / 255f,
-                                                        blue = token.color.blue / 255f
-                                                    )
+            ) {
+                GlassSceneHost {
+                    ComposeMotionApplier(output.spring) {
+                        ComposeMorphApplier(output.sharedElements) {
+                            ComposeGestureApplier(
+                                actions = output.gestures,
+                                onAction = onAction,
+                                attachSwipe = output.nodes.isEmpty()
+                            ) {
+                                ComposeHapticApplier(output.haptics) {
+                                    if (output.nodes.isEmpty()) {
+                                        Column(Modifier.testTag("a3-surface")) {
+                                            for (token in output.resolvedTokens) {
+                                                Spacer(
+                                                    Modifier
+                                                        .size((8 * output.densityScale).dp)
+                                                        .height((8 * output.densityScale).dp)
+                                                        .background(
+                                                            Color(
+                                                                red = token.color.red / 255f,
+                                                                green = token.color.green / 255f,
+                                                                blue = token.color.blue / 255f
+                                                            )
+                                                        )
+                                                        .testTag("token-" + token.token)
                                                 )
-                                                .testTag("token-" + token.token)
-                                        )
+                                            }
+                                        }
+                                    } else {
+                                        FluidResizeContainer {
+                                            ComposeCatalog(output.nodes, output.gestures.actions, onAction)
+                                        }
                                     }
-                                }
-                            } else {
-                                FluidResizeContainer {
-                                    ComposeCatalog(output.nodes, output.gestures.actions, onAction)
                                 }
                             }
                         }
                     }
                 }
             }
-        }
         }
     }
 }

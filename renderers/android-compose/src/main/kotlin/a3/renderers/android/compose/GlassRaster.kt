@@ -29,6 +29,13 @@ internal object GlassRaster {
         return bitmap
     }
 
+    fun wallpaper(width: Int, height: Int): Bitmap {
+        val pixels = DynamicPalette.fixtureWallpaper(width, height)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+        return bitmap
+    }
+
     fun checker(width: Int, height: Int, cell: Int = 8): Bitmap {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         var y = 0

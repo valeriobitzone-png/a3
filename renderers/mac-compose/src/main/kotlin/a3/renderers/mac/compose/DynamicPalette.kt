@@ -1,5 +1,8 @@
 package a3.renderers.mac.compose
 
+import com.materialkolor.palettes.CorePalette
+import com.materialkolor.quantize.QuantizerCelebi
+import com.materialkolor.score.Score
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -55,18 +58,17 @@ internal object DynamicPalette {
 
     fun extract(pixels: IntArray, width: Int, height: Int): Tonal {
         if (pixels.isEmpty() || width <= 0 || height <= 0) return fallback()
-        val seed = dominant(pixels) ?: return fallback()
-        if (chroma(seed) < 12f) return fallback()
+        val quantized = QuantizerCelebi.quantize(pixels, 128)
+        val ranked = Score.score(quantized)
+        val seed = ranked.firstOrNull() ?: return fallback()
+        val core = CorePalette.contentOf(seed)
         val paper = tokenPaper()
         val ink = tokenInk()
-        val amber = tokenAmber()
         val minRatio = GraphicsTokens.colors.minRatio
-        val towardAmber = hueDist(seed, amber) < 48f
-        val primarySeed = if (towardAmber) mix(seed, amber, 0.45f) else mix(seed, ink, 0.22f)
-        val primary = ensureContrast(primarySeed, paper, minRatio)
-        val secondary = ensureContrast(mix(rotate(seed, 28f), amber, 0.15f), paper, minRatio)
-        val tertiary = ensureContrast(mix(rotate(seed, 118f), ink, 0.18f), paper, minRatio)
-        val neutral = mix(paper, ink, 0.08f)
+        val primary = ensureContrast(unpack(core.a1.tone(40)), paper, minRatio)
+        val secondary = ensureContrast(unpack(core.a2.tone(40)), paper, minRatio)
+        val tertiary = ensureContrast(unpack(core.a3.tone(40)), paper, minRatio)
+        val neutral = unpack(core.n1.tone(90))
         val tonal = Tonal(primary, secondary, tertiary, neutral, ink, paper, SOURCE_EXTRACTED)
         return if (valid(tonal)) tonal else fallback()
     }
@@ -174,39 +176,6 @@ internal object DynamicPalette {
         return out
     }
 
-    private fun dominant(pixels: IntArray): Rgb? {
-        val buckets = IntArray(24)
-        val accR = IntArray(24)
-        val accG = IntArray(24)
-        val accB = IntArray(24)
-        var i = 0
-        while (i < pixels.size) {
-            val c = unpack(pixels[i])
-            if (chroma(c) >= 12f) {
-                val h = hue(c)
-                val b = ((h / 360f) * 24f).toInt().coerceIn(0, 23)
-                buckets[b]++
-                accR[b] += c.r
-                accG[b] += c.g
-                accB[b] += c.b
-            }
-            i++
-        }
-        var best = -1
-        var idx = -1
-        var b = 0
-        while (b < 24) {
-            if (buckets[b] > best) {
-                best = buckets[b]
-                idx = b
-            }
-            b++
-        }
-        if (idx < 0 || best < 8) return null
-        val n = buckets[idx]
-        return Rgb(accR[idx] / n, accG[idx] / n, accB[idx] / n)
-    }
-
     private fun meanRgb(pixels: IntArray): Rgb {
         var r = 0L
         var g = 0L
@@ -248,59 +217,5 @@ internal object DynamicPalette {
         )
     }
 
-    private fun chroma(c: Rgb): Float {
-        val mx = max(c.r, max(c.g, c.b)).toFloat()
-        val mn = min(c.r, min(c.g, c.b)).toFloat()
-        return mx - mn
-    }
-
     private fun luma(c: Rgb): Float = (0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b) / 255f
-
-    private fun hue(c: Rgb): Float {
-        val r = c.r / 255f
-        val g = c.g / 255f
-        val b = c.b / 255f
-        val mx = max(r, max(g, b))
-        val mn = min(r, min(g, b))
-        val d = mx - mn
-        if (d < 1e-5f) return 0f
-        val h = when (mx) {
-            r -> ((g - b) / d) % 6f
-            g -> (b - r) / d + 2f
-            else -> (r - g) / d + 4f
-        }
-        return ((h * 60f) + 360f) % 360f
-    }
-
-    private fun hueDist(a: Rgb, b: Rgb): Float {
-        val d = abs(hue(a) - hue(b))
-        return min(d, 360f - d)
-    }
-
-    private fun rotate(c: Rgb, deg: Float): Rgb {
-        val h = (hue(c) + deg + 360f) % 360f
-        val s = chroma(c) / 255f
-        val l = luma(c)
-        return hsl(h, s.coerceIn(0f, 1f), l.coerceIn(0f, 1f))
-    }
-
-    private fun hsl(h: Float, s: Float, l: Float): Rgb {
-        val c = (1f - abs(2f * l - 1f)) * s
-        val hp = h / 60f
-        val x = c * (1f - abs(hp % 2f - 1f))
-        val (r1, g1, b1) = when {
-            hp < 1f -> Triple(c, x, 0f)
-            hp < 2f -> Triple(x, c, 0f)
-            hp < 3f -> Triple(0f, c, x)
-            hp < 4f -> Triple(0f, x, c)
-            hp < 5f -> Triple(x, 0f, c)
-            else -> Triple(c, 0f, x)
-        }
-        val m = l - c / 2f
-        return Rgb(
-            ((r1 + m) * 255f).toInt().coerceIn(0, 255),
-            ((g1 + m) * 255f).toInt().coerceIn(0, 255),
-            ((b1 + m) * 255f).toInt().coerceIn(0, 255)
-        )
-    }
 }
