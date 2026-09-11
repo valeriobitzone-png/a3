@@ -164,6 +164,7 @@ class DynamicMacTest {
             "renderers/mac-compose/",
             "REVIEW_RENDERER_MOTION.md",
             "REVIEW_RENDERER_DYNAMIC.md",
+            "REVIEW_RENDERER_SHADERS.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

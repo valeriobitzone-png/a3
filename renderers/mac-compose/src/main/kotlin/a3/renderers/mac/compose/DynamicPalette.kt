@@ -8,7 +8,7 @@ import kotlin.math.pow
 /**
  * Tonal palette from a wallpaper bitmap, locked to a3ui-graphics color tokens.
  * Extraction is an adapter: ink/paper stay the token pair; roles are harmonized
- * so WCAG AA ([ColorSnapshot.minRatio]) never drops. No custom shader.
+ * so WCAG AA ([ColorSnapshot.minRatio]) never drops. Shaders consume the Tonal.
  */
 internal object DynamicPalette {
     data class Rgb(val r: Int, val g: Int, val b: Int) {
