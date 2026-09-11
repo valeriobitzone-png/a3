@@ -232,8 +232,11 @@ internal fun Modifier.rubberBand(): Modifier = composed {
 }
 
 @Composable
-internal fun Modifier.actionPress(enabled: Boolean, onClick: () -> Unit): Modifier {
-    val source = remember { MutableInteractionSource() }
+internal fun Modifier.actionPress(
+    enabled: Boolean,
+    source: androidx.compose.foundation.interaction.MutableInteractionSource,
+    onClick: () -> Unit
+): Modifier {
     return clickable(
         enabled = enabled,
         indication = null,

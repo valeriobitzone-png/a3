@@ -12,6 +12,7 @@ internal val LocalRendererStage = staticCompositionLocalOf { RendererContext.STA
 internal val LocalCrack = staticCompositionLocalOf { false }
 internal val LocalReducedMotion = staticCompositionLocalOf { false }
 internal val LocalHighContrast = staticCompositionLocalOf { false }
+internal val LocalDensityHint = staticCompositionLocalOf { "comfortable" }
 internal val LocalEpistemicAnnounce = staticCompositionLocalOf<EpistemicAnnounce> {
     EpistemicAnnounce.Silent
 }

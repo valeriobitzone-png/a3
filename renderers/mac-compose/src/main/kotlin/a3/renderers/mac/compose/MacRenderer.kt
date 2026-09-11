@@ -19,7 +19,8 @@ fun MacRenderer(
     val reduced = output.reducedMotion || MacAccessibility.reduceMotion()
     CompositionLocalProvider(
         LocalReducedMotion provides reduced,
-        LocalHighContrast provides highContrast
+        LocalHighContrast provides highContrast,
+        LocalDensityHint provides output.densityHint
     ) {
         Box(
             Modifier

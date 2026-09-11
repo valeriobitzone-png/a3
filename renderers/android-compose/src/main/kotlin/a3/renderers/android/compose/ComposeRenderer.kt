@@ -43,6 +43,7 @@ fun ComposeRenderer(
         LocalCrack provides crack,
         LocalReducedMotion provides output.reducedMotion,
         LocalHighContrast provides highContrast,
+        LocalDensityHint provides output.densityHint,
         LocalEpistemicAnnounce provides announce,
         LocalGlassBlurEnabled provides (Build.VERSION.SDK_INT >= 31)
     ) {
