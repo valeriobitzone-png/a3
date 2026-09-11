@@ -1,0 +1,38 @@
+{
+  "host": "VibrationEffect",
+  "gapMs": 40,
+  "light": {"amplitude": 0.3500, "durationMs": 12, "texture": "tick"},
+  "medium": {"amplitude": 0.6500, "durationMs": 20, "texture": "tap"},
+  "patterns": {
+    "HELD": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "UNKNOWN": {"intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "texture": "tap", "count": 2, "gapMs": 40},
+    "DONE": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "CONTRADICTED": {"intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "texture": "tap", "count": 1, "gapMs": 40},
+    "CONFIRM": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40},
+    "TAP": {"intensity": "light", "amplitude": 0.3500, "durationMs": 12, "texture": "tick", "count": 1, "gapMs": 40}
+  },
+  "events": [
+    {"cause": "CONTRADICTED", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 582},
+    {"cause": "HELD", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 686},
+    {"cause": "UNKNOWN", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 2, "emitted": true, "reducedMotion": false, "atMs": 695},
+    {"cause": "DONE", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 711},
+    {"cause": "CONFIRM", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 2623},
+    {"cause": "CONTRADICTED", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 16871},
+    {"cause": "HELD", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 16977},
+    {"cause": "UNKNOWN", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 2, "emitted": true, "reducedMotion": false, "atMs": 17000},
+    {"cause": "DONE", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 17024},
+    {"cause": "CONTRADICTED", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 1, "emitted": false, "reducedMotion": true, "atMs": 18459},
+    {"cause": "HELD", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": false, "reducedMotion": true, "atMs": 18459},
+    {"cause": "UNKNOWN", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 2, "emitted": false, "reducedMotion": true, "atMs": 18459},
+    {"cause": "DONE", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": false, "reducedMotion": true, "atMs": 18459},
+    {"cause": "CONTRADICTED", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 20113},
+    {"cause": "HELD", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 20202},
+    {"cause": "UNKNOWN", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 2, "emitted": true, "reducedMotion": false, "atMs": 20220},
+    {"cause": "DONE", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 20243},
+    {"cause": "CONTRADICTED", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 20979},
+    {"cause": "HELD", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 21010},
+    {"cause": "UNKNOWN", "intensity": "medium", "amplitude": 0.6500, "durationMs": 20, "count": 2, "emitted": true, "reducedMotion": false, "atMs": 21028},
+    {"cause": "DONE", "intensity": "light", "amplitude": 0.3500, "durationMs": 12, "count": 1, "emitted": true, "reducedMotion": false, "atMs": 21047}
+  ],
+  "gates": { "reducedMotion": "zeros audio and haptic", "keepChroma": true }
+}

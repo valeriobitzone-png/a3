@@ -1,0 +1,7 @@
+macOS Screen Recording TCC is not granted in this agent session
+(ffmpeg avfoundation has no "Capture screen" device; desktop camera
+captures are black). showcase-mac.mp4 is the real Compose Desktop
+window of :showcase:mac — same navigable session as Android (ALL,
+levels, modal, ambient, sensory, reduced-motion, talkback), captured
+via Skiko captureToImage and encoded with ffmpeg. Not a concept
+render and not a stitched unrelated gallery.
