@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["specversion", "id", "source", "type"],
+  "properties": {
+    "specversion": { "type": "string", "const": "1.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "format": "uri-reference", "minLength": 1 },
+    "type": { "type": "string", "minLength": 1 },
+    "datacontenttype": { "type": "string", "minLength": 1 },
+    "dataschema": { "type": "string", "format": "uri" },
+    "subject": { "type": "string", "minLength": 1 },
+    "time": { "type": "string", "format": "date-time" },
+    "data": true,
+    "data_base64": { "type": "string" }
+  },
+  "additionalProperties": true
+}
