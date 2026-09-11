@@ -1,9 +1,3 @@
-adb screenrecord on Nothing Phone 3 (Android 17, model A024 / Metroid) does not capture
-internal AudioTrack playback or a microphone. The MP4 is video-only (40s, 1260x2800, ~48fps).
-
-showcase-audio.m4a is the PCM the showcase actually emitted during that session
-(procedural tones from a3ui-graphics audio.json, sample rate 22050, voiceCeiling 0.08),
-pulled from the app files as showcase-session.wav and encoded to AAC.
-
-Try on device with sound on and reduced-motion off: HELD 220Hz, UNKNOWN/NOTIFY tick,
-DONE/CONFIRM 440+660 fifth, CONTRADICTED glissato. Mapping: audio.json + showcase-haptic.json.
+adb screenrecord on this device does not capture internal playback or microphone.
+Session tones are the PCM the showcase actually emitted (audio.json morph token).
+Converted to showcase-audio.m4a when a session WAV exists.

@@ -75,6 +75,7 @@ class ShowcaseMacTest {
     fun SC_002_level_isolation() {
         host(ShowcaseLevel.GLASS)
         assertTrue(exists("glass-surface") || exists("glass-fallback"))
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertDoesNotExist()
 
         composeRule.onNodeWithTag("nav-shaders").performClick()
@@ -120,6 +121,48 @@ class ShowcaseMacTest {
         pump(4)
         LoggingSink(journal).playHaptic(ShowcaseSensory.Cause.CONFIRM, reduced = false, engine = true)
         assertTrue(journal.haptic().any { it.cause == ShowcaseSensory.Cause.CONFIRM && it.emitted })
+    }
+
+    @Test
+    fun SV_001_diagnosis() {
+        val root = File("../..")
+        val glass = File(root, "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
+        assertTrue(glass.contains(a3.showcase.ShowcaseDiagnosis.WHITE_LAYER))
+        val review = File(root, "REVIEW_SHOWCASE_V2.md").readText()
+        assertTrue(review.contains(a3.showcase.ShowcaseDiagnosis.CAUSE))
+    }
+
+    @Test
+    fun SV_002_wallpaper() {
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
+        composeRule.onNodeWithTag("nav-axis").performClick(); pump(4)
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
+    }
+
+    @Test
+    fun SV_003_blur_and_gutter() {
+        val sharp = a3.showcase.ShowcaseWallpaper.fill(96, 64, 8, false)
+        val blur = a3.showcase.ShowcaseWallpaper.fill(96, 64, 8, true)
+        val eSharp = a3.showcase.ShowcaseGlassMath.edgeEnergy(sharp, 96, 64)
+        val eBlur = a3.showcase.ShowcaseGlassMath.edgeEnergy(blur, 96, 64)
+        assertTrue(eBlur / eSharp < 0.75f, "sharp=$eSharp blur=$eBlur")
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("showcase-wallpaper-gutter", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun SV_004_highlight() {
+        host(ShowcaseLevel.GLASS)
+        assertTrue(composeRule.onAllNodesWithTag("showcase-glass-highlight", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+        assertTrue(composeRule.onAllNodesWithTag("showcase-glass-plate", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun SV_005_badges() {
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("text_cal.dinner-contradicted").assertIsDisplayed()
     }
 
     @Test

@@ -7,6 +7,7 @@ internal class ShowcaseJson(private val map: Map<String, Any?>) {
     fun int(key: String) = (map[key] as Number).toInt()
     fun intOr(key: String, fallback: Int) = (map[key] as? Number)?.toInt() ?: fallback
     fun bool(key: String) = map[key] as Boolean
+    fun arr(key: String): List<Any?> = map[key] as? List<Any?> ?: error("expected array at $key")
 
     companion object {
         fun parse(text: String): ShowcaseJson = ShowcaseJson(cast(read(text.trim()), "root"))
