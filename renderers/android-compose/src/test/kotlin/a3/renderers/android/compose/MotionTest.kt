@@ -350,6 +350,7 @@ class MotionTest {
             "REVIEW_RENDERER_DYNAMIC.md",
             "REVIEW_RENDERER_SHADERS.md",
             "REVIEW_RENDERER_SENSORY.md",
+            "REVIEW_RENDERER_BACKDROP.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

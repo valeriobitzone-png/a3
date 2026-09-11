@@ -3,19 +3,16 @@ package a3.renderers.mac.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -35,7 +32,6 @@ internal fun MacGlassSurface(
     }
     val shape = SquircleShape(radiusPx.dp, tokens.superellipseN)
     val fill = Color.Black.copy(alpha = tokens.fillOpacity)
-    val matrix = ColorMatrix().apply { setToSaturation(tokens.vibrancySaturation) }
     Box(
         modifier
             .drawBehind {
@@ -46,14 +42,8 @@ internal fun MacGlassSurface(
             }
             .clip(shape)
     ) {
-        Box(
-            Modifier
-                .matchParentSize()
-                .testTag("glass-surface")
-                .blur(tokens.blurRadiusPx.dp)
-                .graphicsLayer { colorFilter = ColorFilter.colorMatrix(matrix) }
-                .background(Color.White)
-        )
+        GlassBackdropReplica(Modifier.matchParentSize())
+        Box(Modifier.size(1.dp).testTag("glass-backdrop-replica"))
         Box(Modifier.matchParentSize().background(fill))
         Box(
             Modifier

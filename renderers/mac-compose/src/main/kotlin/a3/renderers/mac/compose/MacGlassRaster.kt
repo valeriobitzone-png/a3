@@ -35,6 +35,13 @@ internal object MacGlassRaster {
         return image
     }
 
+    fun wallpaper(width: Int, height: Int): BufferedImage {
+        val pixels = DynamicPalette.fixtureWallpaper(width, height)
+        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+        image.setRGB(0, 0, width, height, pixels, 0, width)
+        return image
+    }
+
     fun paint(
         backdrop: BufferedImage,
         blur: Boolean,
