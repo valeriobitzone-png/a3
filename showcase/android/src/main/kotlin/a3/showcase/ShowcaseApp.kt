@@ -151,33 +151,49 @@ fun ShowcaseApp(
     ) {
         Box(Modifier.size(1.dp).testTag("showcase-level-${level.wire()}"))
         Box(Modifier.weight(1f).fillMaxWidth().testTag("showcase-scene")) {
-            if (flags.gradient) {
-                ShowcaseGradient(staticChrome = staticChrome || reduced)
+            ShowcaseWallpaperLayer(blurred = false, Modifier.fillMaxSize())
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = ShowcaseWallpaper.GUTTER_DP.dp,
+                        top = ShowcaseWallpaper.GUTTER_DP.dp,
+                        end = ShowcaseWallpaper.GUTTER_DP.dp,
+                        bottom = 118.dp
+                    )
+                    .testTag("showcase-wallpaper-gutter")
+            ) {
+                ShowcaseGlassPlate(Modifier.fillMaxSize(), frost = true) {
+                    ShowcaseWallpaperLayer(blurred = true, Modifier.fillMaxSize())
+                    if (flags.gradient) {
+                        ShowcaseGradient(staticChrome = staticChrome || reduced)
+                    }
+                    if (flags.parallax) {
+                        ShowcaseParallax()
+                    }
+                    ComposeRenderer(
+                        output = output,
+                        onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
+                        announce = announce
+                    )
+                    if (flags.optics) {
+                        ShowcaseGrain()
+                        GlassOpticsLayer(refract = true, noise = true)
+                        AlphaMaskedStrip()
+                    }
+                    if (flags.particles || particle) {
+                        ShowcaseParticles(trigger = particle, staticChrome = staticChrome)
+                        ParticleBurst(trigger = particle)
+                    }
+                    if (flags.ambient) {
+                        ShowcaseAmbient(expanded = ambientExpanded, reduced = reduced || staticChrome, ink = ink, paper = paper)
+                    }
+                    if (modal && flags.modal) {
+                        ShowcaseModal(open = true, reduced = reduced || staticChrome)
+                    }
+                }
             }
-            if (flags.parallax) {
-                ShowcaseParallax()
-            }
-            ComposeRenderer(
-                output = output,
-                onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
-                announce = announce
-            )
-            if (flags.optics) {
-                ShowcaseGrain()
-                GlassOpticsLayer(refract = true, noise = true)
-                AlphaMaskedStrip()
-            }
-            if (flags.particles || particle) {
-                ShowcaseParticles(trigger = particle, staticChrome = staticChrome)
-                ParticleBurst(trigger = particle)
-            }
-            if (flags.ambient) {
-                ShowcaseAmbient(expanded = ambientExpanded, reduced = reduced || staticChrome, ink = ink, paper = paper)
-            }
-            if (modal && flags.modal) {
-                ShowcaseModal(open = true, reduced = reduced || staticChrome)
-            }
-            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(paper.copy(alpha = 0.92f))) {
+            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
                 Controls(
                     level = level,
                     reduced = reduced,
@@ -195,7 +211,10 @@ fun ShowcaseApp(
                 )
                 BasicText(
                     text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} ${level.wire()}",
-                    modifier = Modifier.padding(8.dp).testTag("showcase-status"),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .background(Color.White.copy(alpha = 0.62f))
+                        .testTag("showcase-status"),
                     style = Theme.type.copy(fontSize = 12.sp, color = ink)
                 )
             }
@@ -223,7 +242,7 @@ private fun Controls(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             for (item in listOf(ShowcaseLevel.ALL, ShowcaseLevel.GLASS, ShowcaseLevel.AXIS, ShowcaseLevel.MOTION)) {
-                Chip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
+                ShowcaseGlassChip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
             }
         }
         Row(
@@ -231,35 +250,20 @@ private fun Controls(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             for (item in listOf(ShowcaseLevel.DYNAMIC, ShowcaseLevel.SHADERS, ShowcaseLevel.SENSORY)) {
-                Chip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
+                ShowcaseGlassChip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
             }
         }
         Row(
             Modifier.padding(top = 6.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Chip("reduced ${if (reduced) "on" else "off"}", "toggle-reduced", reduced, ink, onReduced)
-            Chip("talkback ${if (talkback) "on" else "off"}", "toggle-talkback", talkback, ink, onTalkback)
-            Chip("modal", "trigger-modal", false, ink, onModal)
-            Chip("ambient", "trigger-ambient", false, ink, onAmbient)
-            Chip("sensory", "trigger-sensory", false, ink, onSensory)
+            ShowcaseGlassChip("reduced ${if (reduced) "on" else "off"}", "toggle-reduced", reduced, ink, onReduced)
+            ShowcaseGlassChip("talkback ${if (talkback) "on" else "off"}", "toggle-talkback", talkback, ink, onTalkback)
+            ShowcaseGlassChip("modal", "trigger-modal", false, ink, onModal)
+            ShowcaseGlassChip("ambient", "trigger-ambient", false, ink, onAmbient)
+            ShowcaseGlassChip("sensory", "trigger-sensory", false, ink, onSensory)
         }
         BasicText("a3ui showcase", style = style)
-    }
-}
-
-@Composable
-private fun Chip(label: String, tag: String, active: Boolean, ink: Color, onClick: () -> Unit) {
-    val tokens = ShowcaseTokens.snapshot
-    val amber = Color(((tokens.amber shr 16) and 0xFF) / 255f, ((tokens.amber shr 8) and 0xFF) / 255f, (tokens.amber and 0xFF) / 255f)
-    Box(
-        Modifier
-            .testTag(tag)
-            .background(if (active) amber.copy(alpha = 0.35f) else Color.Black.copy(alpha = 0.06f), RoundedCornerShape(10.dp))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 8.dp)
-    ) {
-        BasicText(label, style = Theme.type.copy(fontSize = 13.sp, color = ink))
     }
 }
 
@@ -280,7 +284,7 @@ internal fun ShowcaseGradient(staticChrome: Boolean) {
         }
     }
     Canvas(Modifier.fillMaxSize().testTag("animated-gradient")) {
-        val step = 32
+        val step = 12
         var y = 0
         while (y < size.height.toInt()) {
             var x = 0

@@ -33,8 +33,17 @@ object ShowcaseTokens {
         val tap: Pattern,
         val doubleTap: Pattern
     )
+    data class Highlight(val widthPx: Int, val startAlpha: Float, val endAlpha: Float)
     data class Snapshot(
         val fillOpacity: Float,
+        val fillColor: Int,
+        val blurRadiusPx: Float,
+        val vibrancySaturation: Float,
+        val radiusPx: Float,
+        val superellipseN: Float,
+        val nestedMinPx: Float,
+        val inner: Highlight,
+        val outer: Highlight,
         val acrylicBlurPx: Float,
         val ink: Int,
         val paper: Int,
@@ -78,6 +87,10 @@ object ShowcaseTokens {
         val gap = hapticJson.int("gapMs")
         val comfortable = motion.obj("springs").obj("comfortable")
         val reduced = motion.obj("reducedMotion")
+        val innerStops = glass.obj("innerHighlight").arr("stops")
+        val outerStops = glass.obj("outerHighlight").arr("stops")
+        val corner = surfaces.obj("container").obj("corner")
+        val nested = surfaces.obj("container").obj("nestedRadius")
         fun intensity(name: String): Intensity {
             val s = intensities.obj(name)
             return Intensity(s.num("amplitude"), s.int("durationMs"), s.str("texture"))
@@ -86,8 +99,29 @@ object ShowcaseTokens {
             val p = patterns.obj(name)
             return Pattern(p.str("intensity"), p.int("count"), p.intOr("gapMs", gap))
         }
+        fun stopAlpha(stop: Any?): Float {
+            val map = stop as Map<*, *>
+            val rgba = map["rgba"] as List<*>
+            return (rgba[3] as Number).toFloat()
+        }
         return Snapshot(
             fillOpacity = glass.num("fillOpacity"),
+            fillColor = parseHex(glass.str("fillColor")),
+            blurRadiusPx = glass.num("blurRadiusPx"),
+            vibrancySaturation = glass.num("vibrancySaturation"),
+            radiusPx = corner.num("radiusPx"),
+            superellipseN = corner.num("superellipseN"),
+            nestedMinPx = nested.num("minPx"),
+            inner = Highlight(
+                glass.obj("innerHighlight").int("widthPx"),
+                stopAlpha(innerStops[0]),
+                stopAlpha(innerStops[1])
+            ),
+            outer = Highlight(
+                glass.obj("outerHighlight").int("widthPx"),
+                stopAlpha(outerStops[0]),
+                stopAlpha(outerStops[1])
+            ),
             acrylicBlurPx = acrylic.num("blurRadiusPx"),
             ink = parseHex(pal.obj("ink").str("hex")),
             paper = parseHex(pal.obj("paper").str("hex")),

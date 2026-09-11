@@ -85,6 +85,7 @@ class ShowcaseTest {
     fun SC_002_level_isolation() {
         host(ShowcaseLevel.GLASS)
         assertTrue(exists("glass-surface") || exists("glass-fallback"))
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertDoesNotExist()
         composeRule.onNodeWithTag("ambient-indicator").assertDoesNotExist()
         composeRule.onNodeWithTag("glass-optics", useUnmergedTree = true).assertDoesNotExist()
@@ -134,6 +135,9 @@ class ShowcaseTest {
             assertTrue(android.exists() && android.length() > 0, "missing android $name")
             assertTrue(mac.exists() && mac.length() > 0, "missing mac $name")
         }
+        assertTrue(pngChroma(File(assets, "glass.png")) > 0.08f, "android glass.png still flat gray")
+        assertTrue(pngChroma(File(assets, "mac/glass.png")) > 0.08f, "mac glass.png still flat gray")
+        assertTrue(pngChroma(File(assets, "all.png")) > 0.08f, "android all.png still flat gray")
     }
 
     @Test
@@ -202,6 +206,84 @@ class ShowcaseTest {
     }
 
     @Test
+    fun SV_001_diagnosis_verified() {
+        val glass = File(root, "renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/GlassSurface.kt").readText()
+        val mac = File(root, "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
+        assertTrue(glass.contains(ShowcaseDiagnosis.WHITE_LAYER), "android glass still whites the blur layer")
+        assertTrue(mac.contains(ShowcaseDiagnosis.WHITE_LAYER), "mac glass still whites the blur layer")
+        assertEquals(0.38f, ShowcaseTokens.snapshot.fillOpacity, 0.001f)
+        val app = File("src/main/kotlin/a3/showcase/ShowcaseApp.kt").readText()
+        assertTrue(app.contains("ShowcaseWallpaperLayer"), app.take(40))
+        val review = File(root, "REVIEW_SHOWCASE_V2.md").readText()
+        assertTrue(review.contains(ShowcaseDiagnosis.CAUSE), review.take(200))
+        assertTrue(review.contains("Color.White"))
+        assertTrue(review.contains("fixtureWallpaper") || review.contains("wallpaper fixture"))
+    }
+
+    @Test
+    fun SV_002_wallpaper_on_every_level() {
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
+        val sharp = ShowcaseWallpaper.fill(48, 32, 8, false)
+        assertTrue(sharp.all { (it ushr 24) == 0xFF }, "wallpaper must be opaque")
+        assertTrue(ShowcaseWallpaper.chroma(sharp) > 0.18f, "fixture wallpaper has no chroma")
+        for (level in listOf("axis", "motion", "dynamic", "shaders", "sensory", "all")) {
+            go("nav-$level")
+            composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun SV_003_blur_measurable_vs_sharp() {
+        val w = 96
+        val h = 64
+        val cell = 8
+        val sharp = ShowcaseWallpaper.fill(w, h, cell, false)
+        val blur = ShowcaseWallpaper.fill(w, h, cell, true)
+        val eSharp = ShowcaseGlassMath.edgeEnergy(sharp, w, h)
+        val eBlur = ShowcaseGlassMath.edgeEnergy(blur, w, h)
+        assertTrue(eSharp > 0f && eBlur / eSharp < 0.75f, "sharp=$eSharp blur=$eBlur")
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("showcase-wallpaper-gutter", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-wallpaper-blurred", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun SV_004_squircle_and_highlight_in_scene() {
+        assertEquals(5f, ShowcaseTokens.snapshot.superellipseN)
+        assertEquals(14f, ShowcaseTokens.snapshot.radiusPx)
+        assertTrue(ShowcaseGlassMath.innerHighlightBrighterThanFill())
+        val n = ShowcaseTokens.snapshot.superellipseN
+        assertTrue(n > 2f, "squircle n=$n would be a circle or square")
+        host(ShowcaseLevel.GLASS)
+        assertTrue(exists("showcase-glass-plate"))
+        assertTrue(exists("showcase-glass-highlight"))
+        assertTrue(exists("showcase-glass-fill"))
+        composeRule.onNodeWithTag("toggle-reduced").assertIsDisplayed()
+    }
+
+    @Test
+    fun SV_005_badges_readable_over_glass() {
+        host(ShowcaseLevel.GLASS)
+        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("text_cal.hotel-low").assertIsDisplayed()
+        composeRule.onNodeWithTag("text_cal.dinner-contradicted").assertIsDisplayed()
+        go("nav-all")
+        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun SV_006_regression_and_freeze() {
+        SC_008_freeze_renderers_and_core()
+        val journal = ShowcaseJournal()
+        host(ShowcaseLevel.ALL, journal = journal)
+        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
+        composeRule.onNodeWithTag("animated-gradient").assertIsDisplayed()
+        assertTrue(exists("glass-surface") || exists("glass-fallback"))
+    }
+
+    @Test
     fun SC_008_freeze_renderers_and_core() {
         fun diff(vararg paths: String): String {
             val proc = ProcessBuilder("git", "diff", "--stat", "--", *paths)
@@ -227,6 +309,13 @@ class ShowcaseTest {
         val settings = File(root, "settings.gradle.kts").readText()
         assertTrue(settings.contains(":showcase"))
         assertTrue(settings.contains(":showcase:mac"))
+    }
+
+    private fun pngChroma(file: File): Float {
+        val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath) ?: return 0f
+        val pixels = IntArray(bmp.width * bmp.height)
+        bmp.getPixels(pixels, 0, bmp.width, 0, 0, bmp.width, bmp.height)
+        return ShowcaseWallpaper.chroma(pixels)
     }
 
     private fun assertVideo(file: File) {
