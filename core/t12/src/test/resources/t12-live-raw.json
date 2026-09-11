@@ -1,0 +1,26 @@
+{
+  "specversion": "1.0",
+  "type": "a3.observation.admitted",
+  "source": "urn:a3:source:gemini",
+  "id": "placeholder",
+  "time": "2026-08-27T11:00:00Z",
+  "datacontenttype": "application/json",
+  "subject": "process.receipt",
+  "data": {
+    "temporal": {
+      "t_event": "2026-08-27T10:59:50Z",
+      "t_observe": "2026-08-27T10:59:55Z",
+      "t_admit": "2026-08-27T11:00:00Z",
+      "t_present": "2026-08-27T11:00:00Z"
+    },
+    "truth": {
+      "truth_class": "observation",
+      "provenance": "observed_signed"
+    },
+    "content": {
+      "postcondition_verified": false,
+      "exit_code": 0,
+      "printed": "SUCCESS"
+    }
+  }
+}
