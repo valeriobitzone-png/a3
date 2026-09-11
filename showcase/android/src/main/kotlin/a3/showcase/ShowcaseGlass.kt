@@ -17,7 +17,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
@@ -58,11 +57,18 @@ internal class ShowcaseSquircleShape(
 }
 
 @Composable
-internal fun ShowcaseWallpaperLayer(blurred: Boolean, modifier: Modifier = Modifier) {
+internal fun ShowcaseWallpaperLayer(
+    blurred: Boolean,
+    modifier: Modifier = Modifier,
+    tagged: Boolean = true
+) {
     val cell = ShowcaseWallpaper.CELL
-    Canvas(
-        modifier.testTag(if (blurred) "showcase-wallpaper-blurred" else "showcase-wallpaper")
-    ) {
+    val taggedModifier = when {
+        !tagged -> modifier
+        blurred -> modifier.testTag("showcase-wallpaper-blurred")
+        else -> modifier.testTag("showcase-wallpaper")
+    }
+    Canvas(taggedModifier) {
         val step = cell.toFloat()
         var y = 0
         while (y < size.height.toInt()) {
@@ -99,7 +105,6 @@ internal fun ShowcaseGlassPlate(
         tokens.radiusPx
     }
     val shape = ShowcaseSquircleShape(radius, tokens.superellipseN)
-    val cell = ShowcaseWallpaper.CELL
     Box(
         modifier
             .testTag("showcase-glass-plate")
@@ -110,23 +115,6 @@ internal fun ShowcaseGlassPlate(
             .clip(shape)
             .drawWithContent {
                 drawContent()
-                if (frost) {
-                    val step = cell.toFloat()
-                    var y = 0
-                    while (y < size.height.toInt()) {
-                        var x = 0
-                        while (x < size.width.toInt()) {
-                            drawRect(
-                                color = showcaseArgb(ShowcaseWallpaper.blurredAt(x, y, cell)).copy(alpha = 0.48f),
-                                topLeft = Offset(x.toFloat(), y.toFloat()),
-                                size = Size(step, step),
-                                blendMode = BlendMode.Overlay
-                            )
-                            x += cell
-                        }
-                        y += cell
-                    }
-                }
                 val path = squirclePath(size.width, size.height, radius, tokens.superellipseN)
                 drawPath(
                     path,
@@ -145,10 +133,15 @@ internal fun ShowcaseGlassPlate(
                 )
             }
     ) {
+        if (frost) {
+            ShowcaseWallpaperLayer(blurred = true, Modifier.matchParentSize(), tagged = !nested)
+        }
         Box(
             Modifier
                 .matchParentSize()
-                .background(Color.White.copy(alpha = tokens.fillOpacity * 0.22f))
+                .background(
+                    Color.White.copy(alpha = if (frost) tokens.fillOpacity * 0.18f else tokens.fillOpacity * 0.12f)
+                )
                 .testTag("showcase-glass-fill")
         )
         Box(Modifier.size(1.dp).testTag("showcase-glass-highlight"))
@@ -167,15 +160,12 @@ internal fun ShowcaseGlassChip(
 ) {
     val tokens = ShowcaseTokens.snapshot
     val amber = showcaseArgb(tokens.amber)
-    ShowcaseGlassPlate(nested = true) {
+    ShowcaseGlassPlate(nested = true, frost = true) {
         Box(
             Modifier
                 .testTag(tag)
                 .clickable(role = Role.Button, onClick = onClick)
-                .background(
-                    if (active) amber.copy(alpha = 0.42f)
-                    else Color.White.copy(alpha = 0.62f)
-                )
+                .background(if (active) amber.copy(alpha = 0.28f) else Color.Transparent)
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {

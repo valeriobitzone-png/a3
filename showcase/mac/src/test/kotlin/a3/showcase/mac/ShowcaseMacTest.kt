@@ -156,6 +156,9 @@ class ShowcaseMacTest {
         host(ShowcaseLevel.GLASS)
         assertTrue(composeRule.onAllNodesWithTag("showcase-glass-highlight", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
         assertTrue(composeRule.onAllNodesWithTag("showcase-glass-plate", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+        val src = File("src/main/kotlin/a3/showcase/mac/ShowcaseGlass.kt").readText()
+        assertTrue(src.contains("frost = true"))
+        assertTrue(!src.contains("0.62f"))
     }
 
     @Test

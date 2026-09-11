@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [34])
+@Config(sdk = [34], qualifiers = "w411dp-h891dp")
 class ShowcaseTest {
     @get:Rule
     val composeRule = createComposeRule()
@@ -135,9 +135,9 @@ class ShowcaseTest {
             assertTrue(android.exists() && android.length() > 0, "missing android $name")
             assertTrue(mac.exists() && mac.length() > 0, "missing mac $name")
         }
-        assertTrue(pngChroma(File(assets, "glass.png")) > 0.08f, "android glass.png still flat gray")
-        assertTrue(pngChroma(File(assets, "mac/glass.png")) > 0.08f, "mac glass.png still flat gray")
-        assertTrue(pngChroma(File(assets, "all.png")) > 0.08f, "android all.png still flat gray")
+        assertTrue(pngBorderChroma(File(assets, "glass.png")) > 0.12f, "android glass.png still flat gray")
+        assertTrue(pngBorderChroma(File(assets, "mac/glass.png")) > 0.12f, "mac glass.png still flat gray")
+        assertTrue(pngBorderChroma(File(assets, "all.png")) > 0.12f, "android all.png still flat gray")
     }
 
     @Test
@@ -260,6 +260,10 @@ class ShowcaseTest {
         assertTrue(exists("showcase-glass-highlight"))
         assertTrue(exists("showcase-glass-fill"))
         composeRule.onNodeWithTag("toggle-reduced").assertIsDisplayed()
+        val glassSrc = File("src/main/kotlin/a3/showcase/ShowcaseGlass.kt").readText()
+        assertTrue(glassSrc.contains("frost = true"), glassSrc)
+        assertTrue(!glassSrc.contains("0.62f"), "chip still uses opaque paper fill")
+        assertTrue(exists("showcase-glass-inset"))
     }
 
     @Test
@@ -311,11 +315,28 @@ class ShowcaseTest {
         assertTrue(settings.contains(":showcase:mac"))
     }
 
-    private fun pngChroma(file: File): Float {
+    private fun pngBorderChroma(file: File): Float {
         val bmp = android.graphics.BitmapFactory.decodeFile(file.absolutePath) ?: return 0f
-        val pixels = IntArray(bmp.width * bmp.height)
-        bmp.getPixels(pixels, 0, bmp.width, 0, 0, bmp.width, bmp.height)
-        return ShowcaseWallpaper.chroma(pixels)
+        val w = bmp.width
+        val h = bmp.height
+        val band = maxOf(24, minOf(w, h) / 16)
+        val pixels = IntArray(w * h)
+        bmp.getPixels(pixels, 0, w, 0, 0, w, h)
+        val strip = IntArray((w * band * 2) + (h * band * 2))
+        var n = 0
+        for (y in 0 until h) {
+            val row = y * w
+            val edge = y < band || y >= h - band
+            for (x in 0 until w) {
+                if (edge || x < band || x >= w - band) {
+                    if (n < strip.size) {
+                        strip[n] = pixels[row + x]
+                        n++
+                    }
+                }
+            }
+        }
+        return ShowcaseWallpaper.chroma(strip.copyOf(n))
     }
 
     private fun assertVideo(file: File) {
