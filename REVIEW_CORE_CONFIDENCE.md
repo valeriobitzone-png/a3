@@ -72,12 +72,12 @@ Con pesi default, FACT + vettore perfetto è **media** (0.6): senza corroboratio
 ## Vettori lock (2ª impl.)
 
 File: `core/confidence/src/test/resources/confidence-vectors.json`  
-SHA-1: `b1816d968b3e9a45b751b45dda3f52ad8086d81c`  
-SHA-256: `8ab49d7284539ae112b8406516b86d8356d586152bbb63740e1011c696b25c09`
+SHA-1: `3694ca51543fc803be733977b01de7725c6a41a0`  
+SHA-256: `25efbc9f1b3730658c34502f2564d18a8aad04c1ee202b672be4b020917fddee`
 
 UTF-8 compact, niente newline finale. `CanonicalJson` rende `1.0` come `1`. Rigenerare solo con `CF_DUMP=1`.
 
-Corpus allineato a temporal: `t0 = 2026-08-27T08:00:00Z`, `t_present = 2026-08-27T11:00:00Z` (età fixture 10799s). Recency fixture = `2^(-10799/21600)` = `0.7071294727113613`; weighted min = `0.565703578169089` (bottleneck recency×0.8).
+Corpus allineato a temporal: `t0 = 2026-08-27T08:00:00Z`, `t_present = 2026-08-27T11:00:00Z` (età fixture 10799s). Recency fixture = `2^(-10799/21600)` = `0.7071294727113612` (IEEE-754 nearest-even; **non** il double libm `0.7071294727113613`). Weighted min = `0.565703578169089` (bottleneck recency×0.8) — invariato rispetto a v0.1.
 
 Score attesi (input → score):
 
@@ -127,6 +127,27 @@ Media naive. Score senza vettore completo. `Instant.now()` in recency. Corrobora
 
 ---
 
+## FIX-ULP (`core-confidence-v0.2`)
+
+Scongelato solo `:core:confidence`. Recency non usa più `2.0.pow` (libm, 1 ULP alto). Formula: `exp(ln 2 · -Δt / 21600)` in `BigDecimal` 80 cifre HALF_EVEN, poi `doubleValue()` nearest-even. `StrictMath.pow` su JDK 21 produce ancora `0.7071294727113613`; non basta.
+
+| Campo lock | v0.1 (libm) | v0.2 (nearest-even) |
+|------------|-------------|---------------------|
+| `recency.fixture_10799s` / `fixture.vector.recency` | `0.7071294727113613` | `0.7071294727113612` |
+| `fixture.score` | `0.565703578169089` | `0.565703578169089` |
+| categoria | medium | medium |
+
+SHA-1 lock v0.1 (libm): `b1816d968b3e9a45b751b45dda3f52ad8086d81c`  
+SHA-1 lock v0.2: `3694ca51543fc803be733977b01de7725c6a41a0`  
+SHA-256 lock v0.2: `25efbc9f1b3730658c34502f2564d18a8aad04c1ee202b672be4b020917fddee`
+
+| Test | Invariante | Percorso | Negativo | PASS |
+|------|------------|----------|----------|------|
+| ULP-001 | recency Δt=10799 | binary64 `0x1.6a0cdfceaa81bp-1` = `0.7071294727113612` | libm `…3613` / `2.0.pow` | **PASS** |
+| ULP-002 | score/categoria | weighted min `0.565703578169089`, medium | cambio soglia | **PASS** |
+| ULP-003 | regressione | CF-001..008 | — | **PASS** |
+| ULP-004 | freeze | git diff fuori `:core:confidence` + questo REVIEW vuoto | tocchi a temporal/truth/envelope/… | **PASS** |
+
 ## Tag
 
-`core-confidence-v0.1` solo a gate verde. Niente push.
+`core-confidence-v0.1` (lock libm). `core-confidence-v0.2` (lock IEEE-754 nearest-even) solo a gate ULP-001..004 verde. Niente push.
