@@ -166,7 +166,7 @@ internal fun ShowcaseGlassChip(
                 .testTag(tag)
                 .clickable(role = Role.Button, onClick = onClick)
                 .background(if (active) amber.copy(alpha = 0.28f) else Color.Transparent)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             BasicText(label, style = Theme.type.copy(fontSize = 13.sp, color = ink))

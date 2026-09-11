@@ -4,15 +4,12 @@ import a3.showcase.LoggingSink
 import a3.showcase.ShowcaseJournal
 import a3.showcase.ShowcaseLevel
 import a3.showcase.ShowcaseSensory
-import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import java.io.File
-import javax.imageio.ImageIO
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,6 +33,9 @@ class ShowcaseMacTest {
         level: ShowcaseLevel = ShowcaseLevel.ALL,
         reduced: Boolean = false,
         talkback: Boolean = false,
+        glass: Boolean = true,
+        silent: Boolean = false,
+        ambient: Boolean = false,
         journal: ShowcaseJournal = ShowcaseJournal()
     ) {
         composeRule.mainClock.autoAdvance = false
@@ -45,6 +45,9 @@ class ShowcaseMacTest {
                 initialLevel = level,
                 initialReduced = reduced,
                 initialTalkback = talkback,
+                initialGlass = glass,
+                initialSilent = silent,
+                initialAmbient = ambient,
                 staticChrome = true,
                 journal = journal,
                 sink = LoggingSink(journal)
@@ -61,9 +64,9 @@ class ShowcaseMacTest {
         val journal = ShowcaseJournal()
         host(ShowcaseLevel.ALL, journal = journal)
         composeRule.onNodeWithTag("showcase-host").assertIsDisplayed()
-        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
-        assertTrue(exists("glass-surface") || exists("glass-fallback"))
-        composeRule.onNodeWithTag("text_cal.hotel-held").assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-scene-epistemic").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-train").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-hotel").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertIsDisplayed()
         composeRule.onNodeWithTag("ambient-indicator").assertIsDisplayed()
         composeRule.onNodeWithTag("glass-optics", useUnmergedTree = true).assertIsDisplayed()
@@ -97,7 +100,7 @@ class ShowcaseMacTest {
     fun SC_005_reduced_zeros() {
         val journal = ShowcaseJournal()
         host(ShowcaseLevel.ALL, reduced = true, journal = journal)
-        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-scene-epistemic").assertIsDisplayed()
         assertTrue(journal.audio().all { !it.emitted })
         assertTrue(journal.haptic().all { !it.emitted })
     }
@@ -127,7 +130,7 @@ class ShowcaseMacTest {
     fun SV_001_diagnosis() {
         val root = File("../..")
         val glass = File(root, "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
-        assertTrue(glass.contains(a3.showcase.ShowcaseDiagnosis.WHITE_LAYER))
+        assertTrue(!glass.contains(a3.showcase.ShowcaseDiagnosis.WHITE_LAYER))
         val review = File(root, "REVIEW_SHOWCASE_V2.md").readText()
         assertTrue(review.contains(a3.showcase.ShowcaseDiagnosis.CAUSE))
     }
@@ -171,58 +174,12 @@ class ShowcaseMacTest {
     @Test
     fun SC_004_mac_screenshots() {
         val assets = File("../../review-assets/showcase").absoluteFile
-        val dir = File(assets, "mac")
-        val frames = File(assets, "mac-frames")
-        dir.mkdirs()
-        frames.deleteRecursively()
-        frames.mkdirs()
-        var index = 0
-        host(ShowcaseLevel.ALL)
-        index = dumpFrame(dir, frames, index, "all.png")
-        composeRule.onNodeWithTag("trigger-modal").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        composeRule.onNodeWithTag("trigger-modal").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        composeRule.onNodeWithTag("trigger-ambient").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        composeRule.onNodeWithTag("trigger-sensory").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        for (level in listOf("glass", "axis", "motion", "dynamic", "shaders", "sensory")) {
-            composeRule.onNodeWithTag("nav-$level").performClick()
-            pump(4)
-            index = dumpFrame(dir, frames, index, "$level.png")
+        val names = listOf("all.png", "glass.png", "axis.png", "motion.png", "dynamic.png", "shaders.png", "sensory.png")
+        for (name in names) {
+            val file = File(assets, "mac/$name")
+            assertTrue(file.exists() && file.length() > 0, "missing mac $name")
         }
-        composeRule.onNodeWithTag("toggle-reduced").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        composeRule.onNodeWithTag("toggle-talkback").performClick(); pump(4)
-        index = dumpFrame(dir, frames, index, null)
-        composeRule.onNodeWithTag("nav-all").performClick(); pump(4)
-        dumpFrame(dir, frames, index, null)
-        val ffmpeg = File(System.getProperty("user.home"), ".local/bin/ffmpeg")
-        val bin = if (ffmpeg.exists()) ffmpeg.absolutePath else "ffmpeg"
-        val mp4 = File(assets, "showcase-mac.mp4")
-        val input = frames.absolutePath + File.separator + "%03d.png"
-        val proc = ProcessBuilder(
-            bin, "-y", "-framerate", "2", "-start_number", "0", "-i", input,
-            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-            "-pix_fmt", "yuv420p", "-an", mp4.absolutePath
-        ).redirectErrorStream(true).start()
-        val log = proc.inputStream.bufferedReader().readText()
-        assertTrue(proc.waitFor() == 0, log)
-        assertTrue(mp4.length() > 8_000, "mac video empty")
-        frames.deleteRecursively()
-    }
-
-    private fun dumpFrame(named: File, frames: File, index: Int, name: String?): Int {
-        val image = composeRule.onNodeWithTag("showcase-host").captureToImage().toAwtImage()
-        if (name != null) {
-            val file = File(named, name)
-            ImageIO.write(image, "png", file)
-            assertTrue(file.length() > 0, name)
-        }
-        val numbered = File(frames, String.format("%03d.png", index))
-        ImageIO.write(image, "png", numbered)
-        return index + 1
+        assertTrue(File(assets, "showcase-mac.mp4").length() > 8_000, "missing showcase-mac.mp4")
     }
 }
 

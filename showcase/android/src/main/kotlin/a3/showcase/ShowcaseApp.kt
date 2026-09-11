@@ -51,6 +51,9 @@ fun ShowcaseApp(
     initialLevel: ShowcaseLevel = ShowcaseLevel.ALL,
     initialReduced: Boolean = false,
     initialTalkback: Boolean = false,
+    initialGlass: Boolean = true,
+    initialSilent: Boolean = false,
+    initialAmbient: Boolean = false,
     tour: Boolean = false,
     staticChrome: Boolean = false,
     journal: ShowcaseJournal = remember { ShowcaseJournal() },
@@ -60,8 +63,10 @@ fun ShowcaseApp(
     var level by remember { mutableStateOf(initialLevel) }
     var reduced by remember { mutableStateOf(initialReduced) }
     var talkback by remember { mutableStateOf(initialTalkback) }
+    var glassOn by remember { mutableStateOf(initialGlass) }
+    var silent by remember { mutableStateOf(initialSilent) }
     var modal by remember { mutableStateOf(false) }
-    var ambientExpanded by remember { mutableStateOf(false) }
+    var ambientExpanded by remember { mutableStateOf(initialAmbient) }
     var particle by remember { mutableStateOf(false) }
     var sceneTick by remember { mutableStateOf(0) }
 
@@ -79,10 +84,10 @@ fun ShowcaseApp(
     fun fireSensory(vararg causes: String) {
         for (cause in causes) {
             if (cause in ShowcaseSensory.audioCauses()) {
-                sink.playAudio(cause, reduced, silent = false)
+                sink.playAudio(cause, reduced, silent = silent)
             }
             if (cause in ShowcaseSensory.hapticCauses()) {
-                sink.playHaptic(cause, reduced, engine = true)
+                sink.playHaptic(cause, reduced, engine = !silent)
             }
         }
         if (flags.particles || level == ShowcaseLevel.ALL) {
@@ -92,16 +97,24 @@ fun ShowcaseApp(
 
     LaunchedEffect(level, talkback, output) {
         if (!talkback) return@LaunchedEffect
-        for ((id, phrase) in ShowcaseSensory.announceAll(output)) {
+        val phrases = if (level == ShowcaseLevel.ALL) ShowcaseScene.announce()
+        else ShowcaseSensory.announceAll(output)
+        for ((id, phrase) in phrases) {
             sink.announce(id, phrase)
         }
     }
 
-    LaunchedEffect(level, reduced, flags.sensory, sceneTick) {
+    LaunchedEffect(level, reduced, flags.sensory, sceneTick, silent) {
         if (!flags.sensory) return@LaunchedEffect
-        for (cause in ShowcaseSensory.causesOf(output)) {
-            sink.playAudio(cause, reduced, silent = false)
-            sink.playHaptic(cause, reduced, engine = true)
+        val causes = if (level == ShowcaseLevel.ALL) ShowcaseScene.causes()
+        else ShowcaseSensory.causesOf(output)
+        for (cause in causes) {
+            if (cause in ShowcaseSensory.audioCauses()) {
+                sink.playAudio(cause, reduced, silent = silent)
+            }
+            if (cause in ShowcaseSensory.hapticCauses()) {
+                sink.playHaptic(cause, reduced, engine = !silent)
+            }
         }
     }
 
@@ -159,11 +172,11 @@ fun ShowcaseApp(
                         start = ShowcaseWallpaper.GUTTER_DP.dp,
                         top = ShowcaseWallpaper.GUTTER_DP.dp,
                         end = ShowcaseWallpaper.GUTTER_DP.dp,
-                        bottom = 118.dp
+                        bottom = 128.dp
                     )
                     .testTag("showcase-wallpaper-gutter")
             ) {
-                ShowcaseGlassPlate(Modifier.fillMaxSize(), frost = true) {
+                ShowcaseGlassPlate(Modifier.fillMaxSize(), frost = glassOn) {
                     if (flags.gradient) {
                         ShowcaseGradient(staticChrome = staticChrome || reduced)
                     }
@@ -171,11 +184,32 @@ fun ShowcaseApp(
                         ShowcaseParallax()
                     }
                     Box(Modifier.fillMaxSize().padding(12.dp).testTag("showcase-glass-inset")) {
-                        ComposeRenderer(
-                            output = output,
-                            onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
-                            announce = announce
-                        )
+                        if (level == ShowcaseLevel.ALL) {
+                            ShowcaseScenePane(
+                                ink = ink,
+                                amber = Color(
+                                    ((tokens.amber shr 16) and 0xFF) / 255f,
+                                    ((tokens.amber shr 8) and 0xFF) / 255f,
+                                    (tokens.amber and 0xFF) / 255f
+                                ),
+                                type = Theme.type,
+                                frost = glassOn,
+                                ambient = {
+                                    ShowcaseAmbient(
+                                        expanded = ambientExpanded,
+                                        reduced = reduced || staticChrome,
+                                        ink = ink,
+                                        paper = paper
+                                    )
+                                }
+                            )
+                        } else {
+                            ComposeRenderer(
+                                output = output,
+                                onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
+                                announce = announce
+                            )
+                        }
                     }
                     if (flags.optics) {
                         ShowcaseGrain()
@@ -186,8 +220,14 @@ fun ShowcaseApp(
                         ShowcaseParticles(trigger = particle, staticChrome = staticChrome)
                         ParticleBurst(trigger = particle)
                     }
-                    if (flags.ambient) {
-                        ShowcaseAmbient(expanded = ambientExpanded, reduced = reduced || staticChrome, ink = ink, paper = paper)
+                    if (flags.ambient && level != ShowcaseLevel.ALL) {
+                        ShowcaseAmbient(
+                            expanded = ambientExpanded,
+                            reduced = reduced || staticChrome,
+                            ink = ink,
+                            paper = paper,
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        )
                     }
                     if (modal && flags.modal) {
                         ShowcaseModal(open = true, reduced = reduced || staticChrome)
@@ -199,6 +239,8 @@ fun ShowcaseApp(
                     level = level,
                     reduced = reduced,
                     talkback = talkback,
+                    glassOn = glassOn,
+                    silent = silent,
                     ink = ink,
                     onLevel = { level = it },
                     onReduced = {
@@ -206,13 +248,15 @@ fun ShowcaseApp(
                         sceneTick++
                     },
                     onTalkback = { talkback = !talkback },
+                    onGlass = { glassOn = !glassOn },
+                    onSilent = { silent = !silent },
                     onModal = { modal = !modal },
                     onAmbient = { ambientExpanded = !ambientExpanded },
                     onSensory = { fireSensory(ShowcaseSensory.Cause.CONFIRM, ShowcaseSensory.Cause.TAP) }
                 )
-                ShowcaseGlassPlate(Modifier.padding(8.dp), nested = true, frost = true) {
+                ShowcaseGlassPlate(Modifier.padding(8.dp), nested = true, frost = glassOn) {
                     BasicText(
-                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} ${level.wire()}",
+                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} blur=${if (glassOn) "on" else "off"} silent=${if (silent) "on" else "off"} ${level.wire()}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag("showcase-status"),
                         style = Theme.type.copy(fontSize = 12.sp, color = ink)
                     )
@@ -227,16 +271,20 @@ private fun Controls(
     level: ShowcaseLevel,
     reduced: Boolean,
     talkback: Boolean,
+    glassOn: Boolean,
+    silent: Boolean,
     ink: Color,
     onLevel: (ShowcaseLevel) -> Unit,
     onReduced: () -> Unit,
     onTalkback: () -> Unit,
+    onGlass: () -> Unit,
+    onSilent: () -> Unit,
     onModal: () -> Unit,
     onAmbient: () -> Unit,
     onSensory: () -> Unit
 ) {
     val style = Theme.type.copy(fontSize = 13.sp, color = ink)
-    Column(Modifier.fillMaxWidth().padding(8.dp).testTag("showcase-controls")) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp).testTag("showcase-controls")) {
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -259,6 +307,13 @@ private fun Controls(
         ) {
             ShowcaseGlassChip("reduced ${if (reduced) "on" else "off"}", "toggle-reduced", reduced, ink, onReduced)
             ShowcaseGlassChip("talkback ${if (talkback) "on" else "off"}", "toggle-talkback", talkback, ink, onTalkback)
+            ShowcaseGlassChip("blur ${if (glassOn) "on" else "off"}", "toggle-blur", !glassOn, ink, onGlass)
+            ShowcaseGlassChip("silent ${if (silent) "on" else "off"}", "toggle-silent", silent, ink, onSilent)
+        }
+        Row(
+            Modifier.padding(top = 4.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             ShowcaseGlassChip("modal", "trigger-modal", false, ink, onModal)
             ShowcaseGlassChip("ambient", "trigger-ambient", false, ink, onAmbient)
             ShowcaseGlassChip("sensory", "trigger-sensory", false, ink, onSensory)
@@ -371,7 +426,7 @@ internal fun ShowcaseParticles(trigger: Boolean, staticChrome: Boolean) {
 }
 
 @Composable
-internal fun ShowcaseAmbient(expanded: Boolean, reduced: Boolean, ink: Color, paper: Color) {
+internal fun ShowcaseAmbient(expanded: Boolean, reduced: Boolean, ink: Color, paper: Color, modifier: Modifier = Modifier) {
     val tokens = ShowcaseTokens.snapshot
     var t by remember { mutableFloatStateOf(if (expanded) 1f else 0f) }
     LaunchedEffect(expanded, reduced) {
@@ -398,16 +453,20 @@ internal fun ShowcaseAmbient(expanded: Boolean, reduced: Boolean, ink: Color, pa
     }
     val rect = ShowcaseChromeMath.morph(t)
     Box(
-        Modifier
+        modifier
             .zIndex(4f)
-            .offset(rect.x.dp, rect.y.dp)
+            .padding(8.dp)
             .size(rect.w.dp, rect.h.dp)
             .background(Color.Black.copy(alpha = tokens.fillOpacity), RoundedCornerShape(rect.radius.dp))
             .testTag("ambient-indicator"),
         contentAlignment = Alignment.Center
     ) {
         Box(Modifier.fillMaxSize().testTag(if (expanded) "ambient-expanded" else "ambient-collapsed"))
-        BasicText("12:00", style = Theme.type.copy(fontSize = 12.sp, color = paper))
+        BasicText(
+            text = if (expanded) ShowcaseScene.DEADLINE else "09:00",
+            modifier = Modifier.testTag("ambient-deadline"),
+            style = Theme.type.copy(fontSize = 12.sp, color = paper)
+        )
     }
 }
 

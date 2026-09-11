@@ -34,6 +34,9 @@ class ShowcaseTest {
         level: ShowcaseLevel = ShowcaseLevel.ALL,
         reduced: Boolean = false,
         talkback: Boolean = false,
+        glass: Boolean = true,
+        silent: Boolean = false,
+        ambient: Boolean = false,
         journal: ShowcaseJournal = ShowcaseJournal(),
         sink: ShowcaseSink = LoggingSink(journal)
     ) {
@@ -44,6 +47,9 @@ class ShowcaseTest {
                 initialLevel = level,
                 initialReduced = reduced,
                 initialTalkback = talkback,
+                initialGlass = glass,
+                initialSilent = silent,
+                initialAmbient = ambient,
                 staticChrome = true,
                 journal = journal,
                 sink = sink
@@ -66,11 +72,11 @@ class ShowcaseTest {
         host(ShowcaseLevel.ALL, journal = journal)
         composeRule.onNodeWithTag("showcase-host").assertIsDisplayed()
         composeRule.onNodeWithTag("showcase-level-all", useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
-        assertTrue(exists("glass-surface") || exists("glass-fallback"))
-        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithTag("text_cal.dinner-contradicted").assertIsDisplayed()
-        assertTrue(exists("text_cal.hotel-motion-pulse") || exists("text_cal.hotel-motion-pulse"))
+        composeRule.onNodeWithTag("showcase-scene-epistemic").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-train").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-hotel").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-calendar").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-intent").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertIsDisplayed()
         composeRule.onNodeWithTag("ambient-indicator").assertIsDisplayed()
         composeRule.onNodeWithTag("glass-optics", useUnmergedTree = true).assertIsDisplayed()
@@ -144,8 +150,9 @@ class ShowcaseTest {
     fun SC_005_reduced_motion_zeros_sensory_keeps_paint() {
         val journal = ShowcaseJournal()
         host(ShowcaseLevel.ALL, reduced = true, journal = journal)
-        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
-        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-scene-epistemic").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-hotel-stale").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-calendar-reason").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertIsDisplayed()
         assertTrue(journal.audio().isNotEmpty())
         assertTrue(journal.haptic().isNotEmpty())
@@ -207,17 +214,17 @@ class ShowcaseTest {
 
     @Test
     fun SV_001_diagnosis_verified() {
-        val glass = File(root, "renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/GlassSurface.kt").readText()
-        val mac = File(root, "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
-        assertTrue(glass.contains(ShowcaseDiagnosis.WHITE_LAYER), "android glass still whites the blur layer")
-        assertTrue(mac.contains(ShowcaseDiagnosis.WHITE_LAYER), "mac glass still whites the blur layer")
-        assertEquals(0.38f, ShowcaseTokens.snapshot.fillOpacity, 0.001f)
         val app = File("src/main/kotlin/a3/showcase/ShowcaseApp.kt").readText()
         assertTrue(app.contains("ShowcaseWallpaperLayer"), app.take(40))
         val review = File(root, "REVIEW_SHOWCASE_V2.md").readText()
         assertTrue(review.contains(ShowcaseDiagnosis.CAUSE), review.take(200))
         assertTrue(review.contains("Color.White"))
         assertTrue(review.contains("fixtureWallpaper") || review.contains("wallpaper fixture"))
+        val glass = File(root, "renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/GlassSurface.kt").readText()
+        val mac = File(root, "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MacGlassSurface.kt").readText()
+        assertTrue(!glass.contains(ShowcaseDiagnosis.WHITE_LAYER), "android glass reintroduced white blur layer")
+        assertTrue(!mac.contains(ShowcaseDiagnosis.WHITE_LAYER), "mac glass reintroduced white blur layer")
+        assertEquals(0.38f, ShowcaseTokens.snapshot.fillOpacity, 0.001f)
     }
 
     @Test
@@ -271,9 +278,10 @@ class ShowcaseTest {
         host(ShowcaseLevel.GLASS)
         composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("text_cal.hotel-low").assertIsDisplayed()
-        composeRule.onNodeWithTag("text_cal.dinner-contradicted").assertIsDisplayed()
+        composeRule.onNodeWithTag("text_cal.dinner-contradicted", useUnmergedTree = true).assertIsDisplayed()
         go("nav-all")
-        composeRule.onNodeWithTag("text_cal.hotel-held", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-hotel-stale").assertIsDisplayed()
+        composeRule.onNodeWithTag("scene-calendar-badge").assertIsDisplayed()
     }
 
     @Test
@@ -281,10 +289,10 @@ class ShowcaseTest {
         SC_008_freeze_renderers_and_core()
         val journal = ShowcaseJournal()
         host(ShowcaseLevel.ALL, journal = journal)
-        composeRule.onNodeWithTag("a3-catalog").assertIsDisplayed()
+        composeRule.onNodeWithTag("showcase-scene-epistemic").assertIsDisplayed()
         composeRule.onNodeWithTag("showcase-wallpaper").assertIsDisplayed()
         composeRule.onNodeWithTag("animated-gradient").assertIsDisplayed()
-        assertTrue(exists("glass-surface") || exists("glass-fallback"))
+        composeRule.onNodeWithTag("scene-train").assertIsDisplayed()
     }
 
     @Test

@@ -13,6 +13,9 @@ fun main(args: Array<String>) = application {
     val level = ShowcaseLevel.parse(args.find { it.startsWith("--level=") }?.substringAfter("="))
     val reduced = args.contains("--reduced")
     val talkback = args.contains("--talkback")
+    val glass = !args.contains("--blur-off")
+    val silent = args.contains("--silent")
+    val ambient = args.contains("--ambient")
     val tour = args.contains("--record")
     val journal = ShowcaseJournal()
     val sink = MacShowcaseSink(journal)
@@ -24,12 +27,15 @@ fun main(args: Array<String>) = application {
         title = "a3ui showcase",
         state = WindowState(width = 1280.dp, height = 800.dp)
     ) {
-        ShowcaseApp(
-            formFactor = "desktop",
-            initialLevel = level,
-            initialReduced = reduced,
-            initialTalkback = talkback,
-            tour = tour,
+            ShowcaseApp(
+                formFactor = "desktop",
+                initialLevel = level,
+                initialReduced = reduced,
+                initialTalkback = talkback,
+                initialGlass = glass,
+                initialSilent = silent,
+                initialAmbient = ambient,
+                tour = tour,
             journal = journal,
             sink = sink,
             onFlush = { j -> sink.flush(j) }
