@@ -165,7 +165,7 @@ def sp_006(body: str) -> None:
 
 def sp_007() -> None:
     proc = subprocess.run(
-        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md"],
+        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md", ":!REVIEW_SPEC_A3UI.md"],
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -182,7 +182,7 @@ def sp_007() -> None:
         capture_output=True,
         text=True,
     )
-    allowed = ("spec/", "REVIEW_SPEC_A3EP.md")
+    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md")
     ignore = (".kotlin/", ".DS_Store")
     for line in status.stdout.splitlines():
         if not line.strip():
