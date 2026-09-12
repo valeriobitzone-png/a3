@@ -7,7 +7,8 @@ enum class ShowcaseLevel {
     MOTION,
     DYNAMIC,
     SHADERS,
-    SENSORY;
+    SENSORY,
+    OVERLAY;
 
     fun wire(): String = name.lowercase()
 
@@ -36,10 +37,11 @@ enum class ShowcaseLevel {
             particles = true,
             sensory = true
         )
+        OVERLAY -> ShowcaseFlags()
     }
 
     companion object {
-        val NAV = listOf(ALL, GLASS, AXIS, MOTION, DYNAMIC, SHADERS, SENSORY)
+        val NAV = listOf(ALL, GLASS, AXIS, MOTION, DYNAMIC, SHADERS, SENSORY, OVERLAY)
 
         fun parse(raw: String?): ShowcaseLevel {
             if (raw.isNullOrBlank()) return ALL

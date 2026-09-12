@@ -12,6 +12,7 @@ import a3.showcase.ShowcaseJournal
 import a3.showcase.ShowcaseLevel
 import a3.showcase.ShowcaseScene
 import a3.showcase.ShowcaseScenePane
+import a3.showcase.ShowcaseOverlayPane
 import a3.showcase.ShowcaseSensory
 import a3.showcase.ShowcaseSink
 import a3.showcase.ShowcaseTokens
@@ -197,6 +198,8 @@ fun ShowcaseApp(
                                     )
                                 }
                             )
+                        } else if (level == ShowcaseLevel.OVERLAY) {
+                            ShowcaseOverlayPane(ink = ink, type = MacTheme.type)
                         } else {
                             MacRenderer(
                                 output = output,
@@ -289,7 +292,7 @@ private fun Controls(
             Modifier.padding(top = 4.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            for (item in listOf(ShowcaseLevel.DYNAMIC, ShowcaseLevel.SHADERS, ShowcaseLevel.SENSORY)) {
+            for (item in listOf(ShowcaseLevel.DYNAMIC, ShowcaseLevel.SHADERS, ShowcaseLevel.SENSORY, ShowcaseLevel.OVERLAY)) {
                 ShowcaseGlassChip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
             }
         }
