@@ -229,9 +229,13 @@ class ShowcaseV3Test {
         assertEquals(0, status.waitFor())
         val allowed = listOf(
             "showcase/",
+            "overlay/",
+            "settings.gradle.kts",
             "REVIEW_SHOWCASE_V3.md",
             "REVIEW_SHOWCASE_V2.md",
             "REVIEW_SHOWCASE.md",
+            "REVIEW_REAL_OVERLAY.md",
+            "REVIEW_OVERLAY_LIFECYCLE.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

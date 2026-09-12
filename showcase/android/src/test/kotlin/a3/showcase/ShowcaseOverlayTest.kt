@@ -39,6 +39,7 @@ class ShowcaseOverlayTest {
             composeRule.onAllNodesWithTag("scene-train").fetchSemanticsNodes().size
         )
         assertTrue(ShowcaseOverlay.NOTE.contains("not this launcher"))
+        assertTrue(ShowcaseOverlay.NOTE.contains("collapsed"))
         assertEquals("trova volo Roma-Milano domani", ShowcaseOverlay.INTENT)
         composeRule.onNodeWithTag("nav-overlay").assertIsDisplayed()
     }

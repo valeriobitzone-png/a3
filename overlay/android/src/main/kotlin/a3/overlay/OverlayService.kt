@@ -17,24 +17,28 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -42,15 +46,27 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     private val savedState = SavedStateRegistryController.create(this)
     private lateinit var windowManager: WindowManager
     private var backdropView: ImageView? = null
-    private var chromeView: View? = null
+    private var pillView: View? = null
+    private var sheetView: View? = null
     private var projection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var reader: ImageReader? = null
     private val hidden = AtomicBoolean(false)
     private var session = OverlayFlight.present()
     private var backdropMode = BackdropMode.UNAVAILABLE
-    private val captureCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private var blurred: android.graphics.Bitmap? = null
+    private val captureCount = AtomicInteger(0)
     private var pendingState: OverlayPermissionState? = null
+    private var life = OverlayLifecycle.start(0)
+    private val markState = mutableStateOf(OverlayActionMark.UNKNOWN)
+    private val phaseState = mutableStateOf(OverlayPhase.COLLAPSED)
+    private val handler = Handler(Looper.getMainLooper())
+    private var timeoutMs = OverlayLifecycle.DEFAULT_TIMEOUT_MS
+    private var reduced = false
+    private var dismissOutside = true
+    private val timeoutRun = Runnable {
+        applyLife(OverlayLifecycle.tick(life, now(), timeoutMs))
+    }
 
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val viewModelStore: ViewModelStore get() = store
@@ -75,27 +91,48 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         }
         backdropMode = state.backdrop
         pendingState = state
+        reduced = intent?.getBooleanExtra(EXTRA_REDUCED, false) == true || reducedMotionSystem()
+        timeoutMs = intent?.getLongExtra(EXTRA_TIMEOUT_MS, timeoutMs) ?: timeoutMs
+        if (intent?.hasExtra(EXTRA_DISMISS_OUTSIDE) == true) {
+            dismissOutside = intent.getBooleanExtra(EXTRA_DISMISS_OUTSIDE, true)
+        }
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-        intent?.getStringExtra(EXTRA_CHOOSE)?.let { openCard(it) }
-        if (projectionGranted) {
-            attachBackdrop()
-            startProjection(intent)
-        } else {
-            attachChrome(state)
+        if (pillView == null) {
+            life = OverlayLifecycle.start(now())
+            attachPill()
         }
+        if (projectionGranted && projection == null) {
+            startProjection(intent)
+        }
+        if (intent?.getBooleanExtra(EXTRA_EXPAND, false) == true) {
+            applyLife(OverlayLifecycle.expand(life, now()))
+        }
+        if (intent?.getBooleanExtra(EXTRA_COLLAPSE, false) == true) {
+            applyLife(OverlayLifecycle.collapse(life, now(), OverlayCollapseReason.DISMISS))
+        }
+        if (intent?.getBooleanExtra(EXTRA_UNDER_FOCUS, false) == true) {
+            applyLife(OverlayLifecycle.underFocus(life, now()))
+        }
+        if (intent?.getBooleanExtra(EXTRA_TICK, false) == true) {
+            applyLife(OverlayLifecycle.tick(life, now(), timeoutMs))
+        }
+        intent?.getStringExtra(EXTRA_CHOOSE)?.let { openCard(it) }
         return START_STICKY
     }
 
     override fun onDestroy() {
         hidden.set(true)
+        handler.removeCallbacks(timeoutRun)
         virtualDisplay?.release()
         reader?.close()
         projection?.stop()
-        backdropView?.let { windowManager.removeView(it) }
-        chromeView?.let { windowManager.removeView(it) }
+        removeView(backdropView)
+        removeView(sheetView)
+        removeView(pillView)
         backdropView = null
-        chromeView = null
+        sheetView = null
+        pillView = null
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         store.clear()
         super.onDestroy()
@@ -103,67 +140,165 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private fun now(): Long = SystemClock.elapsedRealtime()
+
+    private fun reducedMotionSystem(): Boolean {
+        return try {
+            android.provider.Settings.Global.getFloat(
+                contentResolver,
+                android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE,
+                1f
+            ) == 0f
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun applyLife(next: OverlayLifecycleState) {
+        val prev = life
+        life = next
+        markState.value = next.mark
+        phaseState.value = next.phase
+        if (prev.phase != next.phase) {
+            if (next.phase == OverlayPhase.EXPANDED) showExpanded() else hideExpanded()
+        }
+        scheduleTimeout()
+    }
+
+    private fun scheduleTimeout() {
+        handler.removeCallbacks(timeoutRun)
+        if (life.phase != OverlayPhase.EXPANDED) return
+        val delay = timeoutMs - (now() - life.lastInteractionAt)
+        if (delay <= 0L) {
+            applyLife(OverlayLifecycle.tick(life, now(), timeoutMs))
+        } else {
+            handler.postDelayed(timeoutRun, delay)
+        }
+    }
+
+    private fun attachPill() {
+        if (pillView != null) return
+        val wrap = host()
+        val compose = ComposeView(wrap.context).apply {
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            bindTrees()
+            setContent {
+                OverlayPill(
+                    mark = markState.value,
+                    onTap = {
+                        if (life.phase == OverlayPhase.COLLAPSED) {
+                            applyLife(OverlayLifecycle.expand(life, now()))
+                        }
+                    },
+                    onLongPress = { openSettings() }
+                )
+            }
+        }
+        wrap.addView(compose)
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            OverlayAndroidWindows.pillFlags(),
+            PixelFormat.TRANSLUCENT
+        )
+        params.gravity = Gravity.TOP or Gravity.END
+        params.x = 16
+        params.y = 16
+        windowManager.addView(wrap, params)
+        pillView = wrap
+    }
+
+    private fun showExpanded() {
+        if (backdropMode == BackdropMode.REAL_BLUR) attachBackdrop()
+        attachSheet()
+        raisePill()
+    }
+
+    private fun hideExpanded() {
+        val sheet = sheetView
+        val back = backdropView
+        sheetView = null
+        backdropView = null
+        val ms = OverlayLifecycle.transitionMs(reduced)
+        if (ms == 0L) {
+            removeView(sheet)
+            removeView(back)
+            return
+        }
+        if (sheet != null) {
+            val lp = sheet.layoutParams as WindowManager.LayoutParams
+            lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            runCatching { windowManager.updateViewLayout(sheet, lp) }
+            sheet.animate().alpha(0f).setDuration(ms).withEndAction {
+                removeView(sheet)
+            }.start()
+        }
+        back?.animate()?.alpha(0f)?.setDuration(ms)?.withEndAction {
+            removeView(back)
+        }?.start()
+        if (back == null && sheet == null) return
+        if (sheet == null && back != null) {
+            handler.postDelayed({ removeView(back) }, ms)
+        }
+    }
+
     private fun attachBackdrop() {
+        if (backdropView != null) return
         val view = ImageView(this).apply {
             scaleType = ImageView.ScaleType.CENTER_CROP
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            setImageBitmap(blurred)
         }
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            OverlayAndroidWindows.backdropFlags(),
             PixelFormat.TRANSLUCENT
         )
         windowManager.addView(view, params)
         backdropView = view
     }
 
-    private fun attachChrome(state: OverlayPermissionState) {
-        if (chromeView != null) return
-        val wrap = FrameLayout(this).apply {
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
-            setViewTreeLifecycleOwner(this@OverlayService)
-            setViewTreeViewModelStoreOwner(this@OverlayService)
-            setViewTreeSavedStateRegistryOwner(this@OverlayService)
-        }
+    private fun attachSheet() {
+        if (sheetView != null) return
+        val wrap = OverlaySheetFrame()
+        wrap.bindTrees()
         val compose = ComposeView(wrap.context).apply {
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
-            setViewTreeLifecycleOwner(this@OverlayService)
-            setViewTreeViewModelStoreOwner(this@OverlayService)
-            setViewTreeSavedStateRegistryOwner(this@OverlayService)
+            bindTrees()
             setContent {
-                OverlayChrome(
+                OverlaySheet(
                     session = session,
-                    blurUnavailable = state.backdrop == BackdropMode.UNAVAILABLE,
-                    onHide = { hideChrome() },
-                    onSettings = { openSettings() },
-                    onChoose = { id -> openCard(id) }
+                    blurUnavailable = backdropMode == BackdropMode.UNAVAILABLE,
+                    reducedMotion = reduced,
+                    dismissOutside = dismissOutside,
+                    onChoose = { id -> openCard(id) },
+                    onDismiss = {
+                        applyLife(OverlayLifecycle.collapse(life, now(), OverlayCollapseReason.DISMISS))
+                    }
                 )
             }
         }
         wrap.addView(compose)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            OverlayAndroidWindows.containerFlags(OverlayPhase.EXPANDED),
             PixelFormat.TRANSLUCENT
         )
-        params.gravity = Gravity.TOP
         windowManager.addView(wrap, params)
-        chromeView = wrap
+        sheetView = wrap
     }
 
-    private fun hideChrome() {
-        chromeView?.visibility = View.GONE
-        backdropView?.visibility = View.GONE
-        hidden.set(true)
+    private fun raisePill() {
+        val view = pillView ?: return
+        if (!view.isAttachedToWindow) return
+        val lp = view.layoutParams as WindowManager.LayoutParams
+        windowManager.removeView(view)
+        windowManager.addView(view, lp)
     }
 
     private fun openSettings() {
@@ -174,24 +309,29 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     }
 
     private fun openCard(id: String) {
-        val opened = ArrayList<String>()
-        OverlayFlight.choose(session, id) { url ->
-            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
-                setPackage("com.android.chrome")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        applyLife(OverlayLifecycle.dispatch(life, now()))
+        var worked = false
+        try {
+            OverlayFlight.choose(session, id) { url ->
+                val chrome = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                    setPackage("com.android.chrome")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                try {
+                    startActivity(chrome)
+                } catch (_: Exception) {
+                    startActivity(
+                        Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                }
+                worked = true
+                true
             }
-            try {
-                startActivity(intent)
-            } catch (_: Exception) {
-                startActivity(
-                    Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            }
-            opened += url
-            hideChrome()
-            true
+        } catch (_: Exception) {
+            worked = false
         }
+        applyLife(OverlayLifecycle.terminal(life, now(), worked))
     }
 
     private fun startProjection(intent: Intent?) {
@@ -226,11 +366,10 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             null,
             null
         )
-        r.setOnImageAvailableListener({ reader ->
-            val image = reader.acquireLatestImage() ?: return@setOnImageAvailableListener
+        r.setOnImageAvailableListener({ imgReader ->
+            val image = imgReader.acquireLatestImage() ?: return@setOnImageAvailableListener
             val n = captureCount.incrementAndGet()
             try {
-                // Skip the consent UI frames; take one later sample of the apps underneath.
                 if (n != 12) return@setOnImageAvailableListener
                 val plane = image.planes[0]
                 val buf = plane.buffer
@@ -244,10 +383,13 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 )
                 bitmap.copyPixelsFromBuffer(buf)
                 val cropped = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
-                val blurred = OverlayBitmapBlur.blur(cropped, 18)
-                backdropView?.post {
-                    backdropView?.setImageBitmap(blurred)
-                    pendingState?.let { attachChrome(it) }
+                val next = OverlayBitmapBlur.blur(cropped, 18)
+                blurred = next
+                handler.post {
+                    if (life.phase == OverlayPhase.EXPANDED) {
+                        if (backdropView == null) attachBackdrop()
+                        backdropView?.setImageBitmap(next)
+                    }
                     virtualDisplay?.release()
                     virtualDisplay = null
                 }
@@ -311,22 +453,61 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         nm.notify(2, n)
     }
 
+    private fun host(): FrameLayout = FrameLayout(this).apply {
+        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        bindTrees()
+    }
+
+    private fun View.bindTrees() {
+        setViewTreeLifecycleOwner(this@OverlayService)
+        setViewTreeViewModelStoreOwner(this@OverlayService)
+        setViewTreeSavedStateRegistryOwner(this@OverlayService)
+    }
+
+    private fun removeView(view: View?) {
+        if (view == null) return
+        runCatching { windowManager.removeView(view) }
+    }
+
+    inner class OverlaySheetFrame : FrameLayout(this@OverlayService) {
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (event.action == MotionEvent.ACTION_OUTSIDE) {
+                applyLife(OverlayLifecycle.underFocus(life, now()))
+                return true
+            }
+            return super.onTouchEvent(event)
+        }
+    }
+
     companion object {
         const val EXTRA_PROJECTION = "projection"
         const val EXTRA_PROJECTION_DATA = "projection_data"
         const val EXTRA_PROJECTION_CODE = "projection_code"
         const val EXTRA_CHOOSE = "choose"
+        const val EXTRA_EXPAND = "expand"
+        const val EXTRA_COLLAPSE = "collapse"
+        const val EXTRA_UNDER_FOCUS = "under_focus"
+        const val EXTRA_TICK = "tick"
+        const val EXTRA_REDUCED = "reduced"
+        const val EXTRA_TIMEOUT_MS = "timeout_ms"
+        const val EXTRA_DISMISS_OUTSIDE = "dismiss_outside"
 
         fun start(
             context: Context,
             projectionGranted: Boolean,
             data: Intent? = null,
             code: Int = 0,
-            choose: String? = null
+            choose: String? = null,
+            expand: Boolean = false,
+            reduced: Boolean = false,
+            timeoutMs: Long = OverlayLifecycle.DEFAULT_TIMEOUT_MS
         ) {
             val intent = Intent(context, OverlayService::class.java)
                 .putExtra(EXTRA_PROJECTION, projectionGranted)
                 .putExtra(EXTRA_PROJECTION_CODE, code)
+                .putExtra(EXTRA_EXPAND, expand)
+                .putExtra(EXTRA_REDUCED, reduced)
+                .putExtra(EXTRA_TIMEOUT_MS, timeoutMs)
             if (data != null) intent.putExtra(EXTRA_PROJECTION_DATA, data)
             if (choose != null) intent.putExtra(EXTRA_CHOOSE, choose)
             if (Build.VERSION.SDK_INT >= 26) {

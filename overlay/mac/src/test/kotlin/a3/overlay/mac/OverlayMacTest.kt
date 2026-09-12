@@ -1,8 +1,12 @@
 package a3.overlay.mac
 
 import a3.overlay.BackdropMode
+import a3.overlay.OverlayActionMark
+import a3.overlay.OverlayCompositor
 import a3.overlay.OverlayContract
 import a3.overlay.OverlayFlight
+import a3.overlay.OverlayLifecycle
+import a3.overlay.OverlayPhase
 import a3.overlay.OverlayPolicy
 import java.io.File
 import kotlin.test.Test
@@ -47,5 +51,40 @@ class OverlayMacTest {
         assertTrue(swift.contains("AXObserver"))
         assertTrue(swift.contains("swipe") || swift.contains("translation"))
         assertTrue(swift.contains("cacheDisplay"))
+        assertTrue(swift.contains("layoutCollapsed"))
+        assertTrue(swift.contains("ignoresMouseEvents"))
+        assertTrue(swift.contains("mouse events outside the pill"))
+        assertTrue(swift.contains("didActivateApplicationNotification"))
+        assertTrue(swift.contains("timeout"))
+        assertTrue(swift.contains("collapse(reason: \"dispatch\")") || swift.contains("dispatch"))
+    }
+
+    @Test
+    fun OL_mac_default_collapsed_and_compositor_hides_cards() {
+        val swift = nativeSrc.readText()
+        assertTrue(swift.contains("phase: OverlayPhase = .collapsed") || swift.contains("var phase: OverlayPhase = .collapsed"))
+        val session = OverlayFlight.present()
+        val screen = java.awt.image.BufferedImage(640, 400, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        val g = screen.createGraphics()
+        g.color = java.awt.Color.RED
+        g.fillRect(0, 0, 640, 400)
+        g.dispose()
+        val collapsed = OverlayCompositor.compose(
+            screen,
+            session,
+            BackdropMode.REAL_BLUR,
+            OverlayPhase.COLLAPSED,
+            OverlayActionMark.UNKNOWN
+        )
+        val expanded = OverlayCompositor.compose(
+            screen,
+            session,
+            BackdropMode.REAL_BLUR,
+            OverlayPhase.EXPANDED,
+            OverlayActionMark.PENDING
+        )
+        assertTrue(OverlayCompositor.variance(collapsed, screen) < OverlayCompositor.variance(expanded, screen))
+        assertEquals("?", OverlayLifecycle.pillText(OverlayActionMark.UNKNOWN))
+        assertTrue(!OverlayLifecycle.isLongPillText(OverlayLifecycle.pillText(OverlayActionMark.DONE)))
     }
 }

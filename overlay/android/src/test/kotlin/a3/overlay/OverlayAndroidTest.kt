@@ -7,6 +7,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
@@ -29,6 +30,18 @@ class OverlayAndroidTest {
         assertTrue(service.contains("TYPE_APPLICATION_OVERLAY"))
         assertTrue(service.contains("setViewTreeLifecycleOwner"))
         assertTrue(!service.contains("TYPE_PHONE"))
+        assertTrue(service.contains("FLAG_NOT_TOUCHABLE"))
+        assertTrue(service.contains("ACTION_OUTSIDE"))
+        assertTrue(service.contains("OverlayLifecycle.start"))
+        val windows = File("src/main/kotlin/a3/overlay/OverlayAndroidGate.kt").readText()
+        assertTrue(windows.contains("FLAG_WATCH_OUTSIDE_TOUCH"))
+        assertTrue(windows.contains("FLAG_NOT_TOUCHABLE"))
+        val collapsed = OverlayAndroidWindows.containerFlags(OverlayPhase.COLLAPSED)
+        assertTrue((collapsed and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) != 0)
+        assertFalse(OverlayWindowLaw.containerTouchable(OverlayPhase.COLLAPSED))
+        val expanded = OverlayAndroidWindows.containerFlags(OverlayPhase.EXPANDED)
+        assertTrue((expanded and WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH) != 0)
+        assertTrue((expanded and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE) == 0)
     }
 
     @Test
@@ -44,5 +57,21 @@ class OverlayAndroidTest {
         assertTrue(service.contains("OverlayBitmapBlur.blur"))
         val chrome = File("src/main/kotlin/a3/overlay/OverlayChrome.kt").readText()
         assertTrue(chrome.contains("overlay-blur-unavailable"))
+        assertTrue(chrome.contains("overlay-pill-mark"))
+        assertTrue(chrome.contains("OverlayLifecycle.pillText"))
+        assertTrue(chrome.contains("OverlayPhase.COLLAPSED"))
+        assertTrue(!chrome.contains("session.ambient"))
+    }
+
+    @Test
+    fun OL_collapsed_container_is_not_touchable() {
+        assertFalse(OverlayWindowLaw.containerTouchable(OverlayPhase.COLLAPSED))
+        assertTrue(OverlayWindowLaw.pillTouchable())
+        val service = File("src/main/kotlin/a3/overlay/OverlayService.kt").readText()
+        assertTrue(service.contains("attachPill"))
+        assertTrue(service.contains("OverlayLifecycle.dispatch"))
+        assertTrue(service.contains("EXTRA_EXPAND"))
+        assertTrue(service.contains("transitionMs"))
+        assertTrue(service.contains("DEFAULT_TIMEOUT_MS"))
     }
 }

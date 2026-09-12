@@ -10,4 +10,5 @@ object OverlayContract {
     const val PILL_SWIPE_DOWN = "swipe-down"
     const val PILL_LONG_PRESS = "long-press-settings"
     const val MAC_CLOSE = "cmd-w"
+    const val DEFAULT_PHASE = "COLLAPSED"
 }

@@ -13,25 +13,31 @@ object OverlayCompositor {
         screen: BufferedImage,
         session: OverlaySession,
         backdrop: BackdropMode,
+        phase: OverlayPhase = OverlayPhase.COLLAPSED,
+        mark: OverlayActionMark = OverlayActionMark.UNKNOWN,
         ambientExpanded: Boolean = false
     ): BufferedImage {
-        val base = when (backdrop) {
-            BackdropMode.REAL_BLUR -> blur(screen, 18)
-            BackdropMode.UNAVAILABLE -> copy(screen)
+        val seize = phase == OverlayPhase.EXPANDED
+        val base = when {
+            !seize -> copy(screen)
+            backdrop == BackdropMode.REAL_BLUR -> blur(screen, 18)
+            else -> copy(screen)
         }
         val g = base.createGraphics()
         hints(g)
-        if (backdrop == BackdropMode.UNAVAILABLE) {
+        if (seize && backdrop == BackdropMode.UNAVAILABLE) {
             banner(g, base.width, OverlayPolicy.BLUR_UNAVAILABLE)
         }
-        pill(g, base.width, session.ambient, ambientExpanded)
-        val cardW = minOf(920, (base.width * 0.72).toInt().coerceAtLeast(280))
-        val cardH = 118
-        val x = (base.width - cardW) / 2
-        var y = (base.height * 0.22).toInt().coerceAtLeast(160)
-        for (card in session.cards) {
-            glassCard(g, x, y, cardW, cardH, card)
-            y += cardH + 22
+        pill(g, base.width, OverlayLifecycle.pillText(mark), ambientExpanded)
+        if (seize) {
+            val cardW = minOf(920, (base.width * 0.72).toInt().coerceAtLeast(280))
+            val cardH = 118
+            val x = (base.width - cardW) / 2
+            var y = (base.height * 0.22).toInt().coerceAtLeast(160)
+            for (card in session.cards) {
+                glassCard(g, x, y, cardW, cardH, card)
+                y += cardH + 22
+            }
         }
         g.dispose()
         return base
@@ -91,10 +97,10 @@ object OverlayCompositor {
     }
 
     private fun pill(g: Graphics2D, width: Int, text: String, expanded: Boolean) {
-        val label = if (expanded) "$text  ·  swipe down to hide" else text
-        g.font = Font("SansSerif", Font.BOLD, 15)
+        val label = text
+        g.font = Font("SansSerif", Font.BOLD, 18)
         val tw = g.fontMetrics.stringWidth(label)
-        val w = tw + 48
+        val w = tw + 36
         val h = 36
         val x = width - w - 28
         val y = 28
@@ -102,7 +108,8 @@ object OverlayCompositor {
         g.color = Color(12, 12, 16, 180)
         g.fill(shape)
         g.color = Color(245, 242, 236)
-        g.drawString(label, x + 24, y + 24)
+        g.drawString(label, x + 18, y + 24)
+        if (expanded) return
     }
 
     private fun banner(g: Graphics2D, width: Int, text: String) {
