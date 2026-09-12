@@ -8,23 +8,29 @@ import kotlin.test.assertTrue
 class VectorLockTest {
     @Test
     fun CS_001_vector_sha256_matches_expected_and_core_lock() {
-        val vectors = ConformancePaths.vectors()
-        val manifest = ConformanceIo.readTree(File(vectors, "vector-sha256.json"))
+        verifyDir(ConformancePaths.vectorsV1(), ConformanceIo.expectedSha256V1, core = false)
+        verifyDir(ConformancePaths.vectorsV2(), ConformanceIo.expectedSha256V2, core = true)
+        println("PASS CS-001 v1+v2 sha256")
+    }
+
+    private fun verifyDir(dir: File, expected: Map<String, String>, core: Boolean) {
+        val manifest = ConformanceIo.readTree(File(dir, "vector-sha256.json"))
         for (name in ConformanceIo.lockVectors) {
-            val file = File(vectors, name)
-            assertTrue(file.isFile, "missing vector $name")
+            val file = File(dir, name)
+            assertTrue(file.isFile, "missing ${dir.name}/$name")
             val actual = ConformanceIo.sha256Hex(file)
-            val expected = ConformanceIo.expectedSha256.getValue(name)
-            assertEquals(expected, actual, name)
-            assertEquals(expected, manifest.path(name).asText(), "manifest $name")
+            val want = expected.getValue(name)
+            assertEquals(want, actual, "${dir.name}/$name")
+            assertEquals(want, manifest.path(name).asText(), "manifest ${dir.name}/$name")
         }
-        val root = ConformancePaths.repoRoot()
-        for ((name, rel) in ConformanceIo.coreLockPaths) {
-            val imported = File(vectors, name).readBytes()
-            val core = File(root, rel).readBytes()
-            assertTrue(imported.contentEquals(core), "import drift $name")
+        if (core) {
+            val root = ConformancePaths.repoRoot()
+            for ((name, rel) in ConformanceIo.coreLockPathsV2) {
+                val imported = File(dir, name).readBytes()
+                val coreFile = File(root, rel).readBytes()
+                assertTrue(imported.contentEquals(coreFile), "import drift $name")
+            }
         }
-        println("PASS CS-001 vectors=${ConformanceIo.lockVectors.size} sha256")
     }
 
     @Test
@@ -43,16 +49,17 @@ class VectorLockTest {
     }
 
     @Test
-    fun CS_009_frozen_modules_have_empty_diff() {
+    fun CS_009_and_PV_010_frozen_modules_have_empty_diff() {
         val proc = ProcessBuilder(
             "git", "diff", "--stat", "--",
-            "core", "broker", "agent", "a3ui", "renderers", "launcher", "adapters"
+            "core/admission", "core/action", "core/json", "core/temporal",
+            "a3ui", "renderers", "broker", "agent", "launcher", "overlay", "showcase"
         ).directory(ConformancePaths.repoRoot()).start()
         val out = proc.inputStream.bufferedReader().readText().trim()
         val err = proc.errorStream.bufferedReader().readText().trim()
         val code = proc.waitFor()
         assertEquals(0, code, err)
         assertEquals("", out, "frozen tree diff not empty:\n$out")
-        println("PASS CS-009 freeze")
+        println("PASS CS-009/PV-010 freeze")
     }
 }

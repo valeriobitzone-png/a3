@@ -114,16 +114,21 @@ object CategoryJudge {
     }
 
     private fun judgeAttester(root: JsonNode): Nothing {
-        val irreversible = root.path("irreversible").asBoolean()
-        val attester = root.path("attester_id").asText()
-        val requester = root.path("requester_id").asText()
-        if (irreversible && attester == requester) {
-            throw ConformanceReject(
-                "CF-004",
-                "attester_id equals requester_id on irreversible action"
-            )
+        val eventNode = root.path("event")
+        if (eventNode.isMissingNode || eventNode.isNull) {
+            error("CF-004 fixture must carry an envelope event")
         }
-        error("CF-004 fixture is not an irreversible attester collision")
+        val json = ConformanceIo.mapper.writeValueAsString(eventNode)
+        try {
+            parseEvent(json)
+        } catch (e: EnvelopeReject) {
+            val reason = e.message.orEmpty()
+            if (reason.contains("attester_id must not equal requester_id")) {
+                throw ConformanceReject("CF-004", reason)
+            }
+            throw e
+        }
+        error("implementation accepted attester_id = requester_id on irreversible action")
     }
 
     private fun judgeUnknown(root: JsonNode): Nothing {
@@ -142,7 +147,7 @@ object CategoryJudge {
     private fun judgeHistoryFold(root: JsonNode): Nothing {
         val vectorName = root.path("history_vector").asText()
         val history = ConformanceIo.observationsFrom(
-            ConformanceIo.readTree(File(ConformancePaths.vectors(), vectorName))
+            ConformanceIo.readTree(File(ConformancePaths.vectorsV2(), vectorName))
         )
         val folded = fold(history)
         val kept = folded.sumOf { it.history.size }

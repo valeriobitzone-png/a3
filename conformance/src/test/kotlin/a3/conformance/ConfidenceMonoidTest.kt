@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class ConfidenceMonoidTest {
     @Test
     fun CS_006_min_top_is_commutative_and_associative() {
-        val fixture = ConformanceIo.readTree(File(ConformancePaths.vectors(), "confidence-vectors.json"))
+        val fixture = ConformanceIo.readTree(File(ConformancePaths.vectorsV2(), "confidence-vectors.json"))
         val scores = listOf(
             fixture.path("mapping").path("media_default_fact").path("score").asDouble(),
             fixture.path("fixture").path("score").asDouble(),
