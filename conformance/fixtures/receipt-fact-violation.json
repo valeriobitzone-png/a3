@@ -1,0 +1,12 @@
+{
+  "id": "CF-001",
+  "reject_code": "CF-001",
+  "kind": "receipt",
+  "exit_code": 0,
+  "printed": "SUCCESS",
+  "claimed": {
+    "truth_class": "FACT",
+    "provenance": "OBSERVED_SIGNED",
+    "proposition": "process succeeded"
+  }
+}

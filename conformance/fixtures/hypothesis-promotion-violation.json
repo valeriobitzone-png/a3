@@ -1,0 +1,15 @@
+{
+  "id": "CF-003",
+  "reject_code": "CF-003",
+  "kind": "promotion",
+  "bearer": {
+    "truth_class": "HYPOTHESIS",
+    "provenance": "DERIVED_MODEL",
+    "ref": "model:slot"
+  },
+  "verification": null,
+  "claimed": {
+    "truth_class": "FACT",
+    "provenance": "OBSERVED_SIGNED"
+  }
+}

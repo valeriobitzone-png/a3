@@ -1,0 +1,8 @@
+{
+  "id": "CF-004",
+  "reject_code": "CF-004",
+  "kind": "attester",
+  "irreversible": true,
+  "attester_id": "urn:a3:party:alice",
+  "requester_id": "urn:a3:party:alice"
+}

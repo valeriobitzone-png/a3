@@ -230,6 +230,9 @@ def au_010() -> None:
             ":!spec",
             ":!REVIEW_SPEC_A3EP.md",
             ":!REVIEW_SPEC_A3UI.md",
+            ":!REVIEW_CONFORMANCE_A3EP.md",
+            ":!conformance",
+            ":!settings.gradle.kts",
         ],
         cwd=ROOT,
         check=False,
@@ -247,7 +250,7 @@ def au_010() -> None:
         capture_output=True,
         text=True,
     )
-    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md")
+    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md", "REVIEW_CONFORMANCE_A3EP.md", "conformance/", "settings.gradle.kts")
     ignore = (".kotlin/", ".DS_Store")
     for line in status.stdout.splitlines():
         if not line.strip():
