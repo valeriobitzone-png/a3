@@ -299,3 +299,31 @@ private fun ProvenanceRow(
         )
     }
 }
+
+@Composable
+fun ShowcaseOverlayPane(ink: Color, type: TextStyle) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .testTag("showcase-overlay-host")
+    ) {
+        BasicText(
+            text = ShowcaseOverlay.NOTE,
+            modifier = Modifier.testTag("showcase-overlay-note"),
+            style = type.copy(fontSize = 16.sp, color = ink)
+        )
+        Spacer(Modifier.height(12.dp))
+        BasicText(
+            text = ShowcaseOverlay.INTENT,
+            modifier = Modifier.testTag("showcase-overlay-intent"),
+            style = type.copy(fontSize = 14.sp, color = ink.copy(alpha = 0.8f))
+        )
+        Spacer(Modifier.height(12.dp))
+        BasicText(
+            text = "start: ${ShowcaseOverlay.ANDROID_ACTION}",
+            modifier = Modifier.testTag("showcase-overlay-action"),
+            style = type.copy(fontSize = 13.sp, color = ink.copy(alpha = 0.7f))
+        )
+    }
+}

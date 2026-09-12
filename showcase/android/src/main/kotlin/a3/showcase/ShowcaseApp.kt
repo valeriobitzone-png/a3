@@ -203,6 +203,8 @@ fun ShowcaseApp(
                                     )
                                 }
                             )
+                        } else if (level == ShowcaseLevel.OVERLAY) {
+                            ShowcaseOverlayPane(ink = ink, type = Theme.type)
                         } else {
                             ComposeRenderer(
                                 output = output,
@@ -297,7 +299,7 @@ private fun Controls(
             Modifier.padding(top = 4.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            for (item in listOf(ShowcaseLevel.DYNAMIC, ShowcaseLevel.SHADERS, ShowcaseLevel.SENSORY)) {
+            for (item in listOf(ShowcaseLevel.DYNAMIC, ShowcaseLevel.SHADERS, ShowcaseLevel.SENSORY, ShowcaseLevel.OVERLAY)) {
                 ShowcaseGlassChip(item.wire(), "nav-${item.wire()}", item == level, ink) { onLevel(item) }
             }
         }
