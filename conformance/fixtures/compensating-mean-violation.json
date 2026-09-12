@@ -1,0 +1,21 @@
+{
+  "id": "CF-007",
+  "reject_code": "CF-007",
+  "kind": "confidence_mean",
+  "vector": {
+    "source_reliability": 1,
+    "evidence_strength": 1,
+    "recency": 1,
+    "corroboration": 1,
+    "verification": 0
+  },
+  "weights": {
+    "source_reliability": 1.0,
+    "evidence_strength": 1.0,
+    "recency": 0.8,
+    "corroboration": 0.6,
+    "verification": 0.9
+  },
+  "claimed_score": 0.68,
+  "aggregation": "mean"
+}

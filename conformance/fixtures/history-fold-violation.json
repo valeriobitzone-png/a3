@@ -1,0 +1,11 @@
+{
+  "id": "CF-006",
+  "reject_code": "CF-006",
+  "kind": "history_fold",
+  "operation": "replace_history_with_projection",
+  "history_vector": "tm-order.json",
+  "claimed": {
+    "replaces_history": true,
+    "history": []
+  }
+}

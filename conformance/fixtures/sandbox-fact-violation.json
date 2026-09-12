@@ -1,0 +1,12 @@
+{
+  "id": "CF-002",
+  "reject_code": "CF-002",
+  "kind": "sandbox",
+  "environment": "SANDBOX",
+  "verification_id": "ver-sand",
+  "admitted_id": "obs-sand",
+  "claimed": {
+    "truth_class": "FACT",
+    "provenance": "OBSERVED_SIGNED"
+  }
+}
