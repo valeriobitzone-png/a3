@@ -13,6 +13,7 @@ import java.io.File
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OverlayCommonTest {
@@ -83,7 +84,9 @@ class OverlayCommonTest {
             "showcase/",
             "settings.gradle.kts",
             "REVIEW_REAL_OVERLAY.md",
-            "review-assets/overlay/"
+            "review-assets/overlay/",
+            "REVIEW_OVERLAY_LIFECYCLE.md",
+            "review-assets/overlay-lifecycle/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
@@ -120,6 +123,155 @@ class OverlayCommonTest {
             "ov-006-mac-mail.png",
             "ov-007-android-flight-over-chrome.png",
             "ov-007-android-chrome-opened.png"
+        )
+        for (name in needed) {
+            val f = File(dir, name)
+            assertTrue(f.exists() && f.length() > 80_000, name)
+            val bytes = f.readBytes()
+            assertEquals(0x89.toByte(), bytes[0], name)
+            assertEquals('P'.code.toByte(), bytes[1], name)
+            assertEquals('N'.code.toByte(), bytes[2], name)
+            assertEquals('G'.code.toByte(), bytes[3], name)
+        }
+    }
+
+    @Test
+    fun OL_001_starts_collapsed() {
+        val s = OverlayLifecycle.start(0)
+        assertEquals(OverlayPhase.COLLAPSED, s.phase)
+        assertEquals(OverlayActionMark.UNKNOWN, s.mark)
+        assertEquals(null, s.expandedAt)
+        assertEquals(OverlayContract.DEFAULT_PHASE, s.phase.name)
+        val json = OverlayNativeJson.session(OverlayFlight.present(), false, "Chrome")
+        assertTrue(json.contains("\"phase\":\"COLLAPSED\""), json)
+        assertTrue(json.contains("\"mark\":\"UNKNOWN\""), json)
+    }
+
+    @Test
+    fun OL_002_passthrough_collapsed_reaches_under_app() {
+        val pill = OverlayRect(1000, 20, 1240, 80)
+        val log = OverlayTapLog()
+        log.tap(OverlayPhase.COLLAPSED, 100, 400, pill)
+        log.tap(OverlayPhase.COLLAPSED, 1100, 40, pill)
+        log.tap(OverlayPhase.EXPANDED, 100, 400, pill)
+        assertEquals(listOf(100 to 400), log.underApp)
+        assertEquals(listOf(1100 to 40, 100 to 400), log.overlay)
+        assertTrue(OverlayLifecycle.reachesUnder(OverlayPhase.COLLAPSED, 50, 50, pill))
+        assertFalse(OverlayLifecycle.reachesUnder(OverlayPhase.COLLAPSED, 1100, 40, pill))
+        assertFalse(OverlayWindowLaw.containerTouchable(OverlayPhase.COLLAPSED))
+        assertTrue(OverlayWindowLaw.pillTouchable())
+        assertTrue(OverlayWindowLaw.passThroughOutsidePill(OverlayPhase.COLLAPSED))
+        assertFalse(OverlayWindowLaw.passThroughOutsidePill(OverlayPhase.EXPANDED))
+    }
+
+    @Test
+    fun OL_003_dispatch_collapses_within_budget() {
+        val t0 = 1_000L
+        val expanded = OverlayLifecycle.expand(OverlayLifecycle.start(t0), t0 + 1)
+        assertEquals(OverlayPhase.EXPANDED, expanded.phase)
+        val dispatched = OverlayLifecycle.dispatch(expanded, t0 + 2)
+        assertEquals(OverlayPhase.COLLAPSED, dispatched.phase)
+        assertEquals(OverlayActionMark.PENDING, dispatched.mark)
+        assertEquals(OverlayCollapseReason.DISPATCH, dispatched.reason)
+        assertEquals(t0 + 2, dispatched.collapsedAt)
+        assertTrue((dispatched.collapsedAt!! - (t0 + 2)) <= OverlayLifecycle.DISPATCH_BUDGET_MS)
+    }
+
+    @Test
+    fun OL_004_pill_carries_mark_not_long_text() {
+        assertEquals("…", OverlayLifecycle.pillText(OverlayActionMark.PENDING))
+        assertEquals("?", OverlayLifecycle.pillText(OverlayActionMark.UNKNOWN))
+        assertEquals("✓", OverlayLifecycle.pillText(OverlayActionMark.DONE))
+        assertFalse(OverlayLifecycle.isLongPillText(OverlayLifecycle.pillText(OverlayActionMark.PENDING)))
+        assertFalse(OverlayLifecycle.isLongPillText(OverlayLifecycle.pillText(OverlayActionMark.DONE)))
+        assertTrue(OverlayLifecycle.isLongPillText("A3 attivo"))
+        assertTrue(OverlayLifecycle.pillText(OverlayActionMark.PENDING).length <= OverlayLifecycle.PILL_MAX_CHARS)
+    }
+
+    @Test
+    fun OL_005_under_focus_collapses_when_expanded() {
+        val expanded = OverlayLifecycle.expand(OverlayLifecycle.start(0), 5)
+        val collapsed = OverlayLifecycle.underFocus(expanded, 6)
+        assertEquals(OverlayPhase.COLLAPSED, collapsed.phase)
+        assertEquals(OverlayCollapseReason.UNDER_FOCUS, collapsed.reason)
+        val idle = OverlayLifecycle.underFocus(OverlayLifecycle.start(0), 1)
+        assertEquals(OverlayPhase.COLLAPSED, idle.phase)
+        assertEquals(null, idle.reason)
+    }
+
+    @Test
+    fun OL_006_idle_timeout_collapses() {
+        val expanded = OverlayLifecycle.expand(OverlayLifecycle.start(0), 0)
+        assertEquals(OverlayPhase.EXPANDED, OverlayLifecycle.tick(expanded, 19_999).phase)
+        val timed = OverlayLifecycle.tick(expanded, 20_000)
+        assertEquals(OverlayPhase.COLLAPSED, timed.phase)
+        assertEquals(OverlayCollapseReason.TIMEOUT, timed.reason)
+        val poked = OverlayLifecycle.interact(expanded, 15_000)
+        assertEquals(OverlayPhase.EXPANDED, OverlayLifecycle.tick(poked, 20_000).phase)
+        assertEquals(OverlayPhase.COLLAPSED, OverlayLifecycle.tick(poked, 35_000).phase)
+        assertEquals(20_000L, OverlayLifecycle.DEFAULT_TIMEOUT_MS)
+    }
+
+    @Test
+    fun OL_007_expanded_is_interactive() {
+        val s = OverlayLifecycle.expand(OverlayLifecycle.start(0), 1)
+        assertEquals(OverlayPhase.EXPANDED, s.phase)
+        assertTrue(OverlayWindowLaw.containerTouchable(OverlayPhase.EXPANDED))
+        val pill = OverlayRect(1000, 20, 1200, 80)
+        val surface = OverlayRect(40, 200, 700, 520)
+        assertEquals(
+            OverlayTapTarget.SURFACE,
+            OverlayLifecycle.tapTarget(OverlayPhase.EXPANDED, 100, 400, pill, surface)
+        )
+        assertEquals(
+            OverlayTapTarget.PILL,
+            OverlayLifecycle.tapTarget(OverlayPhase.EXPANDED, 1100, 40, pill, surface)
+        )
+        assertEquals(
+            OverlayTapTarget.UNDER_APP,
+            OverlayLifecycle.tapTarget(OverlayPhase.EXPANDED, 10, 10, pill, surface)
+        )
+    }
+
+    @Test
+    fun OL_008_reduced_motion_is_instant_marks_remain() {
+        assertEquals(0L, OverlayLifecycle.transitionMs(true))
+        assertEquals(OverlayLifecycle.SPRING_MS, OverlayLifecycle.transitionMs(false))
+        val pending = OverlayLifecycle.dispatch(OverlayLifecycle.expand(OverlayLifecycle.start(0), 1), 2)
+        val done = OverlayLifecycle.terminal(pending, 3, true)
+        assertEquals(OverlayPhase.COLLAPSED, done.phase)
+        assertEquals(OverlayActionMark.DONE, done.mark)
+        val unknown = OverlayLifecycle.terminal(pending, 3, false)
+        assertEquals(OverlayActionMark.UNKNOWN, unknown.mark)
+        assertEquals(OverlayPhase.COLLAPSED, unknown.phase)
+    }
+
+    @Test
+    fun OL_010_freeze_includes_agent() {
+        fun diff(vararg paths: String): String {
+            val proc = ProcessBuilder("git", "diff", "--stat", "--", *paths)
+                .directory(root)
+                .redirectErrorStream(true)
+                .start()
+            val out = proc.inputStream.bufferedReader().readText()
+            assertEquals(0, proc.waitFor())
+            return out
+        }
+        val frozen = diff("core/", "broker/", "renderers/", "launcher/", "agent/")
+        assertTrue(frozen.isBlank(), frozen)
+    }
+
+    @Test
+    fun OL_screenshots_are_real_png() {
+        val dir = File(root, "review-assets/overlay-lifecycle")
+        val needed = listOf(
+            "ol-001-android-collapsed-chrome.png",
+            "ol-002-android-passthrough.png",
+            "ol-003-android-collapse-after-choose.png",
+            "ol-007-android-expanded-chrome.png",
+            "ol-001-mac-collapsed-safari.png",
+            "ol-003-mac-collapse-after-choose.png",
+            "ol-007-mac-expanded-safari.png"
         )
         for (name in needed) {
             val f = File(dir, name)

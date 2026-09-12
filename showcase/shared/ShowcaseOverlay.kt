@@ -6,6 +6,6 @@ package a3.showcase
  */
 object ShowcaseOverlay {
     const val INTENT = "trova volo Roma-Milano domani"
-    const val NOTE = "surfaces live in the system overlay, not this launcher"
+    const val NOTE = "surfaces live in the system overlay, not this launcher · default collapsed pill"
     const val ANDROID_ACTION = "a3.overlay.START"
 }

@@ -24,7 +24,9 @@ class OverlayPermissionActivity : ComponentActivity() {
             OverlayService.start(
                 this,
                 projectionGranted = false,
-                choose = intent.getStringExtra(OverlayService.EXTRA_CHOOSE)
+                choose = intent.getStringExtra(OverlayService.EXTRA_CHOOSE),
+                expand = intent.getBooleanExtra(OverlayService.EXTRA_EXPAND, false),
+                reduced = intent.getBooleanExtra(OverlayService.EXTRA_REDUCED, false)
             )
             finish()
             return
