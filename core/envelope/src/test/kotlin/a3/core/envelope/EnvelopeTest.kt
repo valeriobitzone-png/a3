@@ -45,7 +45,8 @@ class EnvelopeTest {
         stamp = stamp(),
         truth = truth(),
         content = mapOf("depart" to "09:30"),
-        foldRef = foldRef()
+        foldRef = foldRef(),
+        attestation = lockV2Attestation()
     )
 
     private fun golden(name: String, actual: String): String {
@@ -136,7 +137,8 @@ class EnvelopeTest {
             stamp = a.data.temporal,
             truth = a.data.truth,
             content = mapOf("depart" to "09:30 "),
-            foldRef = a.data.foldRef
+            foldRef = a.data.foldRef,
+            attestation = a.data.attestation
         )
         assertNotEquals(a.id, spaced.id)
         val pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readTree(encodeEvent(a)))
@@ -200,12 +202,13 @@ class EnvelopeTest {
         assertEquals(Provenance.OBSERVED_SIGNED, parsed.data.truth.provenance)
         assertEquals("ver-1", parsed.data.truth.ref)
         val hypo = pack(
-            type = "a3.belief.held",
+            type = TYPE_BELIEF_ADMITTED,
             sourceId = "calendar",
             subject = "trip.milano",
             stamp = stamp(),
             truth = TruthBearer(TruthClass.HYPOTHESIS, Provenance.DERIVED_MODEL, "model:slot"),
-            content = mapOf("slot" to "09:00")
+            content = mapOf("slot" to "09:00"),
+            attestation = lockV2Attestation()
         )
         val hypoParsed = parseEvent(encodeEvent(hypo))
         assertEquals(TruthClass.HYPOTHESIS, hypoParsed.data.truth.truthClass)
@@ -251,6 +254,81 @@ class EnvelopeTest {
     }
 
     @Test
+    fun PV_001_v2_output_type_is_io_a3ep() {
+        val event = fixture()
+        assertEquals(TYPE_BELIEF_ADMITTED, event.type)
+        assertFalse(event.type.startsWith("a3."))
+        assertTrue(encodeEvent(event).contains("\"type\":\"$TYPE_BELIEF_ADMITTED\""))
+        assertFalse(encodeEvent(event).contains("\"type\":\"a3.belief.admitted\""))
+        dumpLocks(event)
+    }
+
+    @Test
+    fun PV_002_v1_type_input_normalizes_to_io_a3ep() {
+        val v1 = File(root, "conformance/vectors/v1/envelope-event.json").readText()
+        assertTrue(v1.contains("\"type\":\"a3.belief.admitted\""))
+        val parsed = parseEvent(v1)
+        assertEquals(TYPE_BELIEF_ADMITTED, parsed.type)
+        assertEquals(null, parsed.data.attestation)
+        assertEquals(
+            "477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a",
+            parsed.id
+        )
+        val packed = pack(
+            type = "a3.belief.admitted",
+            sourceId = "train",
+            subject = "trip.milano",
+            stamp = stamp(),
+            truth = truth(),
+            content = mapOf("depart" to "09:30"),
+            foldRef = foldRef(),
+            attestation = lockV2Attestation()
+        )
+        assertEquals(TYPE_BELIEF_ADMITTED, packed.type)
+    }
+
+    @Test
+    fun PV_003_v2_payload_carries_attestation() {
+        val event = fixture()
+        val att = event.data.attestation ?: error("missing attestation")
+        assertEquals(LOCK_V2_ATTESTER, att.attesterId)
+        assertEquals(LOCK_V2_REQUESTER, att.requesterId)
+        val payload = Jcs.of(event.data.toCanonical())
+        assertTrue(payload.contains("\"attester_id\""))
+        assertTrue(payload.contains("\"requester_id\""))
+        val parsed = parseEvent(encodeEvent(event))
+        assertEquals(att, parsed.data.attestation)
+    }
+
+    @Test
+    fun PV_004_equal_attester_requester_on_irreversible_rejects() {
+        val reject = assertFailsWith<EnvelopeReject> {
+            pack(
+                type = TYPE_ACTION_AUTHORIZED,
+                sourceId = "train",
+                subject = "trip.milano",
+                stamp = stamp(),
+                truth = truth(),
+                content = mapOf("irreversible" to true),
+                foldRef = foldRef(),
+                attestation = Attestation("urn:a3:party:alice", "urn:a3:party:alice")
+            )
+        }
+        assertTrue(reject.message!!.contains("attester_id must not equal requester_id"))
+        val reversible = pack(
+            type = TYPE_BELIEF_ADMITTED,
+            sourceId = "train",
+            subject = "trip.milano",
+            stamp = stamp(),
+            truth = truth(),
+            content = mapOf("depart" to "09:30"),
+            foldRef = foldRef(),
+            attestation = Attestation("urn:a3:party:alice", "urn:a3:party:alice")
+        )
+        assertEquals(TYPE_BELIEF_ADMITTED, reversible.type)
+    }
+
+    @Test
     fun EN_008_freeze_only_envelope() {
         fun diff(vararg paths: String): String {
             val proc = ProcessBuilder("git", "diff", "--stat", "--", *paths)
@@ -262,8 +340,8 @@ class EnvelopeTest {
             return out
         }
         val frozen = diff(
-            "core/admission", "core/action", "core/json", "core/temporal", "core/truth",
-            "a3ui/", "renderers/", "broker/", "agent/", "showcase/"
+            "core/admission", "core/action", "core/json", "core/temporal",
+            "a3ui/", "renderers/", "broker/", "agent/", "launcher/", "overlay/", "showcase/"
         )
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
@@ -272,8 +350,13 @@ class EnvelopeTest {
         assertEquals(0, status.waitFor())
         val allowed = listOf(
             "core/envelope/",
-            "settings.gradle.kts",
-            "REVIEW_CORE_ENVELOPE.md"
+            "core/confidence/",
+            "core/truth/",
+            "conformance/",
+            "spec/",
+            "REVIEW_PROTOCOL_V2.md",
+            "REVIEW_CORE_ENVELOPE.md",
+            "settings.gradle.kts"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {

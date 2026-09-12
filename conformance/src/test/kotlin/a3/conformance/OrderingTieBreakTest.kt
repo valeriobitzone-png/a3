@@ -10,7 +10,7 @@ class OrderingTieBreakTest {
     @Test
     fun CS_005_total_order_commutes_and_tie_breaks() {
         val stream = ConformanceIo.observationsFrom(
-            ConformanceIo.readTree(File(ConformancePaths.vectors(), "tm-order.json"))
+            ConformanceIo.readTree(File(ConformancePaths.vectorsV2(), "tm-order.json"))
         )
         val canonical = sort(stream)
         for (perm in permutations(stream)) {

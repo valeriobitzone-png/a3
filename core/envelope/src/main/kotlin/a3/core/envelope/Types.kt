@@ -13,14 +13,16 @@ data class EnvelopePayload(
     val temporal: TemporalStamp,
     val truth: TruthBearer,
     val content: Any?,
-    val foldRef: String? = null
+    val foldRef: String? = null,
+    val attestation: Attestation? = null
 ) {
-    fun toCanonical(): Map<String, Any?> = mapOf(
-        "content" to content,
-        "fold_ref" to foldRef,
-        "temporal" to temporal.toCanonical(),
-        "truth" to truth.toCanonical()
-    )
+    fun toCanonical(): Map<String, Any?> = buildMap {
+        if (attestation != null) put("attestation", attestation.toCanonical())
+        put("content", content)
+        put("fold_ref", foldRef)
+        put("temporal", temporal.toCanonical())
+        put("truth", truth.toCanonical())
+    }
 }
 
 data class CloudEventEnvelope(

@@ -2,10 +2,10 @@
 
 ```
 Document: SPEC_A3-EP
-Version: 0.1.0
+Version: 0.2.0
 Status: Proposed Standard
 Intended category: Standards Track
-Obsoletes: none
+Obsoletes: SPEC_A3-EP 0.1.0
 ```
 
 The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. Sections 1 through 10 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For SP-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 20 pages.
@@ -160,7 +160,13 @@ id MUST be the lowercase hex encoding of SHA-256(JCS(payload)), 64 characters.
 
 JCS MUST be RFC 8785 JSON Canonicalization Scheme.
 
-payload MUST be the CloudEvents `data` object that contains temporal, truth, content, and optional fold_ref.
+Lock v2 payload MUST be the CloudEvents `data` object that contains temporal, truth, content, attestation, and optional fold_ref.
+
+Lock v1 payload MUST contain temporal, truth, content, and optional fold_ref.
+
+Lock v1 payload MUST NOT be required to contain attestation.
+
+A parser MUST accept a lock v1 payload that omits attestation and MUST NOT validate attester_id or requester_id when attestation is absent.
 
 An implementation MUST NOT use a random UUID as id.
 
@@ -174,15 +180,21 @@ The type registry MUST be the following closed set of protocol types:
 | `io.a3ep.action.authorized` | ACTION | none in lock v1 |
 | `io.a3ep.env.postcondition` | ENVIRONMENT | `a3.observation.admitted` when the payload is a process postcondition |
 
-Until R3 publishes lock v2, an implementation MUST emit and accept the lock v1 spellings used by `:core:envelope` and `:core:t12` (`a3.belief.admitted`, `a3.observation.admitted`).
+Lock v2 output MUST set type to a name in that registry.
+
+Lock v2 output MUST NOT set type to an `a3.*` spelling.
+
+A parser MUST accept the lock v1 spellings `a3.belief.admitted` and `a3.observation.admitted`.
+
+A parser MUST normalize `a3.belief.admitted` to `io.a3ep.belief.admitted` in output.
+
+A parser MUST normalize `a3.observation.admitted` to `io.a3ep.env.postcondition` in output.
 
 An implementation MUST treat `a3.belief.admitted` as the lock v1 spelling of `io.a3ep.belief.admitted`.
 
-An implementation MUST treat `a3.observation.admitted` as the lock v1 spelling used for T12 process postconditions.
+An implementation MUST treat `a3.observation.admitted` as the lock v1 spelling of `io.a3ep.env.postcondition`.
 
-R3 MUST publish lock v2 that emits the `io.a3ep.*` names in the registry.
-
-Until lock v2 is published, an implementation MUST NOT break lock v1 byte identity.
+Lock v2 MUST keep lock v1 byte identity in `conformance/vectors/v1/`.
 
 An implementation MUST NOT introduce additional protocol types in CORE.
 
@@ -222,17 +234,23 @@ Confidence fold MUST use the monoid in section 5 and MUST NOT rewrite history.
 
 ## 8. Attester and requester
 
-The party that attests the five confidence scores MUST be identified by attester_id.
+Lock v2 EnvelopePayload MUST carry an attestation object with attester_id and requester_id.
 
-The party that requests an irreversible action MUST be identified by requester_id.
+attester_id MUST identify the party that attests confidence and truth.
 
-attester_id MUST NOT equal requester_id for an irreversible action.
+requester_id MUST identify the party that requests the action.
 
-An implementation MUST reject an irreversible request whose attester_id equals requester_id.
+attester_id MUST NOT equal requester_id when the envelope type is `io.a3ep.action.authorized`.
+
+An implementation MUST treat `io.a3ep.action.authorized` as irreversible for that rule.
+
+An implementation MUST reject that envelope when attester_id equals requester_id.
+
+attester_id SHOULD NOT equal requester_id on reversible types.
 
 An implementation MAY allow attester_id to equal requester_id for reversible, non-committing reads.
 
-An authorization record SHOULD carry both attester_id and requester_id as distinct fields.
+A parser MUST NOT apply the attester_id inequality when attestation is absent.
 
 ---
 
@@ -260,7 +278,7 @@ An extension MUST NOT relax a CORE MUST or MUST NOT.
 
 ## 10. Governance
 
-This document version MUST be 0.1.0.
+This document version MUST be 0.2.0.
 
 After 1.0.0, a breaking change MUST increment the major version.
 
@@ -272,7 +290,11 @@ A deprecated type MUST remain accepted for at least one minor version after depr
 
 A CORE lock bump MUST be named lock vN and MUST be referenced from this document.
 
-An implementation MUST NOT do the following: invent a conclusion when the truth class is UNKNOWN; promote HYPOTHESIS to FACT without VerificationAdmitted in REAL; emit FACT from a receipt or from SANDBOX; fold or rewrite history; merge BELIEF, ACTION, and ENVIRONMENT into one state; aggregate confidence with a compensating average; let attester_id equal requester_id on an irreversible action; treat `:agent`, overlay, or sensory as CORE; treat application roles as protocol primitives; break lock v1 byte identity before R3 lock v2.
+This version MUST name the CORE lock lock v2.
+
+The 0.2.0 changelog MUST record the type registry rename to `io.a3ep.*` and the attestation field.
+
+An implementation MUST NOT do the following: invent a conclusion when the truth class is UNKNOWN; promote HYPOTHESIS to FACT without VerificationAdmitted in REAL; emit FACT from a receipt or from SANDBOX; fold or rewrite history; merge BELIEF, ACTION, and ENVIRONMENT into one state; aggregate confidence with a compensating average; let attester_id equal requester_id on an irreversible action; emit `a3.*` as lock v2 output type; treat `:agent`, overlay, or sensory as CORE; treat application roles as protocol primitives; break lock v1 byte identity in `conformance/vectors/v1/`.
 
 ---
 
@@ -284,4 +306,4 @@ This appendix is not protocol. Council and Critic are application roles that a p
 
 ## Appendix B. Document map (non-normative)
 
-Lock v1 artifacts that this specification must remain consistent with until R3: `core/envelope/src/test/resources/envelope-event.json` (`type` = `a3.belief.admitted`, `id` = SHA-256 hex of JCS payload), `:core:temporal` order key `(t_observe, source_id, seq)`, `:core:truth` promotion law, `:core:confidence` weighted min, `:core:t12` `a3.observation.admitted`. R3 is the release that replaces those spellings with `io.a3ep.*` under lock v2.
+Lock v2 artifacts: `core/envelope/src/test/resources/envelope-event.json` and `conformance/vectors/v2/` (`type` = `io.a3ep.belief.admitted`, attestation present, `id` = SHA-256 hex of JCS payload). Lock v1 artifacts remain in `conformance/vectors/v1/` (`type` = `a3.belief.admitted`). `:core:temporal` order key `(t_observe, source_id, seq)`, `:core:truth` promotion law, and `:core:confidence` weighted min are unchanged. R3 in 0.1.0 named this lock v2 rename.

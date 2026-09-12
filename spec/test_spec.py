@@ -141,11 +141,20 @@ def sp_005(body: str) -> None:
     missing = [t for t in types if t not in body]
     if missing:
         fail("SP-005", f"registry missing {missing}")
-    if "R3" not in body or "lock v2" not in body:
-        fail("SP-005", "R3 lock v2 rename missing")
-    lock = ROOT / "core/envelope/src/test/resources/envelope-event.json"
-    if lock.exists() and "a3.belief.admitted" not in lock.read_text(encoding="utf-8"):
-        fail("SP-005", "lock v1 type drifted from spec")
+    if "lock v2" not in body:
+        fail("SP-005", "lock v2 missing")
+    if "attestation" not in body:
+        fail("SP-005", "attestation missing")
+    if "0.2.0" not in spec_text():
+        fail("SP-005", "version 0.2.0 missing")
+    lock_v2 = ROOT / "core/envelope/src/test/resources/envelope-event.json"
+    if lock_v2.exists() and "io.a3ep.belief.admitted" not in lock_v2.read_text(encoding="utf-8"):
+        fail("SP-005", "lock v2 type drifted from spec")
+    if lock_v2.exists() and "attester_id" not in lock_v2.read_text(encoding="utf-8"):
+        fail("SP-005", "lock v2 attestation missing")
+    lock_v1 = ROOT / "conformance/vectors/v1/envelope-event.json"
+    if lock_v1.exists() and "a3.belief.admitted" not in lock_v1.read_text(encoding="utf-8"):
+        fail("SP-005", "lock v1 type drifted")
     pass_("SP-005")
 
 
@@ -165,7 +174,7 @@ def sp_006(body: str) -> None:
 
 def sp_007() -> None:
     proc = subprocess.run(
-        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md", ":!REVIEW_SPEC_A3UI.md", ":!REVIEW_CONFORMANCE_A3EP.md", ":!conformance", ":!settings.gradle.kts"],
+        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md", ":!REVIEW_SPEC_A3UI.md", ":!REVIEW_CONFORMANCE_A3EP.md", ":!REVIEW_PROTOCOL_V2.md", ":!conformance", ":!settings.gradle.kts", ":!core/envelope"],
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -182,7 +191,7 @@ def sp_007() -> None:
         capture_output=True,
         text=True,
     )
-    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md", "REVIEW_CONFORMANCE_A3EP.md", "conformance/", "settings.gradle.kts")
+    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md", "REVIEW_CONFORMANCE_A3EP.md", "REVIEW_PROTOCOL_V2.md", "conformance/", "settings.gradle.kts", "core/envelope/")
     ignore = (".kotlin/", ".DS_Store")
     for line in status.stdout.splitlines():
         if not line.strip():

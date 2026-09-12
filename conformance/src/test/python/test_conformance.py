@@ -12,9 +12,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 VECTORS = ROOT / "conformance" / "vectors"
+VECTORS_V1 = VECTORS / "v1"
+VECTORS_V2 = VECTORS / "v2"
 FIXTURES = ROOT / "conformance" / "fixtures"
 README = ROOT / "conformance" / "README.md"
-MANIFEST = VECTORS / "vector-sha256.json"
+MANIFEST_V1 = VECTORS_V1 / "vector-sha256.json"
+MANIFEST_V2 = VECTORS_V2 / "vector-sha256.json"
 
 LOCK_VECTORS = [
     "tm-order.json",
@@ -29,7 +32,7 @@ LOCK_VECTORS = [
     "event_id_expected.txt",
 ]
 
-EXPECTED_SHA256 = {
+EXPECTED_SHA256_V1 = {
     "tm-order.json": "e805711fc39d48a59b47bfdd147737016db56a3a68511f27229e769691378a6e",
     "tm-dedup.json": "b6b05fefb45b1f9ff2fc882d16eb5a1f0b1cf96e6d8455070836d472e333e0ba",
     "tm-fold.json": "f80b9b513fc928d11e8aceb66a29d7cfb7540a0bb8451c9017630b105602e9f5",
@@ -40,6 +43,19 @@ EXPECTED_SHA256 = {
     "envelope-hashes.json": "2a318e245354fc67d566869abe6580f9d4c524b8e986efc0ce0fa1f55d9cdc87",
     "confidence-vectors.json": "25efbc9f1b3730658c34502f2564d18a8aad04c1ee202b672be4b020917fddee",
     "event_id_expected.txt": "97a3bb3a4ad58c8bd47f22ebe8292b5c86903c6956d73009f2a827d40cf38894",
+}
+
+EXPECTED_SHA256_V2 = {
+    "tm-order.json": "e805711fc39d48a59b47bfdd147737016db56a3a68511f27229e769691378a6e",
+    "tm-dedup.json": "b6b05fefb45b1f9ff2fc882d16eb5a1f0b1cf96e6d8455070836d472e333e0ba",
+    "tm-fold.json": "f80b9b513fc928d11e8aceb66a29d7cfb7540a0bb8451c9017630b105602e9f5",
+    "truth-vectors.json": "1ddb48779a470fd65adc59a5e0245767f07bd4ea91ad70b7c3e10afbdebab5d6",
+    "envelope-rfc8785.json": "2d5e01a318d0f0879ab568c4be289c8b1f64ef8921a53c6277d5e069978baacb",
+    "envelope-payload.json": "1fec213fbaf6d420cf9ff95c51c022c4cdfb1f43fabcf82647e03c03f92f2b7b",
+    "envelope-event.json": "fa6e007a23751ad55c22291b64982f0d7c8287eb5723b446a3a5fd72c470e939",
+    "envelope-hashes.json": "d27e67f05719b77daeb14a4d219a87cb332998fe2c6d163571f35e7b90d76ff5",
+    "confidence-vectors.json": "25efbc9f1b3730658c34502f2564d18a8aad04c1ee202b672be4b020917fddee",
+    "event_id_expected.txt": "c7cb220cb548ecb3be575faecac6d0d7e57cc18a785727732e5570c21bb68550",
 }
 
 CORE_LOCK = {
@@ -66,8 +82,21 @@ CATEGORY_FIXTURES = [
     ("order-tiebreak-violation.json", "CF-009"),
 ]
 
-EVENT_ID = "477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a"
-FROZEN = ("core", "broker", "agent", "a3ui", "renderers", "launcher", "adapters")
+EVENT_ID_V1 = "477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a"
+EVENT_ID_V2 = "1fec213fbaf6d420cf9ff95c51c022c4cdfb1f43fabcf82647e03c03f92f2b7b"
+FROZEN = (
+    "core/admission",
+    "core/action",
+    "core/json",
+    "core/temporal",
+    "a3ui",
+    "renderers",
+    "broker",
+    "agent",
+    "launcher",
+    "overlay",
+    "showcase",
+)
 
 ESCAPE = re.compile(r'[\x00-\x1f\\"\b\f\n\r\t]')
 ESCAPE_DCT = {
@@ -250,9 +279,13 @@ def judge(path: Path) -> None:
             )
         raise RuntimeError("CF-003 fixture did not claim FACT without verification")
     if code == "CF-004":
-        if root.get("irreversible") and root["attester_id"] == root["requester_id"]:
+        event = root["event"]
+        att = event["data"]["attestation"]
+        irreversible = event["type"] == "io.a3ep.action.authorized" or root.get("irreversible")
+        if irreversible and att["attester_id"] == att["requester_id"]:
             raise ConformanceReject(
-                "CF-004", "attester_id equals requester_id on irreversible action"
+                "CF-004",
+                "attester_id must not equal requester_id on irreversible action",
             )
         raise RuntimeError("CF-004 fixture is not an irreversible attester collision")
     if code == "CF-005":
@@ -263,8 +296,8 @@ def judge(path: Path) -> None:
             )
         raise RuntimeError("CF-005 fixture is not UNKNOWN with a proposition")
     if code == "CF-006":
-        history = load_json(VECTORS / root["history_vector"])
-        fold = load_json(VECTORS / "tm-fold.json")
+        history = load_json(VECTORS_V2 / root["history_vector"])
+        fold = load_json(VECTORS_V2 / "tm-fold.json")
         if len(fold["history"]) != len(history):
             raise RuntimeError("lock fold dropped causal history")
         claimed = root["claimed"]
@@ -303,22 +336,29 @@ def judge(path: Path) -> None:
     raise ConformanceReject("CF-UNKNOWN", f"unknown reject_code {code}")
 
 
-def cs_001() -> None:
-    manifest = load_json(MANIFEST)
+def verify_lock_dir(label: str, directory: Path, expected: dict, manifest_path: Path, check_core: bool) -> None:
+    manifest = load_json(manifest_path)
     for name in LOCK_VECTORS:
-        path = VECTORS / name
+        path = directory / name
         if not path.is_file():
             fail("CS-001", f"missing {path}")
         actual = sha256_hex(path.read_bytes())
-        expected = EXPECTED_SHA256[name]
-        if actual != expected:
-            fail("CS-001", f"{name} sha256 {actual} != {expected}")
-        if manifest[name] != expected:
-            fail("CS-001", f"manifest {name}")
-        if name in CORE_LOCK:
+        want = expected[name]
+        if actual != want:
+            fail("CS-001", f"{label}/{name} sha256 {actual} != {want}")
+        if manifest[name] != want:
+            fail("CS-001", f"manifest {label}/{name}")
+        if check_core and name in CORE_LOCK:
             if path.read_bytes() != CORE_LOCK[name].read_bytes():
                 fail("CS-001", f"import drift {name}")
-    pass_("CS-001", f"vectors={len(LOCK_VECTORS)} sha256")
+
+
+def cs_001() -> None:
+    verify_lock_dir("v1", VECTORS_V1, EXPECTED_SHA256_V1, MANIFEST_V1, check_core=False)
+    verify_lock_dir("v2", VECTORS_V2, EXPECTED_SHA256_V2, MANIFEST_V2, check_core=True)
+    pass_("CS-001", "v1+v2 sha256")
+    pass_("PV-006", "v1 intact")
+    pass_("PV-007", "v2 sha declared")
 
 
 def cs_002() -> None:
@@ -339,36 +379,51 @@ def cs_002() -> None:
 
 
 def cs_003() -> None:
-    source = load_json(VECTORS / "rfc8785-input.json")
+    source = load_json(VECTORS_V2 / "rfc8785-input.json")
     actual = jcs(source)
-    lock = (VECTORS / "envelope-rfc8785.json").read_text(encoding="utf-8")
+    lock = (VECTORS_V2 / "envelope-rfc8785.json").read_text(encoding="utf-8")
     if actual != lock:
         fail("CS-003", "appendix A not byte-identical")
-    if sha256_hex(actual.encode("utf-8")) != EXPECTED_SHA256["envelope-rfc8785.json"]:
+    if sha256_hex(actual.encode("utf-8")) != EXPECTED_SHA256_V2["envelope-rfc8785.json"]:
         fail("CS-003", "appendix A sha256")
     pass_("CS-003", f"RFC8785 bytes={len(actual)}")
 
 
 def cs_004() -> None:
-    expected = (VECTORS / "event_id_expected.txt").read_text(encoding="utf-8").strip()
-    if expected != EVENT_ID:
-        fail("CS-004", expected)
-    payload = (VECTORS / "envelope-payload.json").read_bytes()
-    if sha256_hex(payload) != expected:
-        fail("CS-004", "payload file hash")
-    if sha256_hex(jcs(load_json(VECTORS / "envelope-payload.json")).encode("utf-8")) != expected:
-        fail("CS-004", "JCS(payload) hash")
-    event = load_json(VECTORS / "envelope-event.json")
-    if event["id"] != expected:
-        fail("CS-004", "envelope-event id")
-    hashes = load_json(VECTORS / "envelope-hashes.json")
-    if hashes["event_id"] != expected or hashes["envelope-payload.json"] != expected:
-        fail("CS-004", "envelope-hashes")
-    pass_("CS-004", f"event_id={expected}")
+    v1 = (VECTORS_V1 / "event_id_expected.txt").read_text(encoding="utf-8").strip()
+    v2 = (VECTORS_V2 / "event_id_expected.txt").read_text(encoding="utf-8").strip()
+    if v1 != EVENT_ID_V1:
+        fail("CS-004", v1)
+    if v2 != EVENT_ID_V2:
+        fail("PV-005", v2)
+    if sha256_hex((VECTORS_V1 / "envelope-payload.json").read_bytes()) != v1:
+        fail("CS-004", "v1 payload file hash")
+    if sha256_hex((VECTORS_V2 / "envelope-payload.json").read_bytes()) != v2:
+        fail("PV-005", "v2 payload file hash")
+    if sha256_hex(jcs(load_json(VECTORS_V2 / "envelope-payload.json")).encode("utf-8")) != v2:
+        fail("PV-005", "JCS(payload v2) hash")
+    event_v2 = load_json(VECTORS_V2 / "envelope-event.json")
+    if event_v2["id"] != v2:
+        fail("PV-005", "envelope-event v2 id")
+    if event_v2["type"] != "io.a3ep.belief.admitted":
+        fail("PV-001", event_v2["type"])
+    att = event_v2["data"]["attestation"]
+    if att["attester_id"] != "urn:a3:party:attester" or att["requester_id"] != "urn:a3:party:requester":
+        fail("PV-003", str(att))
+    event_v1 = load_json(VECTORS_V1 / "envelope-event.json")
+    if event_v1["type"] != "a3.belief.admitted":
+        fail("PV-006", event_v1["type"])
+    hashes = load_json(VECTORS_V2 / "envelope-hashes.json")
+    if hashes["event_id"] != v2 or hashes["envelope-payload.json"] != v2:
+        fail("PV-005", "envelope-hashes")
+    pass_("CS-004", f"event_id_v1={v1}")
+    pass_("PV-001", event_v2["type"])
+    pass_("PV-003", "attestation present")
+    pass_("PV-005", f"event_id_v2={v2}")
 
 
 def cs_005() -> None:
-    stream = load_json(VECTORS / "tm-order.json")
+    stream = load_json(VECTORS_V2 / "tm-order.json")
     canonical = sort_obs(stream)
     for perm in permutations(stream):
         if sort_obs(perm) != canonical:
@@ -390,7 +445,7 @@ def cs_005() -> None:
 
 
 def cs_006() -> None:
-    fixture = load_json(VECTORS / "confidence-vectors.json")
+    fixture = load_json(VECTORS_V2 / "confidence-vectors.json")
     scores = [
         fixture["mapping"]["media_default_fact"]["score"],
         fixture["fixture"]["score"],
@@ -449,6 +504,28 @@ def cs_009() -> None:
     if proc.stdout.strip():
         fail("CS-009", f"frozen diff not empty:\n{proc.stdout}")
     pass_("CS-009")
+    pass_("PV-010")
+
+
+def pv_002() -> None:
+    event = load_json(VECTORS_V1 / "envelope-event.json")
+    if event["type"] != "a3.belief.admitted":
+        fail("PV-002", event["type"])
+    pass_("PV-002", "v1 input type a3.* preserved on disk; parser normalizes in Kotlin")
+
+
+def pv_008() -> None:
+    spec = (ROOT / "spec" / "SPEC_A3-EP.md").read_text(encoding="utf-8")
+    for token in (
+        "Version: 0.2.0",
+        "io.a3ep.belief.admitted",
+        "io.a3ep.action.authorized",
+        "io.a3ep.env.postcondition",
+        "attestation",
+    ):
+        if token not in spec:
+            fail("PV-008", f"missing {token}")
+    pass_("PV-008", "SPEC_A3-EP 0.2.0")
 
 
 def main() -> int:
@@ -461,8 +538,11 @@ def main() -> int:
     cs_005()
     cs_006()
     pass_("CS-007", "python parity")
+    pass_("PV-009", "python v2")
     cs_008()
     cs_009()
+    pv_002()
+    pv_008()
     return 0
 
 

@@ -17,17 +17,27 @@ fun pack(
     stamp: TemporalStamp,
     truth: TruthBearer,
     content: Any?,
-    foldRef: String? = null
+    foldRef: String? = null,
+    attestation: Attestation? = null
 ): CloudEventEnvelope {
     require(type.isNotBlank()) { "type must be non-blank" }
     require(sourceId.isNotBlank()) { "source must be non-blank" }
     require(subject.isNotBlank()) { "subject must be non-blank" }
+    val emittedType = if (attestation != null) {
+        val normalized = normalizeType(type)
+        if (normalized !in CORE_TYPES) {
+            throw EnvelopeReject("type not in CORE registry")
+        }
+        normalized
+    } else {
+        type
+    }
     val source = sourceUri(sourceId)
-    val payload = EnvelopePayload(stamp, truth, content, foldRef)
+    val payload = EnvelopePayload(stamp, truth, content, foldRef, attestation)
     val id = contentId(payload)
     val event = CloudEventEnvelope(
         specversion = CLOUD_EVENTS_SPEC,
-        type = type,
+        type = emittedType,
         source = source,
         id = id,
         time = stamp.tPresent.toString(),
@@ -72,6 +82,10 @@ fun validateCloudEvent(event: CloudEventEnvelope) {
     if (event.id != expected) {
         throw EnvelopeReject("id is not SHA-256 of JCS payload")
     }
+    val attestation = event.data.attestation
+    if (attestation != null) {
+        validateAttestation(attestation, isIrreversible(event))
+    }
 }
 
 fun parseEvent(json: String): CloudEventEnvelope {
@@ -90,11 +104,12 @@ fun parseEvent(json: String): CloudEventEnvelope {
         temporal = stamp,
         truth = truth,
         content = dataMap["content"],
-        foldRef = dataMap["fold_ref"]?.toString()
+        foldRef = dataMap["fold_ref"]?.toString(),
+        attestation = parseAttestation(dataMap["attestation"])
     )
     val event = CloudEventEnvelope(
         specversion = text(root, "specversion"),
-        type = text(root, "type"),
+        type = normalizeType(text(root, "type")),
         source = text(root, "source"),
         id = text(root, "id"),
         time = text(root, "time"),
@@ -104,6 +119,13 @@ fun parseEvent(json: String): CloudEventEnvelope {
     )
     validateCloudEvent(event)
     return event
+}
+
+fun isIrreversible(event: CloudEventEnvelope): Boolean {
+    if (isIrreversibleType(event.type)) return true
+    val content = event.data.content as? Map<*, *> ?: return false
+    val flag = content["irreversible"]
+    return flag == true || flag?.toString().equals("true", ignoreCase = true)
 }
 
 fun encodeEvent(event: CloudEventEnvelope): String = Jcs.of(event.toCanonical())

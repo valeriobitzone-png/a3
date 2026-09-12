@@ -1,6 +1,8 @@
 # A3-EP conformance
 
-Category suite for SPEC_A3-EP 0.1.0. A producer that violates a MUST or MUST NOT fails. Vectors are the CORE lock files, hashed SHA-256 (not SHA-1).
+Category suite for SPEC_A3-EP 0.2.0 (lock v2). A producer that violates a MUST or MUST NOT fails. Vectors are the CORE lock files, hashed SHA-256 (not SHA-1).
+
+Lock v1 lives in `conformance/vectors/v1/` (byte-identical to the 0.1.0 corpus). Lock v2 lives in `conformance/vectors/v2/`. a3-ts rebase instructions: `conformance/vectors/v2/README-REBASE.md`.
 
 ## Run
 
@@ -11,26 +13,17 @@ From the repository root:
 python3 conformance/src/test/python/test_conformance.py
 ```
 
-Kotlin exercises the frozen `:core:*` reference. Python reads the same files under `conformance/vectors/` and `conformance/fixtures/` and checks the same codes.
+Kotlin exercises `:core:*`. Python reads `conformance/vectors/v2/` (and v1 for backward checks) plus `conformance/fixtures/` and checks the same codes.
 
 ## Vectors
 
-Import path: `conformance/vectors/`. SHA-256 table: `conformance/vectors/vector-sha256.json`.
+v1: `conformance/vectors/v1/` + `vector-sha256.json`. v2: `conformance/vectors/v2/` + `vector-sha256.json`.
 
-| File | SHA-256 |
-|------|---------|
-| tm-order.json | `e805711fc39d48a59b47bfdd147737016db56a3a68511f27229e769691378a6e` |
-| tm-dedup.json | `b6b05fefb45b1f9ff2fc882d16eb5a1f0b1cf96e6d8455070836d472e333e0ba` |
-| tm-fold.json | `f80b9b513fc928d11e8aceb66a29d7cfb7540a0bb8451c9017630b105602e9f5` |
-| truth-vectors.json | `1ddb48779a470fd65adc59a5e0245767f07bd4ea91ad70b7c3e10afbdebab5d6` |
-| envelope-rfc8785.json | `2d5e01a318d0f0879ab568c4be289c8b1f64ef8921a53c6277d5e069978baacb` |
-| envelope-payload.json | `477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a` |
-| envelope-event.json | `a0cbf887413c9825638bd410da5689a217d895b0a391b367aa3c7cb003f0c07e` |
-| envelope-hashes.json | `2a318e245354fc67d566869abe6580f9d4c524b8e986efc0ce0fa1f55d9cdc87` |
-| confidence-vectors.json | `25efbc9f1b3730658c34502f2564d18a8aad04c1ee202b672be4b020917fddee` |
-| event_id_expected.txt | `97a3bb3a4ad58c8bd47f22ebe8292b5c86903c6956d73009f2a827d40cf38894` |
+`event_id` v1 MUST equal `477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a`.
 
-`event_id` MUST equal `477e868489f5c48d138e4c084e9bf13a40ed66390b964365869f7578dfa2e75a` = SHA-256 of `envelope-payload.json` (already JCS).
+`event_id` v2 MUST equal `1fec213fbaf6d420cf9ff95c51c022c4cdfb1f43fabcf82647e03c03f92f2b7b`.
+
+v2 `type` MUST be `io.a3ep.belief.admitted`. v2 payload MUST carry `attestation`.
 
 `rfc8785-input.json` is the RFC 8785 appendix A input. `envelope-rfc8785.json` is the byte-identical canonical form.
 
@@ -54,11 +47,11 @@ Kotlin: `ConformanceReject(code, reason)` message `CODE: reason`. Python: same c
 
 ## Add an implementation
 
-Keep `conformance/vectors/` byte-identical. Do not substitute local JSON.
+Keep `conformance/vectors/v2/` byte-identical. Do not substitute local JSON. Keep `conformance/vectors/v1/` for backward tests.
 
-1. Hash every lock file with SHA-256. Fail if a digest differs from `vector-sha256.json`.
+1. Hash every lock file with SHA-256. Fail if a digest differs from `v1/vector-sha256.json` and `v2/vector-sha256.json`.
 2. Canonicalize `rfc8785-input.json` with RFC 8785. Fail if bytes differ from `envelope-rfc8785.json`.
-3. Compute `id = SHA-256(JCS(payload))`. Fail if it differs from `event_id_expected.txt`.
+3. Compute `id = SHA-256(JCS(payload))`. Fail if v2 differs from `v2/event_id_expected.txt`.
 4. Sort with key `(t_observe, source_id, seq)`, residual `(subject, key)`. Shuffled input MUST yield the same output.
 5. Fold confidence with `(min, ⊤)` where ⊤ = 1. Fail a compensating mean.
 6. Load each CF-001..CF-009 fixture and reject with that code. Do not admit the producer output.
