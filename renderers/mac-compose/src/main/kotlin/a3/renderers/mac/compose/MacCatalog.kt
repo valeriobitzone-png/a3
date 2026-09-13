@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.focusable
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -61,6 +63,16 @@ fun MacCatalog(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(MacTheme.space)
         ) {
+            Box(
+                Modifier
+                    .size(0.dp)
+                    .testTag("skip-to-marks")
+                    .focusable()
+                    .semantics {
+                        contentDescription = "Salta ai marchi"
+                        traversalIndex = -1f
+                    }
+            )
             for (node in nodes) {
                 CatalogNode(node, gestures, onAction, extra = occupancy(node.role), depth = 1)
             }
@@ -294,24 +306,26 @@ private fun nodeModifier(
     }
     val axis = MacExposure.of(node)
     val spoken = MacExposure.contentDescription(node)
-    val axisDesc = node.stateDescription.takeIf { it.isNotEmpty() }
+    val axisDesc = MacExposure.markStateDescription(node).takeIf { it.isNotEmpty() }
     val critical = axis.support == "unknown" ||
         axis.freshness == "stale" ||
         axis.status == "held" ||
         axis.status == "contradicted" ||
         axis.action == "unknown" ||
         axis.action == "compensated"
+    val forbid = node.role == "action" && !MacExposure.ctaEnabled(axis)
     modifier = modifier.semantics {
         if (spoken.isNotEmpty()) contentDescription = spoken
         if (axisDesc != null) stateDescription = axisDesc
         traversalIndex = if (!axis.isDefault()) 0f else 1f
         if (critical) liveRegion = LiveRegionMode.Assertive
+        if (forbid) disabled()
     }
     val click = targeted.firstOrNull { it.gesture != "swipe-left" }?.action
         ?: if (node.role == "action") targeted.firstOrNull()?.action else null
     if (click != null || node.role == "action") {
         val actionName = click ?: ""
-        modifier = modifier.actionPress(enabled = actionName.isNotEmpty(), source = pressSource) {
+        modifier = modifier.actionPress(enabled = actionName.isNotEmpty() && !forbid, source = pressSource) {
             if (actionName.isNotEmpty()) onAction(actionName)
         }
     }

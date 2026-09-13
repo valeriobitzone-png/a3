@@ -1,0 +1,4 @@
+Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore
+Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first
+Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato
+Volo, conferma abilitata

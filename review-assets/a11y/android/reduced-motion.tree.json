@@ -1,0 +1,302 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 387,
+  "height": 867,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 82,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-zero",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=0"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 73,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "fixture-hotel",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "STALE stale 2 ore warning",
+    "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+    "traversalIndex": 0.0,
+    "width": 387,
+    "height": 200,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Hotel Milano"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 78,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "stale-warning",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 64,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "hotel-price",
+      "text": ["€89"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 25,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-hotel",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "STALE stale 2 ore warning",
+      "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+      "traversalIndex": 0.1,
+      "width": 84,
+      "height": 48,
+      "children": []
+    },
+    {
+      "tag": "stale-age",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 64,
+      "height": 20,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-calendar",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+    "traversalIndex": 1.0,
+    "width": 387,
+    "height": 201,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Calendario"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 67,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "contradicted-badge",
+      "text": ["contradicted"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 79,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "slot-0900",
+      "text": ["9:00"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 31,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "slot-0930",
+      "text": ["9:30"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 31,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-calendar",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+      "traversalIndex": 1.1,
+      "width": 76,
+      "height": 48,
+      "children": []
+    },
+    {
+      "tag": "forbid-reason",
+      "text": ["contradicted: resolve conflict first"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 206,
+      "height": 20,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-train",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+    "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+    "traversalIndex": 2.0,
+    "width": 387,
+    "height": 201,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Treno"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-label",
+      "text": ["in verifica"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 59,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-slot",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 367,
+      "height": 28,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-train",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+      "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+      "traversalIndex": 2.1,
+      "width": 76,
+      "height": 48,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-flight",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "FACT believed now confirm permitted",
+    "contentDescription": "Volo, conferma abilitata",
+    "traversalIndex": 3.0,
+    "width": 387,
+    "height": 201,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Volo"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 28,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "fact-baseline",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 4,
+      "height": 4,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-flight",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "FACT believed now confirm permitted",
+      "contentDescription": "Volo, conferma abilitata",
+      "traversalIndex": 3.1,
+      "width": 84,
+      "height": 48,
+      "children": []
+    }
+    ]
+  }
+  ]
+}

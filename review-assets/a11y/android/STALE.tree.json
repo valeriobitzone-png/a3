@@ -1,0 +1,134 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 387,
+  "height": 867,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 82,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-on",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=240"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 87,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "a11y-caption",
+    "text": ["LETTURA: Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "LETTURA: Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+    "traversalIndex": null,
+    "width": 387,
+    "height": 32,
+    "children": []
+  },
+  {
+    "tag": "fixture-hotel",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "STALE stale 2 ore warning",
+    "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+    "traversalIndex": 0.0,
+    "width": 387,
+    "height": 795,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Hotel Milano"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 78,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "stale-warning",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 64,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "hotel-price",
+      "text": ["€89"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 25,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-hotel",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "STALE stale 2 ore warning",
+      "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+      "traversalIndex": 0.1,
+      "width": 84,
+      "height": 48,
+      "children": []
+    },
+    {
+      "tag": "stale-age",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 64,
+      "height": 20,
+      "children": []
+    }
+    ]
+  }
+  ]
+}

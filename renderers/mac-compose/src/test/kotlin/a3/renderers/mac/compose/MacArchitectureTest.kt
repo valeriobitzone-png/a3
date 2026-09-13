@@ -64,7 +64,6 @@ class MacArchitectureTest {
             "core/action",
             "prediction/",
             "projection/",
-            "a3ui/",
             "renderers/android-core/",
             "adapters/",
             "intent-model/",

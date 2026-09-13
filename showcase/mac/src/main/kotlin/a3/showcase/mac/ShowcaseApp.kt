@@ -60,6 +60,7 @@ fun ShowcaseApp(
     initialGlass: Boolean = true,
     initialSilent: Boolean = false,
     initialAmbient: Boolean = false,
+    initialHighContrast: Boolean = false,
     tour: Boolean = false,
     staticChrome: Boolean = false,
     journal: ShowcaseJournal = remember { ShowcaseJournal() },
@@ -71,6 +72,7 @@ fun ShowcaseApp(
     var talkback by remember { mutableStateOf(initialTalkback) }
     var glassOn by remember { mutableStateOf(initialGlass) }
     var silent by remember { mutableStateOf(initialSilent) }
+    var highContrast by remember { mutableStateOf(initialHighContrast) }
     var modal by remember { mutableStateOf(false) }
     var ambientExpanded by remember { mutableStateOf(initialAmbient) }
     var particle by remember { mutableStateOf(false) }
@@ -190,6 +192,8 @@ fun ShowcaseApp(
                                 amber = argb(tokens.amber),
                                 type = MacTheme.type,
                                 frost = glassOn,
+                                reducedMotion = reduced || staticChrome,
+                                highContrast = highContrast,
                                 ambient = {
                                     ShowcaseAmbient(
                                         expanded = ambientExpanded,
@@ -203,7 +207,8 @@ fun ShowcaseApp(
                         } else {
                             MacRenderer(
                                 output = output,
-                                onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) }
+                                onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
+                                highContrast = highContrast
                             )
                         }
                     }
@@ -236,6 +241,7 @@ fun ShowcaseApp(
                     talkback = talkback,
                     glassOn = glassOn,
                     silent = silent,
+                    highContrast = highContrast,
                     ink = ink,
                     onLevel = { level = it },
                     onReduced = {
@@ -245,13 +251,14 @@ fun ShowcaseApp(
                     onTalkback = { talkback = !talkback },
                     onGlass = { glassOn = !glassOn },
                     onSilent = { silent = !silent },
+                    onHighContrast = { highContrast = !highContrast },
                     onModal = { modal = !modal },
                     onAmbient = { ambientExpanded = !ambientExpanded },
                     onSensory = { fireSensory(ShowcaseSensory.Cause.CONFIRM, ShowcaseSensory.Cause.TAP) }
                 )
                 ShowcaseGlassPlate(Modifier.padding(8.dp), nested = true, frost = glassOn) {
                     BasicText(
-                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} blur=${if (glassOn) "on" else "off"} silent=${if (silent) "on" else "off"} ${level.wire()}",
+                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} blur=${if (glassOn) "on" else "off"} silent=${if (silent) "on" else "off"} contrast=${if (highContrast) "on" else "off"} ${level.wire()}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag("showcase-status"),
                         style = MacTheme.type.copy(fontSize = 12.sp, color = ink)
                     )
@@ -268,12 +275,14 @@ private fun Controls(
     talkback: Boolean,
     glassOn: Boolean,
     silent: Boolean,
+    highContrast: Boolean,
     ink: Color,
     onLevel: (ShowcaseLevel) -> Unit,
     onReduced: () -> Unit,
     onTalkback: () -> Unit,
     onGlass: () -> Unit,
     onSilent: () -> Unit,
+    onHighContrast: () -> Unit,
     onModal: () -> Unit,
     onAmbient: () -> Unit,
     onSensory: () -> Unit
@@ -304,6 +313,7 @@ private fun Controls(
             ShowcaseGlassChip("talkback ${if (talkback) "on" else "off"}", "toggle-talkback", talkback, ink, onTalkback)
             ShowcaseGlassChip("blur ${if (glassOn) "on" else "off"}", "toggle-blur", !glassOn, ink, onGlass)
             ShowcaseGlassChip("silent ${if (silent) "on" else "off"}", "toggle-silent", silent, ink, onSilent)
+            ShowcaseGlassChip("contrast ${if (highContrast) "on" else "off"}", "toggle-contrast", highContrast, ink, onHighContrast)
         }
         Row(
             Modifier.padding(top = 4.dp).fillMaxWidth(),

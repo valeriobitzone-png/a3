@@ -34,9 +34,11 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.focusable
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -44,6 +46,7 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import a3.a3ui.a11y.SpokenLaw
 import a3.a3ui.model.EpistemicAction
 import a3.a3ui.model.EpistemicFreshness
 import a3.a3ui.model.EpistemicStatus
@@ -69,6 +72,16 @@ fun ComposeCatalog(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(Theme.space)
         ) {
+            Box(
+                Modifier
+                    .size(0.dp)
+                    .testTag("skip-to-marks")
+                    .focusable()
+                    .semantics {
+                        contentDescription = "Salta ai marchi"
+                        traversalIndex = -1f
+                    }
+            )
             for (node in nodes) {
                 CatalogNode(node, gestures, onAction, extra = occupancy(node.role), depth = 1)
             }
@@ -305,16 +318,18 @@ private fun nodeModifier(
     if (node.role == "action") {
         modifier = modifier.sizeIn(minWidth = Theme.actionMin, minHeight = Theme.actionMin)
     }
-    val axis = node.axis
-    val nonDefault = axis != null && !axis.isDefault()
+    val axis = Exposure.of(node)
+    val nonDefault = !axis.isDefault()
     val spoken = Exposure.contentDescription(node)
-    val axisDesc = node.stateDescription.takeIf { it.isNotEmpty() }
-    val critical = Exposure.announcePhrases(Exposure.of(node)).isNotEmpty()
+    val axisDesc = Exposure.markStateDescription(node).takeIf { it.isNotEmpty() }
+    val critical = Exposure.announcePhrases(axis).isNotEmpty()
+    val forbid = node.role == "action" && !SpokenLaw.ctaEnabled(SpokenLaw.of(axis))
     modifier = modifier.semantics {
         if (spoken.isNotEmpty()) contentDescription = spoken
         if (axisDesc != null) stateDescription = axisDesc
         traversalIndex = if (nonDefault) 0f else 1f
         if (critical) liveRegion = LiveRegionMode.Assertive
+        if (forbid) disabled()
     }
     var clickableAction: String? = null
     var clickableGesture: String? = null
@@ -339,7 +354,7 @@ private fun nodeModifier(
     if (emit != null || node.role == "action") {
         val actionName = emit ?: ""
         val gestureName = clickableGesture ?: ""
-        modifier = modifier.actionPress(enabled = actionName.isNotEmpty(), source = pressSource) {
+        modifier = modifier.actionPress(enabled = actionName.isNotEmpty() && !forbid, source = pressSource) {
             if (actionName.isNotEmpty()) {
                 onAction(IntentCandidate(gestureName, actionName, node.id).action)
             }

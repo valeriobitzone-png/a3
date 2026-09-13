@@ -1,5 +1,9 @@
 package a3.showcase
 
+import a3.a3ui.a11y.MarkKind
+import a3.a3ui.a11y.SpokenLaw
+import a3.a3ui.a11y.SpokenRequest
+
 /**
  * Complete epistemic scene for showcase-v0.3. Clock-free: ages are fixed
  * offsets from [NOW], not wall time. Marks (not glass, not audio) carry meaning.
@@ -24,7 +28,8 @@ object ShowcaseScene {
     enum class State(val wire: String) {
         PENDING("pending"),
         STALE("stale"),
-        CONTRADICTED("contradicted")
+        CONTRADICTED("contradicted"),
+        FACT("fact")
     }
 
     enum class Provenance(val wire: String, val label: String) {
@@ -47,6 +52,28 @@ object ShowcaseScene {
         fun ageLabel(): String = ShowcaseScene.ageLabel(ageMs)
         fun decay(): Float = ShowcaseScene.decay(ageMs)
         fun tag(): String = "scene-$id"
+        fun spokenName(): String = when (id) {
+            "hotel" -> "Hotel Milano"
+            "flight" -> "Volo"
+            else -> role
+        }
+        fun markKind(): MarkKind = when (state) {
+            State.PENDING -> MarkKind.PENDING
+            State.STALE -> MarkKind.STALE
+            State.CONTRADICTED -> MarkKind.CONTRADICTED
+            State.FACT -> MarkKind.FACT
+        }
+        fun reading(): String = SpokenLaw.reading(
+            SpokenRequest(
+                oggetto = spokenName(),
+                mark = markKind(),
+                ageSpoken = if (state == State.STALE) SpokenLaw.STALE_WARNING else null,
+                priceSpoken = price?.let { "prezzo ${it.replace("€", "").trim()} euro" },
+                extra = if (state == State.PENDING) SpokenLaw.PENDING_SLOT else null,
+                reason = forbidReason
+            )
+        )
+        fun stateDescription(): String = SpokenLaw.stateDescription(markKind())
     }
 
     fun surfaces(): List<Surface> = listOf(
@@ -88,6 +115,18 @@ object ShowcaseScene {
     fun train(): Surface = surfaces()[0]
     fun hotel(): Surface = surfaces()[1]
     fun calendar(): Surface = surfaces()[2]
+
+    fun flight(): Surface = Surface(
+        id = "flight",
+        role = "Volo",
+        state = State.FACT,
+        provenance = Provenance.API,
+        ageMs = 0L,
+        price = null,
+        slots = emptyList(),
+        confirmEnabled = true,
+        forbidReason = null
+    )
 
     fun ageLabel(ageMs: Long): String {
         if (ageMs <= 0L) return AGE_NOW

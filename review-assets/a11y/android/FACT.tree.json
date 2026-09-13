@@ -1,0 +1,112 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 387,
+  "height": 867,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 82,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-on",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=240"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 87,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "a11y-caption",
+    "text": ["LETTURA: Volo, conferma abilitata"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "LETTURA: Volo, conferma abilitata",
+    "traversalIndex": null,
+    "width": 387,
+    "height": 16,
+    "children": []
+  },
+  {
+    "tag": "fixture-flight",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "FACT believed now confirm permitted",
+    "contentDescription": "Volo, conferma abilitata",
+    "traversalIndex": 0.0,
+    "width": 387,
+    "height": 811,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Volo"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 28,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "fact-baseline",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 4,
+      "height": 4,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-flight",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "FACT believed now confirm permitted",
+      "contentDescription": "Volo, conferma abilitata",
+      "traversalIndex": 0.1,
+      "width": 84,
+      "height": 48,
+      "children": []
+    }
+    ]
+  }
+  ]
+}
