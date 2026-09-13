@@ -1,0 +1,57 @@
+{
+  "tag" : "conformance-host",
+  "text" : [ ],
+  "enabled" : true,
+  "stateDescription" : null,
+  "contentDescription" : "a3ui conformance host",
+  "children" : [ {
+    "tag" : "scene-frost-on",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "motion-on",
+    "text" : [ "motion-ms=240" ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "fixture-flight",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "FACT believed now confirm permitted",
+    "contentDescription" : "FACT believed now confirm permitted",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Volo" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "fact-baseline",
+      "text" : [ ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-flight",
+      "text" : [ "conferma" ],
+      "enabled" : true,
+      "stateDescription" : "FACT believed now confirm permitted",
+      "contentDescription" : "FACT believed now confirm permitted",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "OBSERVED_SIGNED · FACT" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  } ]
+}

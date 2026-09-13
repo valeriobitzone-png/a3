@@ -1,0 +1,13 @@
+{
+  "reject_code": "AC-005",
+  "observed": {
+    "surfaces": [
+      {
+        "mark": "FACT",
+        "cta_enabled": false,
+        "reason": null,
+        "state_description": "FACT believed now confirm permitted"
+      }
+    ]
+  }
+}

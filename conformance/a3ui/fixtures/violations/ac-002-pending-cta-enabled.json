@@ -1,0 +1,13 @@
+{
+  "reject_code": "AC-002",
+  "observed": {
+    "surfaces": [
+      {
+        "mark": "PENDING",
+        "cta_enabled": true,
+        "confirmation_required": false,
+        "state_description": "PENDING in verifica confirm forbidden"
+      }
+    ]
+  }
+}

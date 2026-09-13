@@ -1,0 +1,13 @@
+{
+  "reject_code": "AC-003",
+  "observed": {
+    "surfaces": [
+      {
+        "mark": "UNKNOWN",
+        "cta_enabled": true,
+        "confirmation_required": false,
+        "state_description": "UNKNOWN insufficient evidence confirm forbidden"
+      }
+    ]
+  }
+}
