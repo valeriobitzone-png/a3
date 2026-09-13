@@ -20,7 +20,8 @@ fun GlassOpticsLayer(refract: Boolean, noise: Boolean, modifier: Modifier = Modi
 
 @Composable
 fun ParticleBurst(trigger: Boolean, modifier: Modifier = Modifier) {
-    Box(Modifier.size(24.dp).then(modifier).testTag(if (trigger) "particle-burst" else "particle-idle"))
+    val on = LocalParticlesEnabled.current
+    Box(Modifier.size(24.dp).then(modifier).testTag(if (trigger && on) "particle-burst" else "particle-idle"))
 }
 
 @Composable

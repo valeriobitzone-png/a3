@@ -35,6 +35,7 @@ android {
 
 dependencies {
     api(project(":renderers:android-core"))
+    implementation(project(":overlay:common"))
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")

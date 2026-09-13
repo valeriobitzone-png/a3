@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import QuartzCore
 
 @main
 struct OverlayMain {
@@ -44,10 +45,26 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     var dismissOutside = true
     var timeoutWork: DispatchWorkItem?
     var lastInteraction = Date()
+    var profileRaw = "HIGH"
+    var profileManual = false
+    let profileChip = NSTextField(labelWithString: "HIGH · auto")
+    var harvestFrames = 0
+    var harvestLog: String?
+    var harvestScene = "overlay"
+    var frameDeltas: [Double] = []
+    var lastFrameTs: CFTimeInterval = 0
+    var displayLink: CADisplayLink?
+    var wallpaper: NSWindow?
+
+    var harvesting: Bool { harvestFrames > 0 && harvestLog != nil }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         parseArgs()
         guard NSScreen.main != nil else { return }
+        if harvesting {
+            NSApp.setActivationPolicy(.regular)
+            showHarvestWallpaper()
+        }
         panel.level = .floating
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -65,6 +82,11 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         effect.state = .active
         effect.frame = panel.contentView?.bounds ?? .zero
         effect.autoresizingMask = [.width, .height]
+        if profileRaw == "BLUR_OFF" {
+            effect.state = .inactive
+            panel.backgroundColor = NSColor(calibratedWhite: 0.08, alpha: 0.48)
+            blurUnavailable = true
+        }
         panel.contentView = effect
 
         dismissHit.title = ""
@@ -81,6 +103,15 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         stack.spacing = 14
         stack.translatesAutoresizingMaskIntoConstraints = false
         effect.addSubview(stack)
+
+        profileChip.stringValue = "\(profileRaw) · \(profileManual ? "manual" : "auto")"
+        profileChip.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+        profileChip.textColor = NSColor(calibratedWhite: 0.86, alpha: 1)
+        profileChip.alignment = .center
+        profileChip.drawsBackground = false
+        profileChip.isBezeled = false
+        profileChip.identifier = NSUserInterfaceItemIdentifier("profile-pill")
+        stack.addArrangedSubview(profileChip)
 
         pill.title = mark
         pill.bezelStyle = .inline
@@ -125,25 +156,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         }
 
         for card in cards {
-            let button = NSButton()
-            button.title = "\(card["title"] as? String ?? "")  \(card["price"] as? String ?? "")"
-            button.bezelStyle = .regularSquare
-            button.isBordered = false
-            button.wantsLayer = true
-            button.layer?.backgroundColor = NSColor(calibratedWhite: 1, alpha: 0.22).cgColor
-            button.layer?.cornerRadius = 22
-            button.layer?.borderWidth = 1
-            button.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.35).cgColor
-            button.contentTintColor = .white
-            button.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
-            button.target = self
-            button.action = #selector(openCard(_:))
-            button.identifier = NSUserInterfaceItemIdentifier(card["id"] as? String ?? "")
-            button.toolTip = card["url"] as? String
-            stack.addArrangedSubview(button)
-            button.widthAnchor.constraint(equalToConstant: 640).isActive = true
-            button.heightAnchor.constraint(equalToConstant: 88).isActive = true
-            cardButtons.append(button)
+            addCardButton(card)
         }
 
         NSLayoutConstraint.activate([
@@ -185,11 +198,107 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        if let seconds = ProcessInfo.processInfo.environment["A3_OVERLAY_HOLD"] {
+        if harvesting {
+            startDisplayLink()
+        } else if let seconds = ProcessInfo.processInfo.environment["A3_OVERLAY_HOLD"] {
             DispatchQueue.main.asyncAfter(deadline: .now() + (Double(seconds) ?? 2)) {
                 NSApp.terminate(nil)
             }
         }
+    }
+
+    private func addCardButton(_ card: [String: Any]) {
+        let button = NSButton()
+        button.title = "\(card["title"] as? String ?? "")  \(card["price"] as? String ?? "")"
+        button.bezelStyle = .regularSquare
+        button.isBordered = false
+        button.wantsLayer = true
+        button.layer?.backgroundColor = NSColor(calibratedWhite: 1, alpha: 0.22).cgColor
+        button.layer?.cornerRadius = 22
+        button.layer?.borderWidth = 1
+        button.layer?.borderColor = NSColor(calibratedWhite: 1, alpha: 0.35).cgColor
+        button.contentTintColor = .white
+        button.font = NSFont.systemFont(ofSize: 15, weight: .semibold)
+        button.target = self
+        button.action = #selector(openCard(_:))
+        button.identifier = NSUserInterfaceItemIdentifier(card["id"] as? String ?? "")
+        button.toolTip = card["url"] as? String
+        stack.addArrangedSubview(button)
+        button.widthAnchor.constraint(equalToConstant: 640).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 88).isActive = true
+        cardButtons.append(button)
+    }
+
+    private func showHarvestWallpaper() {
+        guard let screen = NSScreen.main else { return }
+        let window = NSWindow(
+            contentRect: screen.visibleFrame,
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isOpaque = true
+        window.level = .normal
+        window.backgroundColor = NSColor.magenta
+        window.contentView = HarvestWallpaperView(frame: screen.visibleFrame)
+        window.orderFront(nil)
+        wallpaper = window
+    }
+
+    private func startDisplayLink() {
+        if #available(macOS 14.0, *) {
+            let link = effect.displayLink(target: self, selector: #selector(onDisplayLink(_:)))
+            link.add(to: .main, forMode: .common)
+            displayLink = link
+        } else {
+            fputs("CADisplayLink requires macOS 14+\n", stderr)
+            exit(2)
+        }
+    }
+
+    @objc func onDisplayLink(_ link: CADisplayLink) {
+        if lastFrameTs == 0 {
+            lastFrameTs = link.timestamp
+            return
+        }
+        let dt = (link.timestamp - lastFrameTs) * 1000.0
+        lastFrameTs = link.timestamp
+        frameDeltas.append(dt)
+        if frameDeltas.count >= harvestFrames {
+            link.invalidate()
+            displayLink = nil
+            writeHarvestLog()
+            NSApp.terminate(nil)
+        }
+    }
+
+    private func writeHarvestLog() {
+        guard let harvestLog else { return }
+        let sorted = frameDeltas.sorted()
+        func pct(_ p: Double) -> Double {
+            guard !sorted.isEmpty else { return 0 }
+            let idx = Int(Double(sorted.count - 1) * p)
+            return sorted[min(max(idx, 0), sorted.count - 1)]
+        }
+        let iso = ISO8601DateFormatter().string(from: Date())
+        let samples = frameDeltas.map { String(format: "%.4f", $0) }.joined(separator: ",")
+        let body = """
+        host=\(ProcessInfo.processInfo.operatingSystemVersionString) \(ProcessInfo.processInfo.processorCount) cores
+        date=\(iso)
+        method=CADisplayLink on-screen NSVisualEffectView
+        scene=\(harvestScene)
+        profile=\(profileRaw)
+        blur=NSVisualEffectView.fullScreenUI.behindWindow
+        harness=on-screen (not offscreen CGContext, not OverlayCompositor)
+        frames=\(frameDeltas.count)
+        p50_ms=\(pct(0.50))
+        p95_ms=\(pct(0.95))
+        p99_ms=\(pct(0.99))
+        max_ms=\(sorted.last ?? 0)
+        samples_ms=\(samples)
+
+        """
+        try? body.write(to: URL(fileURLWithPath: harvestLog), atomically: true, encoding: .utf8)
     }
 
     private func saveShot(_ path: String) {
@@ -208,11 +317,13 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func dismissOutsideAction() {
+        guard !harvesting else { return }
         guard phase == .expanded, dismissOutside else { return }
         collapse(reason: "dismiss")
     }
 
     @objc func appActivated(_ notification: Notification) {
+        guard !harvesting else { return }
         guard phase == .expanded else { return }
         collapse(reason: "under-focus")
     }
@@ -222,6 +333,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func swipeDown(_ gesture: NSPanGestureRecognizer) {
+        if harvesting { return }
         if gesture.state == .ended && gesture.translation(in: effect).y < -80 {
             collapse(reason: "dismiss")
         }
@@ -235,6 +347,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func collapse(reason: String) {
+        if harvesting { return }
         timeoutWork?.cancel()
         phase = .collapsed
         applyPhase(animated: !reducedMotion)
@@ -255,6 +368,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         dismissHit.isHidden = phase == .collapsed
         extraLabels.forEach { $0.isHidden = phase == .collapsed }
         cardButtons.forEach { $0.isHidden = phase == .collapsed }
+        profileChip.isHidden = false
     }
 
     private func layoutCollapsed() {
@@ -275,8 +389,8 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         guard let screen = NSScreen.main else {
             return NSRect(x: 0, y: 0, width: 56, height: 36)
         }
-        let w: CGFloat = 72
-        let h: CGFloat = 44
+        let w: CGFloat = 168
+        let h: CGFloat = 72
         return NSRect(
             x: screen.visibleFrame.maxX - w - 28,
             y: screen.visibleFrame.maxY - h - 28,
@@ -286,6 +400,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func scheduleTimeout() {
+        if harvesting { return }
         timeoutWork?.cancel()
         guard phase == .expanded else { return }
         let work = DispatchWorkItem { [weak self] in
@@ -351,6 +466,30 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         if args.contains("--reduced") {
             reducedMotion = true
         }
+        if let idx = args.firstIndex(of: "--profile"), idx + 1 < args.count {
+            let raw = args[idx + 1].uppercased().replacingOccurrences(of: "-", with: "_")
+            if raw == "AUTO" || raw == "DEFAULT" {
+                profileManual = false
+            } else {
+                profileRaw = raw
+                profileManual = true
+            }
+        }
+        if let idx = args.firstIndex(of: "--scene"), idx + 1 < args.count {
+            harvestScene = args[idx + 1].lowercased()
+        }
+        if let idx = args.firstIndex(of: "--frames"), idx + 1 < args.count {
+            harvestFrames = Int(args[idx + 1]) ?? 0
+        }
+        if let idx = args.firstIndex(of: "--log"), idx + 1 < args.count {
+            harvestLog = args[idx + 1]
+        }
+        if profileRaw == "MID" {
+            reducedMotion = true
+        }
+        if profileRaw == "BLUR_OFF" {
+            blurUnavailable = true
+        }
         if ProcessInfo.processInfo.environment["A3_REDUCED_MOTION"] == "1" {
             reducedMotion = true
         }
@@ -363,6 +502,23 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
                 ["id": "transport.air", "title": "Volo FCO–LIN 07:10–08:25", "price": "86.00 EUR", "url": "https://www.google.com/travel/flights?q=Rome%20to%20Milan%20tomorrow"],
                 ["id": "transport.car", "title": "Auto A1 Roma–Milano ~5h20", "price": "fuel+toll ~45 EUR", "url": "https://www.google.com/maps/dir/Rome/Milan"]
             ]
+        }
+        if harvestScene == "catalog" {
+            var i = cards.count
+            while cards.count < 12 {
+                i += 1
+                cards.append([
+                    "id": "catalog.\(i)",
+                    "title": "Catalog card \(i) Roma–Milano",
+                    "price": "\(20 + i).00 EUR",
+                    "url": "https://www.google.com/search?q=roma+milano+\(i)"
+                ])
+            }
+            phase = .expanded
+        }
+        if harvesting {
+            phase = .expanded
+            timeoutMs = 3_600_000
         }
         if let app = NSWorkspace.shared.frontmostApplication {
             frontmost = frontmost ?? app.localizedName
@@ -385,5 +541,27 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         field.drawsBackground = false
         field.isBezeled = false
         return field
+    }
+}
+
+final class HarvestWallpaperView: NSView {
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        let cell: CGFloat = 48
+        var y: CGFloat = 0
+        var row = 0
+        while y < bounds.height {
+            var x: CGFloat = 0
+            var col = 0
+            while x < bounds.width {
+                let hue = CGFloat((row + col) % 8) / 8.0
+                NSColor(calibratedHue: hue, saturation: 0.55, brightness: 0.72, alpha: 1).setFill()
+                NSBezierPath.fill(NSRect(x: x, y: y, width: cell, height: cell))
+                x += cell
+                col += 1
+            }
+            y += cell
+            row += 1
+        }
     }
 }

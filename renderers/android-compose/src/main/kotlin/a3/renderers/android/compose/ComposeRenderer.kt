@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -20,6 +19,7 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import a3.overlay.A3UiProfile
 import a3.renderers.android.core.model.RenderedOutput
 import a3.renderers.android.core.model.RendererContext
 
@@ -31,21 +31,22 @@ fun ComposeRenderer(
     crack: Boolean = false,
     foley: FoleySink? = null,
     announce: EpistemicAnnounce = EpistemicAnnounce.Silent,
-    highContrast: Boolean = false
+    highContrast: Boolean = false,
+    profile: A3UiProfile = A3UiProfile.HIGH
 ) {
     val matrix = remember(stage) { Theme.material(stage) }
     val paint = remember(matrix) {
         Paint().apply { colorFilter = ColorFilter.colorMatrix(matrix) }
     }
     val sink = foley ?: remember { AudioTrackFoleySink() }
+    A3UiProfileProvider(profile) {
     CompositionLocalProvider(
         LocalRendererStage provides stage,
         LocalCrack provides crack,
         LocalReducedMotion provides output.reducedMotion,
         LocalHighContrast provides highContrast,
         LocalDensityHint provides output.densityHint,
-        LocalEpistemicAnnounce provides announce,
-        LocalGlassBlurEnabled provides (Build.VERSION.SDK_INT >= 31)
+        LocalEpistemicAnnounce provides announce
     ) {
         ComposeFoleyBinder(
             plan = output.sharedElements,
@@ -103,5 +104,6 @@ fun ComposeRenderer(
                 }
             }
         }
+    }
     }
 }

@@ -15,19 +15,27 @@ object OverlayCompositor {
         backdrop: BackdropMode,
         phase: OverlayPhase = OverlayPhase.COLLAPSED,
         mark: OverlayActionMark = OverlayActionMark.UNKNOWN,
-        ambientExpanded: Boolean = false
+        ambientExpanded: Boolean = false,
+        profile: ProfileDecision = ProfileDetect.resolve(A3UiProfile.HIGH, null)
     ): BufferedImage {
         val seize = phase == OverlayPhase.EXPANDED
+        val matrix = profile.matrix
+        // Display blur on Mac is NSVisualEffectView (native OverlayMain), not this
+        // offscreen BufferedImage. MUST NOT run OverlayBlur on the compose path.
         val base = when {
             !seize -> copy(screen)
-            backdrop == BackdropMode.REAL_BLUR -> blur(screen, 18)
-            else -> copy(screen)
+            backdrop == BackdropMode.REAL_BLUR && matrix.blurEnabled -> copy(screen)
+            else -> {
+                val copied = copy(screen)
+                if (seize && !matrix.blurEnabled) tint(copied) else copied
+            }
         }
         val g = base.createGraphics()
         hints(g)
-        if (seize && backdrop == BackdropMode.UNAVAILABLE) {
-            banner(g, base.width, OverlayPolicy.BLUR_UNAVAILABLE)
+        if (seize && (backdrop == BackdropMode.UNAVAILABLE || !matrix.blurEnabled)) {
+            banner(g, base.width, profile.blurMessage ?: OverlayPolicy.BLUR_UNAVAILABLE)
         }
+        profileChip(g, base.width, profile.pillText)
         pill(g, base.width, OverlayLifecycle.pillText(mark), ambientExpanded)
         if (seize) {
             val cardW = minOf(920, (base.width * 0.72).toInt().coerceAtLeast(280))
@@ -43,6 +51,10 @@ object OverlayCompositor {
         return base
     }
 
+    /**
+     * CPU box-blur of an offscreen bitmap. Diagnosis of the old harness only —
+     * not the Mac display path. [compose] MUST NOT call this.
+     */
     fun blur(src: BufferedImage, radius: Int): BufferedImage {
         val argb = ensureArgb(src)
         val w = argb.width
@@ -53,6 +65,36 @@ object OverlayCompositor {
         val out = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
         out.setRGB(0, 0, w, h, outPx, 0, w)
         return out
+    }
+
+    data class Hotspot(
+        val copyMs: Double,
+        val blurCpuMs: Double,
+        val paintMs: Double
+    ) {
+        val totalMs: Double get() = copyMs + blurCpuMs + paintMs
+        val blurSharePct: Double get() = if (totalMs <= 0.0) 0.0 else 100.0 * blurCpuMs / totalMs
+    }
+
+    /** Times copy / CPU OverlayBlur / paint on an offscreen CG-less BufferedImage. */
+    fun hotspot(
+        screen: BufferedImage,
+        session: OverlaySession,
+        radius: Int,
+        profile: ProfileDecision = ProfileDetect.resolve(A3UiProfile.HIGH, null)
+    ): Hotspot {
+        val t0 = System.nanoTime()
+        val copied = copy(screen)
+        val t1 = System.nanoTime()
+        blur(copied, radius)
+        val t2 = System.nanoTime()
+        compose(screen, session, BackdropMode.UNAVAILABLE, OverlayPhase.EXPANDED, profile = profile)
+        val t3 = System.nanoTime()
+        return Hotspot(
+            copyMs = (t1 - t0) / 1_000_000.0,
+            blurCpuMs = (t2 - t1) / 1_000_000.0,
+            paintMs = (t3 - t2) / 1_000_000.0
+        )
     }
 
     fun variance(a: BufferedImage, b: BufferedImage): Double {
@@ -103,13 +145,35 @@ object OverlayCompositor {
         val w = tw + 36
         val h = 36
         val x = width - w - 28
-        val y = 28
+        val y = 72
         val shape = RoundRectangle2D.Float(x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat(), 18f, 18f)
         g.color = Color(12, 12, 16, 180)
         g.fill(shape)
         g.color = Color(245, 242, 236)
         g.drawString(label, x + 18, y + 24)
         if (expanded) return
+    }
+
+    private fun profileChip(g: Graphics2D, width: Int, text: String) {
+        g.font = Font("SansSerif", Font.PLAIN, 13)
+        val tw = g.fontMetrics.stringWidth(text)
+        val w = tw + 28
+        val h = 26
+        val x = width - w - 28
+        val y = 28
+        val shape = RoundRectangle2D.Float(x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat(), 12f, 12f)
+        g.color = Color(12, 12, 16, 204)
+        g.fill(shape)
+        g.color = Color(220, 216, 208)
+        g.drawString(text, x + 14, y + 18)
+    }
+
+    private fun tint(src: BufferedImage): BufferedImage {
+        val g = src.createGraphics()
+        g.color = Color(12, 12, 16, 88)
+        g.fillRect(0, 0, src.width, src.height)
+        g.dispose()
+        return src
     }
 
     private fun banner(g: Graphics2D, width: Int, text: String) {

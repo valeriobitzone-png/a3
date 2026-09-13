@@ -128,13 +128,16 @@ internal fun GlassBackdropReplica(modifier: Modifier = Modifier) {
     val tokens = remember { GraphicsTokens.snapshot }
     val sceneOrigin = LocalGlassSceneOrigin.current
     var glassOrigin by remember { mutableStateOf(Offset.Zero) }
-    val matrix = ColorMatrix().apply { setToSaturation(tokens.vibrancySaturation) }
+    val features = LocalFeatureMatrix.current
+    val blurOn = LocalGlassBlurEnabled.current && features.blurEnabled
+    val radius = if (blurOn) features.blurRadiusPx.toFloat() else 0f
+    val vibrancy = ColorMatrix().apply { setToSaturation(tokens.vibrancySaturation) }
     Canvas(
         modifier
             .onGloballyPositioned { glassOrigin = it.positionInWindow() }
-            .blur(tokens.blurRadiusPx.dp)
-            .graphicsLayer { colorFilter = ColorFilter.colorMatrix(matrix) }
-            .testTag("glass-surface")
+            .then(if (radius > 0f) Modifier.blur(radius.dp) else Modifier)
+            .graphicsLayer { colorFilter = ColorFilter.colorMatrix(vibrancy) }
+            .testTag(if (blurOn) "glass-surface" else "glass-fallback")
     ) {
         val cell = GlassBackdrop.CELL
         val step = cell.toFloat()

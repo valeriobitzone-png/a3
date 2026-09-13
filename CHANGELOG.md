@@ -16,7 +16,7 @@ Each historical entry cites the git tag and the tagged commit SHA.
 
 ### Changed
 
-- None.
+- A3UI perf **(b)**: catalog target remains 60 fps (p95 < 16.7 ms); overlay expanded target is 30 fps (p95 < 33.3 ms). Declared because measured HIGH overlay expanded p95 on A024 gfxinfo is 200 ms, so **(a)** (16.7 ms on both platforms) cannot close. Overlay auto-detect on A024 defaults to BLUR_OFF with a visible profile pill. Mac display blur is `NSVisualEffectView`; CPU `OverlayBlur` is not the display path.
 
 ### Deprecated
 

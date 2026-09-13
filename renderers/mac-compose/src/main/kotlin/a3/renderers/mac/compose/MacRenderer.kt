@@ -6,30 +6,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import a3.overlay.A3UiProfile
 import a3.renderers.android.core.model.RenderedOutput
 
 @Composable
 fun MacRenderer(
     output: RenderedOutput,
     onAction: (String) -> Unit = {},
-    highContrast: Boolean = MacAccessibility.highContrast()
+    highContrast: Boolean = MacAccessibility.highContrast(),
+    profile: A3UiProfile = A3UiProfile.HIGH
 ) {
     val reduced = output.reducedMotion || MacAccessibility.reduceMotion()
-    CompositionLocalProvider(
-        LocalReducedMotion provides reduced,
-        LocalHighContrast provides highContrast,
-        LocalDensityHint provides output.densityHint
-    ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .testTag("a3-material")
+    A3UiProfileProvider(profile) {
+        CompositionLocalProvider(
+            LocalReducedMotion provides reduced,
+            LocalHighContrast provides highContrast,
+            LocalDensityHint provides output.densityHint
         ) {
-            GlassSceneHost {
-                MacMotionApplier(output.spring) {
-                    MacMorphApplier(output.sharedElements) {
-                        FluidResizeContainer {
-                            MacCatalog(output.nodes, output.gestures.actions, onAction)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .testTag("a3-material")
+            ) {
+                GlassSceneHost {
+                    MacMotionApplier(output.spring) {
+                        MacMorphApplier(output.sharedElements) {
+                            FluidResizeContainer {
+                                MacCatalog(output.nodes, output.gestures.actions, onAction)
+                            }
                         }
                     }
                 }

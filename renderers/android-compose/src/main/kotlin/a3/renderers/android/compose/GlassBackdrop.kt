@@ -128,7 +128,9 @@ internal fun GlassBackdropReplica(
     val tokens = remember { GraphicsTokens.snapshot }
     val sceneOrigin = LocalGlassSceneOrigin.current
     var glassOrigin by remember { mutableStateOf(Offset.Zero) }
-    val effect = if (blurOn) AndroidGlassEffect.create(tokens) else null
+    val matrix = LocalFeatureMatrix.current
+    val radius = if (blurOn && matrix.blurEnabled) matrix.blurRadiusPx.toFloat() else 0f
+    val effect = if (blurOn && radius > 0f) AndroidGlassEffect.create(tokens, radius) else null
     Canvas(
         modifier
             .onGloballyPositioned { glassOrigin = it.positionInWindow() }

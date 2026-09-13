@@ -1,0 +1,2 @@
+device_model=A024
+serial=<redacted-device-id>

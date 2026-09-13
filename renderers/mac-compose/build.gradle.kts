@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(project(":renderers:android-core"))
+    implementation(project(":overlay:common"))
     implementation(compose.desktop.currentOs) // org.jetbrains.compose.desktop
     implementation("com.materialkolor:material-color-utilities:1.7.1")
     // a3ui-graphics-v0.1 snapshot: src/main/resources/a3ui-graphics/
@@ -32,5 +33,20 @@ tasks.test {
         events("passed", "skipped", "failed")
         showStandardStreams = false
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+tasks.register<JavaExec>("harvestMacCatalog") {
+    group = "perf"
+    dependsOn("classes")
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("a3.renderers.mac.compose.MacFrameHarvestKt")
+    systemProperty("skiko.renderApi", "METAL")
+    doFirst {
+        val profile = (project.findProperty("harvestProfile") as String?) ?: "HIGH"
+        val frames = (project.findProperty("harvestFrames") as String?) ?: "320"
+        val log = project.findProperty("harvestLog") as String?
+            ?: error("-PharvestLog= is required")
+        args = listOf("--profile", profile, "--frames", frames, "--log", log)
     }
 }

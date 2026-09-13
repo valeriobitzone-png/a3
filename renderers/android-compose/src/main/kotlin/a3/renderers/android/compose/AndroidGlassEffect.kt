@@ -10,11 +10,15 @@ import android.os.Build
  * Android S+ chain: Gaussian blur then vibrancy. Null below API 31 (honest fallback).
  */
 internal object AndroidGlassEffect {
-    fun create(tokens: GraphicsTokens.Snapshot = GraphicsTokens.snapshot): RenderEffect? {
+    fun create(
+        tokens: GraphicsTokens.Snapshot = GraphicsTokens.snapshot,
+        blurRadiusPx: Float = tokens.blurRadiusPx
+    ): RenderEffect? {
         if (Build.VERSION.SDK_INT < 31) return null
+        if (blurRadiusPx <= 0f) return null
         val blur = RenderEffect.createBlurEffect(
-            tokens.blurRadiusPx,
-            tokens.blurRadiusPx,
+            blurRadiusPx,
+            blurRadiusPx,
             Shader.TileMode.CLAMP
         )
         val matrix = ColorMatrix()

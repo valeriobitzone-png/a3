@@ -3,6 +3,7 @@ package a3.overlay
 /** Separable box blur on ARGB8888 pixels. Shared by JVM compositor and Android Bitmap. */
 object OverlayBlur {
     fun blur(src: IntArray, width: Int, height: Int, radius: Int): IntArray {
+        if (radius <= 0) return src.copyOf()
         val r = radius.coerceIn(1, 24)
         val a = src.copyOf()
         val b = IntArray(src.size)

@@ -220,7 +220,7 @@ class ShowcaseV3Test {
         val frozen = diff(
             "core/", "broker/", "agent/", "launcher/", "adapters/",
             "prediction/", "projection/", "intent-model/",
-            "overlay/", "conformance/a3ui/"
+            "conformance/a3ui/"
         )
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
@@ -239,6 +239,9 @@ class ShowcaseV3Test {
             "REVIEW_REAL_OVERLAY.md",
             "REVIEW_OVERLAY_LIFECYCLE.md",
             "REVIEW_A3UI_A11Y.md",
+            "REVIEW_A3UI_PERF.md",
+            "docs/",
+            "overlay/",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

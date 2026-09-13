@@ -15,6 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -24,6 +26,7 @@ internal fun MacGlassSurface(
     content: @Composable BoxScope.() -> Unit
 ) {
     val tokens = remember { GraphicsTokens.snapshot }
+    val blurOn = LocalGlassBlurEnabled.current && LocalFeatureMatrix.current.blurEnabled
     val paddingPx = with(LocalDensity.current) { MacTheme.space.toPx() }
     val radiusPx = if (nested) {
         SquircleGeometry.nestedRadius(tokens.radiusPx, paddingPx, tokens.nestedMinPx)
@@ -42,7 +45,13 @@ internal fun MacGlassSurface(
             }
             .clip(shape)
     ) {
-        GlassBackdropReplica(Modifier.matchParentSize())
+        GlassBackdropReplica(
+            Modifier
+                .matchParentSize()
+                .semantics {
+                    if (!blurOn) contentDescription = MacGlassRaster.BLUR_UNAVAILABLE
+                }
+        )
         Box(Modifier.size(1.dp).testTag("glass-backdrop-replica"))
         Box(Modifier.matchParentSize().background(fill))
         Box(
