@@ -218,9 +218,9 @@ class ShowcaseV3Test {
             return out
         }
         val frozen = diff(
-            "core/", "a3ui/", "broker/", "agent/", "launcher/", "adapters/",
+            "core/", "broker/", "agent/", "launcher/", "adapters/",
             "prediction/", "projection/", "intent-model/",
-            "renderers/"
+            "overlay/", "conformance/a3ui/"
         )
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
@@ -229,13 +229,16 @@ class ShowcaseV3Test {
         assertEquals(0, status.waitFor())
         val allowed = listOf(
             "showcase/",
-            "overlay/",
+            "a3ui/",
+            "renderers/android-compose/",
+            "renderers/mac-compose/",
             "settings.gradle.kts",
             "REVIEW_SHOWCASE_V3.md",
             "REVIEW_SHOWCASE_V2.md",
             "REVIEW_SHOWCASE.md",
             "REVIEW_REAL_OVERLAY.md",
             "REVIEW_OVERLAY_LIFECYCLE.md",
+            "REVIEW_A3UI_A11Y.md",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

@@ -1,0 +1,145 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 696,
+  "height": 744,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 83,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-on",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=240"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 92,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "a11y-caption",
+    "text": ["LETTURA: Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "LETTURA: Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+    "traversalIndex": null,
+    "width": 696,
+    "height": 16,
+    "children": []
+  },
+  {
+    "tag": "fixture-calendar",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+    "traversalIndex": 0.0,
+    "width": 696,
+    "height": 688,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Calendario"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 71,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "contradicted-badge",
+      "text": ["contradicted"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 85,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "slot-0900",
+      "text": ["9:00"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "slot-0930",
+      "text": ["9:30"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 35,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-calendar",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+      "traversalIndex": 0.1,
+      "width": 78,
+      "height": 48,
+      "children": []
+    },
+    {
+      "tag": "forbid-reason",
+      "text": ["contradicted: resolve conflict first"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 224,
+      "height": 20,
+      "children": []
+    }
+    ]
+  }
+  ]
+}

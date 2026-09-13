@@ -83,17 +83,109 @@ object MacExposure {
         if (axis.status == "contradicted") parts += "contradicted"
         if (axis.action == "unknown") parts += "unknown"
         if (axis.action == "compensated") parts += "compensated"
-        return parts.joinToString(" ")
+        when (markOf(axis)) {
+            "CONTRADICTED" -> {
+                parts += "conferma disabilitata"
+                parts += "ragione: contradicted resolve conflict first"
+            }
+            "PENDING" -> {
+                parts += "in verifica, slot riservato"
+                parts += "conferma disabilitata"
+            }
+            "STALE" -> parts += "stale 2 ore"
+            "UNKNOWN", "HELD" -> parts += "conferma disabilitata"
+            else -> { }
+        }
+        val spoken = parts.joinToString(" ")
+        requireNotSensoryGloss(spoken)
+        return spoken
     }
 
     fun contentDescription(node: RenderedNode): String {
+        val axis = of(node)
         val phrases = spokenPhrases(node)
         val text = node.text
-        return when {
-            phrases.isEmpty() ->
-                if (node.role == "item" || node.role == "action") text else ""
-            text.isEmpty() -> phrases
-            else -> "$text $phrases"
+        if (axis.isDefault() && node.role != "action") {
+            return if (node.role == "item" || node.role == "action") text else ""
+        }
+        val oggetto = text.ifEmpty { "azione" }
+        val law = reading(oggetto, markOf(axis))
+        val described = node.stateDescription
+        val combined = LinkedHashSet<String>()
+        if (law.isNotEmpty()) combined += law
+        if (phrases.isNotEmpty()) combined += phrases
+        if (described.isNotEmpty()) combined += described
+        if (combined.isEmpty()) return text
+        val spoken = combined.joinToString(" ")
+        requireNotSensoryGloss(spoken)
+        return spoken
+    }
+
+    fun markStateDescription(node: RenderedNode): String {
+        val axis = of(node)
+        if (node.stateDescription.isNotEmpty()) return node.stateDescription
+        if (node.role == "action" || !axis.isDefault()) {
+            return stateDescription(markOf(axis))
+        }
+        return ""
+    }
+
+    fun ctaEnabled(axis: MacAxis): Boolean = when (markOf(axis)) {
+        "STALE", "FACT" -> true
+        else -> false
+    }
+
+    fun markOf(axis: MacAxis): String = when {
+        axis.status == "contradicted" -> "CONTRADICTED"
+        axis.status == "held" -> "HELD"
+        axis.action == "pending" -> "PENDING"
+        axis.support == "unknown" || axis.action == "unknown" -> "UNKNOWN"
+        axis.freshness == "stale" -> "STALE"
+        else -> "FACT"
+    }
+
+    fun stateDescription(mark: String): String = when (mark) {
+        "UNKNOWN" -> "UNKNOWN uncertain confirmation required"
+        "STALE" -> "STALE stale 2 ore warning"
+        "HELD" -> "HELD held pending review"
+        "CONTRADICTED" -> "CONTRADICTED contradicted: resolve conflict first confirm forbidden"
+        "PENDING" -> "PENDING in verifica slot reserved confirm forbidden"
+        else -> "FACT believed now confirm permitted"
+    }
+
+    fun reading(oggetto: String, mark: String): String {
+        val enabled = mark == "STALE" || mark == "FACT"
+        val parts = ArrayList<String>()
+        parts += oggetto
+        when (mark) {
+            "STALE" -> parts += "stale 2 ore"
+            "CONTRADICTED" -> parts += "contradicted"
+            "PENDING" -> parts += "in verifica, slot riservato"
+            "HELD" -> parts += "held"
+            "UNKNOWN" -> parts += "uncertain"
+        }
+        parts += if (enabled) "conferma abilitata" else "conferma disabilitata"
+        if (!enabled) {
+            val reason = when (mark) {
+                "CONTRADICTED" -> "contradicted resolve conflict first"
+                "PENDING" -> "in verifica, slot riservato"
+                "UNKNOWN" -> "unknown confirmation required"
+                "HELD" -> "held pending review"
+                else -> null
+            }
+            if (reason != null) parts += "ragione: $reason"
+        } else if (mark == "STALE") {
+            parts += "warning: stale 2 ore"
+        }
+        val spoken = parts.joinToString(", ")
+        requireNotSensoryGloss(spoken)
+        return spoken
+    }
+
+    fun requireNotSensoryGloss(spoken: String) {
+        val lower = spoken.lowercase()
+        if (lower.contains("dimmed") || lower.contains("grayed") || lower.contains("greyed")) {
+            throw IllegalStateException("sensory gloss in: $spoken")
         }
     }
 
@@ -202,6 +294,17 @@ fun Modifier.macChrome(axis: MacAxis, highContrast: Boolean): Modifier {
                         size = Size(size.width - inset * 2f, size.height - inset * 2f),
                         style = Stroke(width = 1.dp.toPx())
                     )
+                    val step = 10.dp.toPx().coerceAtLeast(1f)
+                    var x = 0f
+                    while (x < size.width + size.height) {
+                        drawLine(
+                            color = ink,
+                            start = Offset(x, 0f),
+                            end = Offset(x - size.height, size.height),
+                            strokeWidth = 1.5.dp.toPx()
+                        )
+                        x += step
+                    }
                 }
             }
         }

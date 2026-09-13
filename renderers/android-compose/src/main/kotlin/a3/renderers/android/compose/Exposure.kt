@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import a3.a3ui.a11y.MarkKind
+import a3.a3ui.a11y.SpokenLaw
+import a3.a3ui.a11y.SpokenRequest
 import a3.a3ui.model.EpistemicAction
 import a3.a3ui.model.EpistemicAxis
 import a3.a3ui.model.EpistemicFreshness
@@ -59,18 +62,48 @@ object Exposure {
         if (axis.status == EpistemicStatus.CONTRADICTED) parts += "contradicted"
         if (axis.action == EpistemicAction.UNKNOWN) parts += "unknown"
         if (axis.action == EpistemicAction.COMPENSATED) parts += "compensated"
-        return parts.joinToString(" ")
+        when (SpokenLaw.of(axis)) {
+            MarkKind.CONTRADICTED -> {
+                parts += "conferma disabilitata"
+                parts += "ragione: ${SpokenLaw.normalizeReason(SpokenLaw.FORBID_REASON)}"
+            }
+            MarkKind.PENDING -> {
+                parts += SpokenLaw.PENDING_SLOT
+                parts += "conferma disabilitata"
+            }
+            MarkKind.STALE -> parts += SpokenLaw.STALE_WARNING
+            MarkKind.UNKNOWN, MarkKind.HELD -> parts += "conferma disabilitata"
+            MarkKind.FACT -> { }
+        }
+        return SpokenLaw.requireNotSensoryGloss(parts.joinToString(" "))
     }
 
     fun contentDescription(node: RenderedNode): String {
-        val phrases = spokenPhrases(of(node))
+        val axis = of(node)
+        val phrases = spokenPhrases(axis)
         val text = node.text
-        return when {
-            phrases.isEmpty() ->
-                if (node.role == "item" || node.role == "action") text else ""
-            text.isEmpty() -> phrases
-            else -> "$text $phrases"
+        if (axis.isDefault() && node.role != "action") {
+            return if (node.role == "item" || node.role == "action") text else ""
         }
+        val oggetto = text.ifEmpty { "azione" }
+        val law = SpokenLaw.reading(SpokenRequest(oggetto = oggetto, mark = SpokenLaw.of(axis)))
+        val described = node.stateDescription.ifEmpty { axis.stateDescription() }
+        val combined = LinkedHashSet<String>()
+        if (law.isNotEmpty()) combined += law
+        if (phrases.isNotEmpty()) combined += phrases
+        if (described.isNotEmpty()) combined += described
+        if (combined.isEmpty()) return text
+        return SpokenLaw.requireNotSensoryGloss(combined.joinToString(" "))
+    }
+
+    fun markStateDescription(node: RenderedNode): String {
+        val axis = of(node)
+        val described = node.stateDescription.ifEmpty { axis.stateDescription() }
+        if (described.isNotEmpty()) return described
+        if (node.role == "action" || !axis.isDefault()) {
+            return SpokenLaw.stateDescription(SpokenLaw.of(axis))
+        }
+        return ""
     }
 
     fun announcePhrases(axis: EpistemicAxis): List<String> {
@@ -197,6 +230,17 @@ fun Modifier.exposureChrome(axis: EpistemicAxis, highContrast: Boolean): Modifie
                         size = Size(size.width - inset * 2f, size.height - inset * 2f),
                         style = Stroke(width = 1.dp.toPx())
                     )
+                    val step = 10.dp.toPx().coerceAtLeast(1f)
+                    var x = 0f
+                    while (x < size.width + size.height) {
+                        drawLine(
+                            color = ink,
+                            start = Offset(x, 0f),
+                            end = Offset(x - size.height, size.height),
+                            strokeWidth = 1.5.dp.toPx()
+                        )
+                        x += step
+                    }
                 }
             }
             EpistemicFreshness.FRESH -> { }

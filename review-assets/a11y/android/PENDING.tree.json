@@ -1,0 +1,123 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 387,
+  "height": 867,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 82,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-on",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=240"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 87,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "a11y-caption",
+    "text": ["LETTURA: Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "LETTURA: Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+    "traversalIndex": null,
+    "width": 387,
+    "height": 32,
+    "children": []
+  },
+  {
+    "tag": "fixture-train",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+    "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+    "traversalIndex": 0.0,
+    "width": 387,
+    "height": 795,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Treno"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-label",
+      "text": ["in verifica"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 59,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-slot",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 367,
+      "height": 28,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-train",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+      "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+      "traversalIndex": 0.1,
+      "width": 76,
+      "height": 48,
+      "children": []
+    }
+    ]
+  }
+  ]
+}

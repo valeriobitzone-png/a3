@@ -1,0 +1,392 @@
+{
+  "tag": "a11y-host",
+  "text": [],
+  "enabled": true,
+  "stateDescription": null,
+  "contentDescription": "a3ui a11y host",
+  "traversalIndex": null,
+  "width": 696,
+  "height": 744,
+  "children": [
+  {
+    "tag": "skip-to-marks",
+    "text": ["Salta ai marchi"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": "Salta ai marchi",
+    "traversalIndex": -1.0,
+    "width": 83,
+    "height": 18,
+    "children": []
+  },
+  {
+    "tag": "motion-on",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "high-contrast-off",
+    "text": [],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 4,
+    "height": 4,
+    "children": []
+  },
+  {
+    "tag": "a11y-motion-ms",
+    "text": ["motion-ms=240"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 92,
+    "height": 14,
+    "children": []
+  },
+  {
+    "tag": "fixture-unknown",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "UNKNOWN uncertain confirmation required",
+    "contentDescription": "Hotel, uncertain, conferma disabilitata, ragione: unknown confirmation required",
+    "traversalIndex": 0.0,
+    "width": 696,
+    "height": 110,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Hotel"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "unknown-badge",
+      "text": ["uncertain"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 63,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-unknown",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "UNKNOWN uncertain confirmation required",
+      "contentDescription": "Hotel, uncertain, conferma disabilitata, ragione: unknown confirmation required",
+      "traversalIndex": 0.1,
+      "width": 78,
+      "height": 48,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-hotel",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "STALE stale 2 ore warning",
+    "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+    "traversalIndex": 1.0,
+    "width": 696,
+    "height": 110,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Hotel Milano"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 83,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "stale-warning",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 70,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "hotel-price",
+      "text": ["€89"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 42,
+      "height": 26,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-hotel",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "STALE stale 2 ore warning",
+      "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
+      "traversalIndex": 1.1,
+      "width": 87,
+      "height": 42,
+      "children": []
+    },
+    {
+      "tag": "stale-age",
+      "text": ["stale 2 ore"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 70,
+      "height": 0,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-held",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "HELD held pending review",
+    "contentDescription": "Hotel, held, conferma disabilitata, ragione: held pending review",
+    "traversalIndex": 2.0,
+    "width": 696,
+    "height": 111,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Hotel"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "held-badge",
+      "text": ["[held]"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 40,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-held",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "HELD held pending review",
+      "contentDescription": "Hotel, held, conferma disabilitata, ragione: held pending review",
+      "traversalIndex": 2.1,
+      "width": 78,
+      "height": 48,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-calendar",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+    "traversalIndex": 3.0,
+    "width": 696,
+    "height": 111,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Calendario"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 71,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "contradicted-badge",
+      "text": ["contradicted"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 85,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "slot-0900",
+      "text": ["9:00"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 36,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "slot-0930",
+      "text": ["9:30"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 35,
+      "height": 19,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-calendar",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
+      "traversalIndex": 3.1,
+      "width": 78,
+      "height": 31,
+      "children": []
+    },
+    {
+      "tag": "forbid-reason",
+      "text": ["contradicted: resolve conflict first"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 224,
+      "height": 0,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-train",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+    "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+    "traversalIndex": 4.0,
+    "width": 696,
+    "height": 111,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Treno"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 38,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-label",
+      "text": ["in verifica"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 64,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "pending-slot",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 676,
+      "height": 28,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-train",
+      "text": ["conferma"],
+      "enabled": false,
+      "stateDescription": "PENDING in verifica slot reserved confirm forbidden",
+      "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
+      "traversalIndex": 4.1,
+      "width": 78,
+      "height": 41,
+      "children": []
+    }
+    ]
+  },
+  {
+    "tag": "fixture-flight",
+    "text": [],
+    "enabled": true,
+    "stateDescription": "FACT believed now confirm permitted",
+    "contentDescription": "Volo, conferma abilitata",
+    "traversalIndex": 5.0,
+    "width": 696,
+    "height": 111,
+    "children": [
+    {
+      "tag": null,
+      "text": ["Volo"],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 29,
+      "height": 16,
+      "children": []
+    },
+    {
+      "tag": "fact-baseline",
+      "text": [],
+      "enabled": true,
+      "stateDescription": null,
+      "contentDescription": null,
+      "traversalIndex": null,
+      "width": 4,
+      "height": 4,
+      "children": []
+    },
+    {
+      "tag": "a11y-cta-flight",
+      "text": ["conferma"],
+      "enabled": true,
+      "stateDescription": "FACT believed now confirm permitted",
+      "contentDescription": "Volo, conferma abilitata",
+      "traversalIndex": 5.1,
+      "width": 87,
+      "height": 48,
+      "children": []
+    }
+    ]
+  }
+  ]
+}

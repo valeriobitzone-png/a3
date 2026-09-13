@@ -162,7 +162,7 @@ class ShowcaseV3MacTest {
     fun SV3_012_freeze() {
         val proc = ProcessBuilder(
             "git", "diff", "--stat", "--",
-            "core/", "a3ui/", "broker/", "agent/", "renderers/"
+            "core/", "broker/", "agent/", "overlay/", "conformance/a3ui/"
         ).directory(root).redirectErrorStream(true).start()
         val out = proc.inputStream.bufferedReader().readText()
         assertEquals(0, proc.waitFor())
