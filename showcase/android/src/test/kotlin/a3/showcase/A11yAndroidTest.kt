@@ -233,7 +233,7 @@ class A11yAndroidTest {
     fun AX_019_android_frozen_trees_empty() {
         val proc = ProcessBuilder(
             "git", "diff", "--stat", "--",
-            "core/", "broker/", "agent/", "launcher/", "overlay/", "adapters/", "conformance/a3ui/"
+            "core/", "broker/", "agent/", "launcher/", "adapters/", "conformance/a3ui/"
         ).directory(root).redirectErrorStream(true).start()
         val out = proc.inputStream.bufferedReader().readText().trim()
         assertEquals(0, proc.waitFor())

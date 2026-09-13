@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation(project(":renderers:mac-compose"))
+    implementation(project(":overlay:common"))
     implementation(project(":renderers:android-core"))
     implementation(project(":a3ui"))
     implementation(compose.desktop.currentOs)

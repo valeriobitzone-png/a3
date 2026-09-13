@@ -1,5 +1,9 @@
 package a3.showcase.mac
 
+import a3.overlay.A3UiProfile
+import a3.overlay.MotionMode
+import a3.overlay.ProfileDetect
+import a3.renderers.mac.compose.A3UiProfileProvider
 import a3.renderers.mac.compose.AlphaMaskedStrip
 import a3.renderers.mac.compose.GlassOpticsLayer
 import a3.renderers.mac.compose.MacRenderer
@@ -58,6 +62,8 @@ fun ShowcaseApp(
     initialReduced: Boolean = false,
     initialTalkback: Boolean = false,
     initialGlass: Boolean = true,
+    initialProfile: A3UiProfile? = null,
+    initialDetected: A3UiProfile = A3UiProfile.HIGH,
     initialSilent: Boolean = false,
     initialAmbient: Boolean = false,
     initialHighContrast: Boolean = false,
@@ -70,7 +76,14 @@ fun ShowcaseApp(
     var level by remember { mutableStateOf(initialLevel) }
     var reduced by remember { mutableStateOf(initialReduced) }
     var talkback by remember { mutableStateOf(initialTalkback) }
-    var glassOn by remember { mutableStateOf(initialGlass) }
+    var override by remember {
+        mutableStateOf(initialProfile ?: if (!initialGlass) A3UiProfile.BLUR_OFF else null)
+    }
+    var detected by remember { mutableStateOf(initialDetected) }
+    val decision = remember(override, detected) { ProfileDetect.resolve(detected, override) }
+    val profile = decision.active
+    val matrix = decision.matrix
+    val glassOn = matrix.blurEnabled
     var silent by remember { mutableStateOf(initialSilent) }
     var highContrast by remember { mutableStateOf(initialHighContrast) }
     var modal by remember { mutableStateOf(false) }
@@ -92,7 +105,7 @@ fun ShowcaseApp(
                 sink.playHaptic(cause, reduced, engine = !silent)
             }
         }
-        if (flags.particles || level == ShowcaseLevel.ALL) {
+        if ((flags.particles || level == ShowcaseLevel.ALL) && matrix.particles) {
             particle = true
         }
     }
@@ -165,24 +178,27 @@ fun ShowcaseApp(
             .testTag("showcase-host")
     ) {
         Box(Modifier.size(1.dp).testTag("showcase-level-${level.wire()}"))
+        Box(Modifier.size(1.dp).testTag("profile-active-${profile.wire()}"))
         Box(Modifier.weight(1f).fillMaxWidth().testTag("showcase-scene")) {
-            ShowcaseWallpaperLayer(blurred = false, Modifier.fillMaxSize())
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(
-                        start = ShowcaseWallpaper.GUTTER_DP.dp,
-                        top = ShowcaseWallpaper.GUTTER_DP.dp,
-                        end = ShowcaseWallpaper.GUTTER_DP.dp,
-                        bottom = 128.dp
-                    )
-                    .testTag("showcase-wallpaper-gutter")
-            ) {
+            A3UiProfileProvider(profile) {
+                Box(Modifier.fillMaxSize()) {
+                    ShowcaseWallpaperLayer(blurred = false, Modifier.fillMaxSize())
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = ShowcaseWallpaper.GUTTER_DP.dp,
+                                top = ShowcaseWallpaper.GUTTER_DP.dp,
+                                end = ShowcaseWallpaper.GUTTER_DP.dp,
+                                bottom = 128.dp
+                            )
+                            .testTag("showcase-wallpaper-gutter")
+                    ) {
                 ShowcaseGlassPlate(Modifier.fillMaxSize(), frost = glassOn) {
                     if (flags.gradient) {
-                        ShowcaseGradient(staticChrome = staticChrome || reduced)
+                        ShowcaseGradient(staticChrome = staticChrome || reduced || matrix.motion == MotionMode.SIMPLIFIED)
                     }
-                    if (flags.parallax) {
+                    if (flags.parallax && matrix.motion == MotionMode.FULL) {
                         ShowcaseParallax()
                     }
                     Box(Modifier.fillMaxSize().padding(12.dp).testTag("showcase-glass-inset")) {
@@ -208,16 +224,17 @@ fun ShowcaseApp(
                             MacRenderer(
                                 output = output,
                                 onAction = { fireSensory(ShowcaseSensory.Cause.CONFIRM) },
-                                highContrast = highContrast
+                                highContrast = highContrast,
+                                profile = profile
                             )
                         }
                     }
-                    if (flags.optics) {
+                    if (flags.optics && matrix.noise) {
                         ShowcaseGrain()
                         GlassOpticsLayer(refract = true, noise = true)
                         AlphaMaskedStrip()
                     }
-                    if (flags.particles || particle) {
+                    if (matrix.particles && (flags.particles || particle)) {
                         ShowcaseParticles(trigger = particle, staticChrome = staticChrome)
                         ParticleBurst(trigger = particle)
                     }
@@ -234,12 +251,34 @@ fun ShowcaseApp(
                     }
                 }
             }
+                }
+            }
+            BasicText(
+                text = decision.pillText,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .testTag("profile-pill"),
+                style = MacTheme.type.copy(fontSize = 12.sp, color = ink)
+            )
+            if (decision.blurMessage != null) {
+                BasicText(
+                    text = decision.blurMessage!!,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp)
+                        .testTag("profile-blur-message"),
+                    style = MacTheme.type.copy(fontSize = 12.sp, color = ink)
+                )
+            }
             Column(Modifier.align(Alignment.BottomStart).fillMaxWidth()) {
                 Controls(
                     level = level,
                     reduced = reduced,
                     talkback = talkback,
                     glassOn = glassOn,
+                    profile = profile,
+                    sourceManual = override != null,
                     silent = silent,
                     highContrast = highContrast,
                     ink = ink,
@@ -249,7 +288,10 @@ fun ShowcaseApp(
                         sceneTick++
                     },
                     onTalkback = { talkback = !talkback },
-                    onGlass = { glassOn = !glassOn },
+                    onGlass = {
+                        override = if (glassOn) A3UiProfile.BLUR_OFF else A3UiProfile.HIGH
+                    },
+                    onProfile = { next -> override = next },
                     onSilent = { silent = !silent },
                     onHighContrast = { highContrast = !highContrast },
                     onModal = { modal = !modal },
@@ -258,7 +300,7 @@ fun ShowcaseApp(
                 )
                 ShowcaseGlassPlate(Modifier.padding(8.dp), nested = true, frost = glassOn) {
                     BasicText(
-                        text = "reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} blur=${if (glassOn) "on" else "off"} silent=${if (silent) "on" else "off"} contrast=${if (highContrast) "on" else "off"} ${level.wire()}",
+                        text = "${decision.pillText} reduced=${if (reduced) "on" else "off"} talkback=${if (talkback) "on" else "off"} blur=${if (glassOn) "on" else "off"} silent=${if (silent) "on" else "off"} contrast=${if (highContrast) "on" else "off"} ${level.wire()}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag("showcase-status"),
                         style = MacTheme.type.copy(fontSize = 12.sp, color = ink)
                     )
@@ -274,6 +316,8 @@ private fun Controls(
     reduced: Boolean,
     talkback: Boolean,
     glassOn: Boolean,
+    profile: A3UiProfile,
+    sourceManual: Boolean,
     silent: Boolean,
     highContrast: Boolean,
     ink: Color,
@@ -281,6 +325,7 @@ private fun Controls(
     onReduced: () -> Unit,
     onTalkback: () -> Unit,
     onGlass: () -> Unit,
+    onProfile: (A3UiProfile?) -> Unit,
     onSilent: () -> Unit,
     onHighContrast: () -> Unit,
     onModal: () -> Unit,
@@ -314,6 +359,17 @@ private fun Controls(
             ShowcaseGlassChip("blur ${if (glassOn) "on" else "off"}", "toggle-blur", !glassOn, ink, onGlass)
             ShowcaseGlassChip("silent ${if (silent) "on" else "off"}", "toggle-silent", silent, ink, onSilent)
             ShowcaseGlassChip("contrast ${if (highContrast) "on" else "off"}", "toggle-contrast", highContrast, ink, onHighContrast)
+        }
+        Row(
+            Modifier.padding(top = 4.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            ShowcaseGlassChip("auto", "profile-auto", !sourceManual, ink) { onProfile(null) }
+            for (item in A3UiProfile.entries) {
+                ShowcaseGlassChip(item.wire(), "profile-${item.wire()}", sourceManual && profile == item, ink) {
+                    onProfile(item)
+                }
+            }
         }
         Row(
             Modifier.padding(top = 4.dp).fillMaxWidth(),

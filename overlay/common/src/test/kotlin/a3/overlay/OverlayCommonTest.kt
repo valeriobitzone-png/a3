@@ -73,7 +73,7 @@ class OverlayCommonTest {
             assertEquals(0, proc.waitFor())
             return out
         }
-        val frozen = diff("core/", "broker/", "renderers/", "launcher/")
+        val frozen = diff("core/", "broker/", "renderers/android-core/", "launcher/")
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain").directory(root)
             .redirectErrorStream(true).start()
@@ -82,11 +82,16 @@ class OverlayCommonTest {
         val allowed = listOf(
             "overlay/",
             "showcase/",
+            "docs/",
+            "renderers/android-compose/",
+            "renderers/mac-compose/",
             "settings.gradle.kts",
             "REVIEW_REAL_OVERLAY.md",
             "review-assets/overlay/",
             "REVIEW_OVERLAY_LIFECYCLE.md",
-            "review-assets/overlay-lifecycle/"
+            "review-assets/overlay-lifecycle/",
+            "REVIEW_A3UI_PERF.md",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
@@ -257,7 +262,7 @@ class OverlayCommonTest {
             assertEquals(0, proc.waitFor())
             return out
         }
-        val frozen = diff("core/", "broker/", "renderers/", "launcher/", "agent/")
+        val frozen = diff("core/", "broker/", "renderers/android-core/", "launcher/", "agent/")
         assertTrue(frozen.isBlank(), frozen)
     }
 

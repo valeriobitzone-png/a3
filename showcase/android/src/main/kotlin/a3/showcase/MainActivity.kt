@@ -18,6 +18,12 @@ class MainActivity : ComponentActivity() {
         val reduced = intent.getBooleanExtra(EXTRA_REDUCED, false)
         val talkback = intent.getBooleanExtra(EXTRA_TALKBACK, false)
         val glass = intent.getBooleanExtra(EXTRA_GLASS, true)
+        if (intent.hasExtra(EXTRA_PROFILE)) {
+            ShowcaseProfileAndroid.applyIntent(this, intent.getStringExtra(EXTRA_PROFILE))
+        }
+        val decision = ShowcaseProfileAndroid.decide(this)
+        val profileExtra = if (intent.hasExtra(EXTRA_PROFILE)) decision.override else null
+        val detected = decision.detected
         val silent = intent.getBooleanExtra(EXTRA_SILENT, false)
         val ambient = intent.getBooleanExtra(EXTRA_AMBIENT, false)
         val tour = intent.getBooleanExtra(EXTRA_RECORD, false)
@@ -30,6 +36,8 @@ class MainActivity : ComponentActivity() {
                 initialReduced = reduced,
                 initialTalkback = talkback,
                 initialGlass = glass,
+                initialProfile = profileExtra,
+                initialDetected = detected,
                 initialSilent = silent,
                 initialAmbient = ambient,
                 tour = tour,
@@ -48,5 +56,6 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_GLASS = "a3_glass"
         const val EXTRA_SILENT = "a3_silent"
         const val EXTRA_AMBIENT = "a3_ambient"
+        const val EXTRA_PROFILE = "a3_profile"
     }
 }

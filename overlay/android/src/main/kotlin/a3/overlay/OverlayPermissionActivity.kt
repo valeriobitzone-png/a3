@@ -78,6 +78,35 @@ class OverlayPermissionActivity : ComponentActivity() {
                 }
             })
         }
+        val decision = OverlayProfileAndroid.decide(this)
+        root.addView(TextView(this).apply {
+            text = "profile ${decision.pillText}\n${decision.reason}"
+            textSize = 14f
+        })
+        if (decision.blurMessage != null) {
+            root.addView(TextView(this).apply {
+                text = decision.blurMessage
+                textSize = 14f
+            })
+        }
+        root.addView(TextView(this).apply {
+            text = "Performance profile (visible, never silent)"
+            textSize = 16f
+        })
+        fun setProfile(profile: A3UiProfile?) {
+            ProfileSession.setOverride(OverlayProfileAndroid.store(this), profile)
+            render()
+        }
+        root.addView(Button(this).apply {
+            text = "Profile AUTO"
+            setOnClickListener { setProfile(null) }
+        })
+        for (item in A3UiProfile.entries) {
+            root.addView(Button(this).apply {
+                text = "Profile ${item.wire()}"
+                setOnClickListener { setProfile(item) }
+            })
+        }
         setContentView(root)
     }
 

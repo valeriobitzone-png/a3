@@ -1,6 +1,7 @@
 package a3.overlay.mac
 
 import a3.overlay.BackdropMode
+import a3.overlay.FeatureMatrix
 import a3.overlay.OverlayActionMark
 import a3.overlay.OverlayCompositor
 import a3.overlay.OverlayContract
@@ -15,6 +16,7 @@ import kotlin.test.assertTrue
 
 class OverlayMacTest {
     private val nativeSrc = File("native/OverlayMain.swift")
+    private val perfDir = File("../../review-assets/perf")
 
     @Test
     fun OV_004_floating_window_no_special_permission() {
@@ -37,6 +39,8 @@ class OverlayMacTest {
         assertEquals("fullScreenUI", OverlayMacWindow.MATERIAL)
         assertEquals("behindWindow", OverlayMacWindow.BLENDING)
         assertTrue(!swift.contains("CIFilter") || swift.contains("NSVisualEffectView"))
+        val compositor = File("src/main/kotlin/a3/overlay/mac/OverlayCompositor.kt").readText()
+        assertTrue(compositor.contains("MUST NOT run OverlayBlur on the compose path"))
         val session = OverlayFlight.present()
         assertTrue(session.cards.isNotEmpty())
     }
@@ -55,8 +59,13 @@ class OverlayMacTest {
         assertTrue(swift.contains("ignoresMouseEvents"))
         assertTrue(swift.contains("mouse events outside the pill"))
         assertTrue(swift.contains("didActivateApplicationNotification"))
+        assertTrue(swift.contains("--profile"))
+        assertTrue(swift.contains("profile-pill"))
         assertTrue(swift.contains("timeout"))
         assertTrue(swift.contains("collapse(reason: \"dispatch\")") || swift.contains("dispatch"))
+        assertTrue(swift.contains("CADisplayLink"))
+        assertTrue(swift.contains("--frames"))
+        assertTrue(swift.contains("NSVisualEffectView"))
     }
 
     @Test
@@ -86,5 +95,62 @@ class OverlayMacTest {
         assertTrue(OverlayCompositor.variance(collapsed, screen) < OverlayCompositor.variance(expanded, screen))
         assertEquals("?", OverlayLifecycle.pillText(OverlayActionMark.UNKNOWN))
         assertTrue(!OverlayLifecycle.isLongPillText(OverlayLifecycle.pillText(OverlayActionMark.DONE)))
+    }
+
+    @Test
+    fun PF_hotspot_cpu_blur_is_offscreen_harness() {
+        val session = OverlayFlight.present()
+        val screen = java.awt.image.BufferedImage(1280, 800, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        val g = screen.createGraphics()
+        g.color = java.awt.Color(32, 48, 64)
+        g.fillRect(0, 0, 1280, 800)
+        g.color = java.awt.Color.WHITE
+        g.fillRect(40, 40, 200, 200)
+        g.dispose()
+        val radius = FeatureMatrix.of(a3.overlay.A3UiProfile.HIGH).blurRadiusPx
+        val samples = (1..8).map { OverlayCompositor.hotspot(screen, session, radius) }
+        val copy = samples.map { it.copyMs }.average()
+        val blur = samples.map { it.blurCpuMs }.average()
+        val paint = samples.map { it.paintMs }.average()
+        val total = copy + blur + paint
+        val share = if (total <= 0.0) 0.0 else 100.0 * blur / total
+        perfDir.mkdirs()
+        File(perfDir, "mac-hotspot-compositor.txt").writeText(
+            buildString {
+                appendLine("host=${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
+                appendLine("method=OverlayCompositor hotspot: copy vs OverlayBlur CPU vs paint")
+                appendLine("harness=offscreen BufferedImage (CPU). NOT display vsync.")
+                appendLine("display_blur=NSVisualEffectView in native OverlayMain")
+                appendLine("size=1280x800 radius=$radius iterations=${samples.size}")
+                appendLine("copy_ms=$copy")
+                appendLine("blur_cpu_ms=$blur")
+                appendLine("paint_ms=$paint")
+                appendLine("blur_share_pct=$share")
+            }
+        )
+        assertTrue(blur > copy, "expected CPU OverlayBlur to dominate copy: blur=$blur copy=$copy")
+        println("PASS hotspot copy=$copy blur=$blur paint=$paint share=$share%")
+    }
+
+    @Test
+    fun PF_005_mac_onscreen_dumps_at_least_300_frames() {
+        val profiles = listOf("HIGH", "MID", "BLUR_OFF")
+        val scenes = listOf("overlay-expanded" to "CADisplayLink", "catalog" to "withFrameNanos")
+        for (profile in profiles) {
+            for ((scene, methodNeedle) in scenes) {
+                val file = File(perfDir, "mac-$scene-$profile.txt")
+                assertTrue(file.isFile, "missing ${file.path}")
+                val text = file.readText()
+                assertTrue(text.contains(methodNeedle), "${file.name} method: $text")
+                assertTrue(!text.contains("OverlayCompositor.compose wall time"), file.name)
+                val frames = Regex("""frames=(\d+)""").find(text)?.groupValues?.get(1)?.toInt()
+                    ?: error("no frames= in ${file.name}")
+                assertTrue(frames >= 300, "${file.name} frames=$frames")
+                assertTrue(text.contains("p50_ms="), file.name)
+                assertTrue(text.contains("p95_ms="), file.name)
+                assertTrue(text.contains("max_ms="), file.name)
+            }
+        }
+        println("PASS PF-005 on-screen dumps ≥300")
     }
 }

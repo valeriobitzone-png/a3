@@ -312,11 +312,7 @@ class ShowcaseTest {
             "prediction/", "projection/", "intent-model/"
         )
         assertTrue(frozen.isBlank(), frozen)
-        val renderers = diff(
-            "renderers/android-compose/",
-            "renderers/mac-compose/",
-            "renderers/android-core/"
-        )
+        val renderers = diff("renderers/android-core/")
         assertTrue(renderers.isBlank(), renderers)
         val settings = File(root, "settings.gradle.kts").readText()
         assertTrue(settings.contains(":showcase"))

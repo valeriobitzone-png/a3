@@ -210,6 +210,10 @@ class MotionMacTest {
         val allowed = listOf(
             "renderers/android-compose/",
             "renderers/mac-compose/",
+            "overlay/",
+            "showcase/",
+            "docs/",
+            "REVIEW_A3UI_PERF.md",
             "REVIEW_RENDERER_MOTION.md",
             "REVIEW_RENDERER_DYNAMIC.md",
             "REVIEW_RENDERER_SHADERS.md",

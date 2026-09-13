@@ -1,0 +1,4 @@
+NO_DEVICE
+adb devices empty on 2026-09-13.
+Nothing Phone (3) not attached.
+Refusing to invent gfxinfo.

@@ -1,0 +1,9 @@
+host=Mac OS X aarch64
+method=OverlayCompositor hotspot: copy vs OverlayBlur CPU vs paint
+harness=offscreen BufferedImage (CPU). NOT display vsync.
+display_blur=NSVisualEffectView in native OverlayMain
+size=1280x800 radius=18 iterations=8
+copy_ms=1.705312375
+blur_cpu_ms=35.681953125
+paint_ms=5.262390500000001
+blur_share_pct=83.66293300232012

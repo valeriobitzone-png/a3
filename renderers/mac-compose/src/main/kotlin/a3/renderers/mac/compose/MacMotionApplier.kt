@@ -14,7 +14,7 @@ import a3.renderers.android.core.model.SpringParams
 
 @Composable
 fun MacMotionApplier(params: SpringParams, content: @Composable () -> Unit) {
-    val reduced = LocalReducedMotion.current
+    val reduced = LocalReducedMotion.current || LocalSimplifiedMotion.current
     if (reduced) {
         Box(Modifier.fillMaxSize()) { content() }
         return

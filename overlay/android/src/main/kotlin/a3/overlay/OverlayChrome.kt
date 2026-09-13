@@ -36,6 +36,7 @@ fun OverlayChrome(
     blurUnavailable: Boolean,
     reducedMotion: Boolean = false,
     dismissOutside: Boolean = true,
+    profile: ProfileDecision? = null,
     onPill: () -> Unit,
     onSettings: () -> Unit,
     onChoose: (String) -> Unit,
@@ -48,21 +49,30 @@ fun OverlayChrome(
                 .testTag("overlay-collapsed"),
             contentAlignment = Alignment.TopEnd
         ) {
-            OverlayPill(mark = mark, onTap = onPill, onLongPress = onSettings)
+            Column(horizontalAlignment = Alignment.End) {
+                if (profile != null) {
+                    ProfileDebugChip(profile)
+                }
+                OverlayPill(mark = mark, onTap = onPill, onLongPress = onSettings)
+            }
         }
         return
     }
     Box(Modifier.fillMaxSize().testTag("overlay-expanded")) {
-        OverlaySheet(
+            OverlaySheet(
             session = session,
             blurUnavailable = blurUnavailable,
             reducedMotion = reducedMotion,
             dismissOutside = dismissOutside,
+            profile = profile,
             onChoose = onChoose,
             onDismiss = onDismiss
         )
         Box(Modifier.fillMaxWidth().padding(top = 16.dp, end = 16.dp), contentAlignment = Alignment.TopEnd) {
-            OverlayPill(mark = mark, onTap = onPill, onLongPress = onSettings)
+            Column(horizontalAlignment = Alignment.End) {
+                if (profile != null) ProfileDebugChip(profile)
+                OverlayPill(mark = mark, onTap = onPill, onLongPress = onSettings)
+            }
         }
     }
 }
@@ -98,6 +108,7 @@ fun OverlaySheet(
     blurUnavailable: Boolean,
     reducedMotion: Boolean,
     dismissOutside: Boolean,
+    profile: ProfileDecision? = null,
     onChoose: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -130,9 +141,22 @@ fun OverlaySheet(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 64.dp)
         ) {
+            if (profile != null) {
+                BasicText(
+                    profile.pillText,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).testTag("profile-pill"),
+                    style = mute
+                )
+                BasicText(
+                    profile.reason,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).testTag("profile-reason"),
+                    style = mute
+                )
+                Spacer(Modifier.height(8.dp))
+            }
             if (blurUnavailable) {
                 BasicText(
-                    OverlayPolicy.BLUR_UNAVAILABLE,
+                    profile?.blurMessage ?: OverlayPolicy.BLUR_UNAVAILABLE,
                     modifier = Modifier.align(Alignment.CenterHorizontally).testTag("overlay-blur-unavailable"),
                     style = TextStyle(color = Color(0xFFFFD278), fontSize = 16.sp)
                 )
@@ -158,5 +182,20 @@ fun OverlaySheet(
                 Spacer(Modifier.height(12.dp))
             }
         }
+    }
+}
+
+@Composable
+fun ProfileDebugChip(decision: ProfileDecision) {
+    val mute = TextStyle(color = Color(0xFFDCD8D0), fontSize = 12.sp)
+    Box(
+        Modifier
+            .padding(bottom = 6.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xCC0C0C10))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .testTag("profile-pill")
+    ) {
+        BasicText(decision.pillText, style = mute)
     }
 }

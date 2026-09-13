@@ -29,7 +29,8 @@ tasks.register<Exec>("compileNative") {
         "-o",
         nativeBin.get().asFile.absolutePath,
         "-framework", "AppKit",
-        "-framework", "ApplicationServices"
+        "-framework", "ApplicationServices",
+        "-framework", "QuartzCore"
     )
 }
 

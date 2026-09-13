@@ -1,5 +1,8 @@
 package a3.showcase.mac
 
+import a3.overlay.A3UiProfile
+import a3.overlay.JvmHostSignals
+import a3.overlay.ProfileDetect
 import a3.showcase.LoggingSink
 import a3.showcase.ShowcaseJournal
 import a3.showcase.ShowcaseLevel
@@ -14,6 +17,8 @@ fun main(args: Array<String>) = application {
     val reduced = args.contains("--reduced")
     val talkback = args.contains("--talkback")
     val glass = !args.contains("--blur-off")
+    val profileArg = A3UiProfile.parse(args.find { it.startsWith("--profile=") }?.substringAfter("="))
+    val detected = ProfileDetect.detect(JvmHostSignals.detect())
     val silent = args.contains("--silent")
     val ambient = args.contains("--ambient")
     val tour = args.contains("--record")
@@ -33,6 +38,8 @@ fun main(args: Array<String>) = application {
                 initialReduced = reduced,
                 initialTalkback = talkback,
                 initialGlass = glass,
+                initialProfile = profileArg,
+                initialDetected = detected,
                 initialSilent = silent,
                 initialAmbient = ambient,
                 tour = tour,

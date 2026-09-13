@@ -114,6 +114,16 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         if (intent?.getBooleanExtra(EXTRA_UNDER_FOCUS, false) == true) {
             applyLife(OverlayLifecycle.underFocus(life, now()))
         }
+        if (intent?.hasExtra(EXTRA_PROFILE) == true) {
+            ProfileSession.setOverride(
+                OverlayProfileAndroid.store(this),
+                A3UiProfile.parse(intent.getStringExtra(EXTRA_PROFILE))
+            )
+        }
+        val profile = OverlayProfileAndroid.decide(this)
+        if (profile.matrix.motion == MotionMode.SIMPLIFIED) {
+            reduced = true
+        }
         if (intent?.getBooleanExtra(EXTRA_TICK, false) == true) {
             applyLife(OverlayLifecycle.tick(life, now(), timeoutMs))
         }
@@ -183,15 +193,21 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
             bindTrees()
             setContent {
-                OverlayPill(
-                    mark = markState.value,
-                    onTap = {
-                        if (life.phase == OverlayPhase.COLLAPSED) {
-                            applyLife(OverlayLifecycle.expand(life, now()))
-                        }
-                    },
-                    onLongPress = { openSettings() }
-                )
+                val decision = OverlayProfileAndroid.decide(this@OverlayService)
+                androidx.compose.foundation.layout.Column(
+                    horizontalAlignment = androidx.compose.ui.Alignment.End
+                ) {
+                    ProfileDebugChip(decision)
+                    OverlayPill(
+                        mark = markState.value,
+                        onTap = {
+                            if (life.phase == OverlayPhase.COLLAPSED) {
+                                applyLife(OverlayLifecycle.expand(life, now()))
+                            }
+                        },
+                        onLongPress = { openSettings() }
+                    )
+                }
             }
         }
         wrap.addView(compose)
@@ -210,7 +226,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     }
 
     private fun showExpanded() {
-        if (backdropMode == BackdropMode.REAL_BLUR) attachBackdrop()
+        val matrix = OverlayProfileAndroid.decide(this).matrix
+        if (backdropMode == BackdropMode.REAL_BLUR && matrix.blurEnabled) attachBackdrop()
         attachSheet()
         raisePill()
     }
@@ -259,6 +276,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         )
         windowManager.addView(view, params)
         backdropView = view
+        val radius = OverlayProfileAndroid.decide(this).matrix.blurRadiusPx
+        OverlayBackdropGpu.apply(view, radius)
     }
 
     private fun attachSheet() {
@@ -269,11 +288,13 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
             bindTrees()
             setContent {
+                val decision = OverlayProfileAndroid.decide(this@OverlayService)
                 OverlaySheet(
                     session = session,
-                    blurUnavailable = backdropMode == BackdropMode.UNAVAILABLE,
+                    blurUnavailable = backdropMode == BackdropMode.UNAVAILABLE || !decision.matrix.blurEnabled,
                     reducedMotion = reduced,
                     dismissOutside = dismissOutside,
+                    profile = decision,
                     onChoose = { id -> openCard(id) },
                     onDismiss = {
                         applyLife(OverlayLifecycle.collapse(life, now(), OverlayCollapseReason.DISMISS))
@@ -383,12 +404,14 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 )
                 bitmap.copyPixelsFromBuffer(buf)
                 val cropped = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
-                val next = OverlayBitmapBlur.blur(cropped, 18)
+                val next = OverlayBitmapBlur.copy(cropped)
+                val radius = OverlayProfileAndroid.decide(this).matrix.blurRadiusPx
                 blurred = next
                 handler.post {
                     if (life.phase == OverlayPhase.EXPANDED) {
                         if (backdropView == null) attachBackdrop()
                         backdropView?.setImageBitmap(next)
+                        backdropView?.let { OverlayBackdropGpu.apply(it, radius) }
                     }
                     virtualDisplay?.release()
                     virtualDisplay = null
@@ -491,6 +514,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         const val EXTRA_REDUCED = "reduced"
         const val EXTRA_TIMEOUT_MS = "timeout_ms"
         const val EXTRA_DISMISS_OUTSIDE = "dismiss_outside"
+        const val EXTRA_PROFILE = "profile"
 
         fun start(
             context: Context,
@@ -500,7 +524,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             choose: String? = null,
             expand: Boolean = false,
             reduced: Boolean = false,
-            timeoutMs: Long = OverlayLifecycle.DEFAULT_TIMEOUT_MS
+            timeoutMs: Long = OverlayLifecycle.DEFAULT_TIMEOUT_MS,
+            profile: String? = null
         ) {
             val intent = Intent(context, OverlayService::class.java)
                 .putExtra(EXTRA_PROJECTION, projectionGranted)
@@ -510,6 +535,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 .putExtra(EXTRA_TIMEOUT_MS, timeoutMs)
             if (data != null) intent.putExtra(EXTRA_PROJECTION_DATA, data)
             if (choose != null) intent.putExtra(EXTRA_CHOOSE, choose)
+            if (profile != null) intent.putExtra(EXTRA_PROFILE, profile)
             if (Build.VERSION.SDK_INT >= 26) {
                 context.startForegroundService(intent)
             } else {

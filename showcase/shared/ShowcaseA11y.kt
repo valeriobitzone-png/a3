@@ -3,6 +3,7 @@ package a3.showcase
 import a3.a3ui.a11y.MarkKind
 import a3.a3ui.a11y.SpokenLaw
 import a3.a3ui.a11y.SpokenRequest
+import a3.overlay.A3UiProfile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -125,7 +126,8 @@ fun ShowcaseA11yHost(
     fixtures: List<A11yFixture> = ShowcaseA11y.lawful(),
     reducedMotion: Boolean = false,
     highContrast: Boolean = false,
-    caption: String? = null
+    caption: String? = null,
+    profile: A3UiProfile = A3UiProfile.HIGH
 ) {
     val ink = Color(0xFF111111)
     val paper = Color(0xFFF4F1EA)
@@ -157,6 +159,11 @@ fun ShowcaseA11yHost(
         )
         Box(Modifier.size(4.dp).testTag(if (reducedMotion) "motion-zero" else "motion-on"))
         Box(Modifier.size(4.dp).testTag(if (highContrast) "high-contrast-on" else "high-contrast-off"))
+        BasicText(
+            text = "${profile.wire()} · visible",
+            modifier = Modifier.testTag("profile-pill"),
+            style = quiet
+        )
         BasicText(
             text = "motion-ms=$motionMs",
             modifier = Modifier.testTag("a11y-motion-ms"),
