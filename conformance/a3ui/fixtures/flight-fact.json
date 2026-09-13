@@ -1,0 +1,14 @@
+{
+  "id": "flight",
+  "oggetto": "Volo",
+  "mark": "FACT",
+  "truth_class": "FACT",
+  "provenance": "OBSERVED_SIGNED",
+  "age": "ora",
+  "confidence": 1.0,
+  "status": "BELIEVED",
+  "cta_enabled": true,
+  "state_description": "FACT believed now confirm permitted",
+  "actions_permitted": ["confirm"],
+  "actions_forbidden": []
+}

@@ -174,7 +174,7 @@ def sp_006(body: str) -> None:
 
 def sp_007() -> None:
     proc = subprocess.run(
-        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md", ":!REVIEW_SPEC_A3UI.md", ":!REVIEW_CONFORMANCE_A3EP.md", ":!REVIEW_PROTOCOL_V2.md", ":!conformance", ":!settings.gradle.kts", ":!core/envelope"],
+        ["git", "diff", "--stat", "--", ".", ":!spec", ":!REVIEW_SPEC_A3EP.md", ":!REVIEW_SPEC_A3UI.md", ":!REVIEW_CONFORMANCE_A3EP.md", ":!REVIEW_PROTOCOL_V2.md", ":!REVIEW_A3UI_CONFORMANCE.md", ":!conformance", ":!settings.gradle.kts", ":!core/envelope"],
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -191,7 +191,7 @@ def sp_007() -> None:
         capture_output=True,
         text=True,
     )
-    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md", "REVIEW_CONFORMANCE_A3EP.md", "REVIEW_PROTOCOL_V2.md", "conformance/", "settings.gradle.kts", "core/envelope/")
+    allowed = ("spec/", "REVIEW_SPEC_A3EP.md", "REVIEW_SPEC_A3UI.md", "REVIEW_CONFORMANCE_A3EP.md", "REVIEW_PROTOCOL_V2.md", "REVIEW_A3UI_CONFORMANCE.md", "conformance/", "settings.gradle.kts", "core/envelope/")
     ignore = (".kotlin/", ".DS_Store")
     for line in status.stdout.splitlines():
         if not line.strip():

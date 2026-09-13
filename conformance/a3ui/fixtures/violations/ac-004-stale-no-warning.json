@@ -1,0 +1,13 @@
+{
+  "reject_code": "AC-004",
+  "observed": {
+    "surfaces": [
+      {
+        "mark": "STALE",
+        "cta_enabled": true,
+        "warning": null,
+        "state_description": "STALE stale 2h confirm permitted with warning"
+      }
+    ]
+  }
+}

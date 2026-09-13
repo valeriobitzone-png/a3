@@ -1,0 +1,71 @@
+{
+  "tag" : "conformance-host",
+  "text" : [ ],
+  "enabled" : true,
+  "stateDescription" : null,
+  "contentDescription" : "a3ui conformance host",
+  "children" : [ {
+    "tag" : "scene-frost-on",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "motion-on",
+    "text" : [ "motion-ms=240" ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "fixture-hotel",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "STALE stale 2h confirm permitted with warning",
+    "contentDescription" : "STALE stale 2h confirm permitted with warning",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Hotel" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "stale-warning",
+      "text" : [ "stale 2h" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "hotel-price",
+      "text" : [ "€89" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "hotel-age",
+      "text" : [ "2h" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-hotel",
+      "text" : [ "conferma" ],
+      "enabled" : true,
+      "stateDescription" : "STALE stale 2h confirm permitted with warning",
+      "contentDescription" : "STALE stale 2h confirm permitted with warning",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "OBSERVED_SIGNED · OBSERVATION" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  } ]
+}

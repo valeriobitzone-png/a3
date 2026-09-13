@@ -1,0 +1,204 @@
+{
+  "tag" : "conformance-host",
+  "text" : [ ],
+  "enabled" : true,
+  "stateDescription" : null,
+  "contentDescription" : "a3ui conformance host",
+  "children" : [ {
+    "tag" : "scene-frost-on",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "motion-zero",
+    "text" : [ "motion-ms=0" ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "fixture-hotel",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "STALE stale 2h confirm permitted with warning",
+    "contentDescription" : "STALE stale 2h confirm permitted with warning",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Hotel" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "stale-warning",
+      "text" : [ "stale 2h" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "hotel-price",
+      "text" : [ "€89" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "hotel-age",
+      "text" : [ "2h" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-hotel",
+      "text" : [ "conferma" ],
+      "enabled" : true,
+      "stateDescription" : "STALE stale 2h confirm permitted with warning",
+      "contentDescription" : "STALE stale 2h confirm permitted with warning",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "OBSERVED_SIGNED · OBSERVATION" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  }, {
+    "tag" : "fixture-calendar",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "contentDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Calendario" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "contradicted-badge",
+      "text" : [ "contradicted" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "slot-0900",
+      "text" : [ "9:00" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "slot-0930",
+      "text" : [ "9:30" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-calendar",
+      "text" : [ "conferma" ],
+      "enabled" : false,
+      "stateDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "contentDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "children" : [ ]
+    }, {
+      "tag" : "forbid-reason",
+      "text" : [ "contradicted: resolve conflict first" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "INFERRED · OBSERVATION" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  }, {
+    "tag" : "fixture-train",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "PENDING in verifica confirm forbidden",
+    "contentDescription" : "PENDING in verifica confirm forbidden",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Treno" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "pending-label",
+      "text" : [ "in verifica" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "pending-slot",
+      "text" : [ ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-train",
+      "text" : [ "conferma" ],
+      "enabled" : false,
+      "stateDescription" : "PENDING in verifica confirm forbidden",
+      "contentDescription" : "PENDING in verifica confirm forbidden",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "DERIVED_MODEL · UNKNOWN" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  }, {
+    "tag" : "fixture-flight",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "FACT believed now confirm permitted",
+    "contentDescription" : "FACT believed now confirm permitted",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Volo" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "fact-baseline",
+      "text" : [ ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-flight",
+      "text" : [ "conferma" ],
+      "enabled" : true,
+      "stateDescription" : "FACT believed now confirm permitted",
+      "contentDescription" : "FACT believed now confirm permitted",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "OBSERVED_SIGNED · FACT" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  } ]
+}

@@ -1,0 +1,78 @@
+{
+  "tag" : "conformance-host",
+  "text" : [ ],
+  "enabled" : true,
+  "stateDescription" : null,
+  "contentDescription" : "a3ui conformance host",
+  "children" : [ {
+    "tag" : "scene-frost-on",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "motion-on",
+    "text" : [ "motion-ms=240" ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "fixture-calendar",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "contentDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Calendario" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "contradicted-badge",
+      "text" : [ "contradicted" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "slot-0900",
+      "text" : [ "9:00" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "slot-0930",
+      "text" : [ "9:30" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-calendar",
+      "text" : [ "conferma" ],
+      "enabled" : false,
+      "stateDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "contentDescription" : "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+      "children" : [ ]
+    }, {
+      "tag" : "forbid-reason",
+      "text" : [ "contradicted: resolve conflict first" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "INFERRED · OBSERVATION" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  } ]
+}

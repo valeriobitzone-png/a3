@@ -1,0 +1,64 @@
+{
+  "tag" : "conformance-host",
+  "text" : [ ],
+  "enabled" : true,
+  "stateDescription" : null,
+  "contentDescription" : "a3ui conformance host",
+  "children" : [ {
+    "tag" : "scene-frost-on",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "motion-on",
+    "text" : [ "motion-ms=240" ],
+    "enabled" : true,
+    "stateDescription" : null,
+    "contentDescription" : null,
+    "children" : [ ]
+  }, {
+    "tag" : "fixture-train",
+    "text" : [ ],
+    "enabled" : true,
+    "stateDescription" : "PENDING in verifica confirm forbidden",
+    "contentDescription" : "PENDING in verifica confirm forbidden",
+    "children" : [ {
+      "tag" : null,
+      "text" : [ "Treno" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "pending-label",
+      "text" : [ "in verifica" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "pending-slot",
+      "text" : [ ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    }, {
+      "tag" : "cta-train",
+      "text" : [ "conferma" ],
+      "enabled" : false,
+      "stateDescription" : "PENDING in verifica confirm forbidden",
+      "contentDescription" : "PENDING in verifica confirm forbidden",
+      "children" : [ ]
+    }, {
+      "tag" : null,
+      "text" : [ "DERIVED_MODEL · UNKNOWN" ],
+      "enabled" : true,
+      "stateDescription" : null,
+      "contentDescription" : null,
+      "children" : [ ]
+    } ]
+  } ]
+}

@@ -1,0 +1,13 @@
+{
+  "reject_code": "AC-001",
+  "observed": {
+    "surfaces": [
+      {
+        "mark": "CONTRADICTED",
+        "cta_enabled": true,
+        "reason": "contradicted: resolve conflict first",
+        "state_description": "CONTRADICTED contradicted: resolve conflict first confirm forbidden"
+      }
+    ]
+  }
+}

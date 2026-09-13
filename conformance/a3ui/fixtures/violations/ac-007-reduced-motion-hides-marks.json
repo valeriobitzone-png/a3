@@ -1,0 +1,16 @@
+{
+  "reject_code": "AC-007",
+  "observed": {
+    "reduced_motion": true,
+    "marks_visible": false,
+    "motion_ms": 0,
+    "surfaces": [
+      {
+        "mark": "STALE",
+        "cta_enabled": true,
+        "warning": "stale 2h",
+        "state_description": "STALE stale 2h confirm permitted with warning"
+      }
+    ]
+  }
+}

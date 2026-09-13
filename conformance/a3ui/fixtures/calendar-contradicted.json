@@ -1,0 +1,16 @@
+{
+  "id": "calendar",
+  "oggetto": "Calendario",
+  "mark": "CONTRADICTED",
+  "truth_class": "OBSERVATION",
+  "provenance": "INFERRED",
+  "age": "30m",
+  "confidence": 0.4,
+  "status": "CONTRADICTED",
+  "slots": ["9:00", "9:30"],
+  "cta_enabled": false,
+  "reason": "contradicted: resolve conflict first",
+  "state_description": "CONTRADICTED contradicted: resolve conflict first confirm forbidden",
+  "actions_permitted": [],
+  "actions_forbidden": ["confirm"]
+}

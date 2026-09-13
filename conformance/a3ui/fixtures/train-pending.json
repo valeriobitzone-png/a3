@@ -1,0 +1,17 @@
+{
+  "id": "train",
+  "oggetto": "Treno",
+  "mark": "PENDING",
+  "truth_class": "UNKNOWN",
+  "provenance": "DERIVED_MODEL",
+  "age": "ora",
+  "confidence": 0.0,
+  "status": "PENDING",
+  "pending_label": "in verifica",
+  "cta_enabled": false,
+  "confirmation_required": true,
+  "state_description": "PENDING in verifica confirm forbidden",
+  "spinner": false,
+  "actions_permitted": [],
+  "actions_forbidden": ["confirm"]
+}
