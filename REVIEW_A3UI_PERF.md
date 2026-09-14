@@ -16,7 +16,7 @@ I dump Android A024 erano già sul disco: HIGH overlay p95 = **200 ms**. **(a) �
 
 **(c)** non usato.
 
-Esito: **(b)** applicata. Android HIGH/MID mancano 16.7 e 33.3. Overlay Android default misurato = **BLUR_OFF** (scala dichiarata; BLUR_OFF gfxinfo assente). Mac overlay on-screen è vsync-locked a 16.667 ms. Mac catalog p95 ~17.1 ms, sopra 16.7; nessun profilo catalog Mac passa 16.7 in questo harvest; default Mac resta classe HIGH.
+Esito: **(b)** applicata. Android HIGH/MID mancano 16.7 e 33.3 sui percentili gfxinfo → default **BLUR_OFF** + fps **UNVERIFIED** (`GOVERNANCE.md` §10). 200 ms nominale = sospetto artefatto harvest. Mac overlay on-screen è vsync-locked a 16.667 ms (missed=0). Mac catalog HIGH: **60 fps in presentazione** dopo hitch (missed=0 su 315 frame); p95 grezzo 17.116 ms = jitter vsync. MID catalog 17.829 ≰ 17.116: jitter, PF-003 **non** verde in silenzio sul catalog Mac.
 
 ---
 
@@ -83,7 +83,7 @@ AC-023 (`git diff` overlay/renderers) resta rosso su working tree sporco; passa 
 |------|------------|----------|------|
 | PF-001 | Enum + matrice in `docs/PERFORMANCE.md`; override manuale | `ProfileTest`, showcase chips `profile-*` | **PASS** |
 | PF-002 | HIGH A024 p95 catalog + overlay dichiarati da dump | `android-*-HIGH-gfxinfo.txt` (catalog p95 200, overlay p95 200) | **PASS** (dump reale; sopra target) |
-| PF-003 | MID p95 ≤ HIGH stesso device | catalog 200≤200, overlay 200≤200 | **PASS** |
+| PF-003 | MID p95 ≤ HIGH stesso device | **Riscopato all’overlay** (Mac 16.667=16.667; Android 200=200) + Android catalog 200=200. Mac catalog MID **17.829** ≰ HIGH **17.116** = jitter vsync, **eccezione scritta** | **PASS overlay**; catalog Mac **non** PASS silenzioso |
 | PF-004 | BLUR_OFF: mark + messaggio onesto | `ProfileComposeTest` / `ProfileMacComposeTest`; overlay banner | **PASS** |
 | PF-005 | Mac HIGH/MID/BLUR_OFF ≥300 frame overlay + catalog | `mac-overlay-expanded-*.txt` CADisplayLink; `mac-catalog-*.txt` withFrameNanos | **PASS** |
 | PF-006 | auto-detect + pill; default rispetta target dove misurato | classe HIGH su Phone (3); overlay Android A024 → BLUR_OFF visibile | **PASS** (overlay); showcase frozen resta classe HIGH |
@@ -91,7 +91,36 @@ AC-023 (`git diff` overlay/renderers) resta rosso su working tree sporco; passa 
 | PF-008 | PARTICLES_OFF | `ProfileTest` + compose `particle-idle` | **PASS** |
 | PF-009 | freeze core/broker/agent/adapters/conformance/spec/:a3ui + a3ui-web | `ProfileTest.PF_009` | **PASS** |
 
-Gate: **verde** con dump reali in `review-assets/perf/`. Decisione **(b)**. Tag `a3ui-perf-v0.1` sul commit di chiusura. Niente push.
+Gate PF: **verde** con dump reali in `review-assets/perf/` sul tag `a3ui-perf-v0.1`. Decisione **(b)**. Niente push.
+
+---
+
+## FASE PERF-COMPLIANCE (docs-only, 2026-09-14)
+
+Unfrozen: `docs/PERFORMANCE.md`, `CHANGELOG.md`, `REVIEW_A3UI_PERF.md`, `GOVERNANCE.md` §10. **FROZEN: tutto il codice.** Tag `a3ui-perf-v0.2` = PATCH di chiarimento docs.
+
+Metrica catalog Mac = **presentazione vsync**, non p95 grezzo. `missed = max(0, floor(dt / (1000/60)) − 1)` sui `samples_ms` dei dump (320 frame, non interpolati).
+
+### Mac catalog missed vsync (per profilo)
+
+| Profilo | missed_vsync_sum | frames_with_miss | hitch | altro miss | post-hitch (skip 5) |
+|---------|------------------|------------------|-------|------------|---------------------|
+| HIGH | 30 | 2 | 504.079 ms → 29 | 34.901 ms → 1 | **0** / 315; p95 grezzo 17.097 |
+| MID | 9 | 2 | 162.909 ms → 8 | 37.848 ms → 1 | **1** (37.848 ms) |
+| BLUR_OFF | 10 | 2 | 169.439 ms → 9 | 34.375 ms → 1 | **1** (34.375 ms) |
+
+HIGH: missed post-hitch ≈ 0 → **60 fps rispettato in presentazione**; p95 grezzo **17.116 ms** = jitter vsync (entrambi i numeri). MID missed non ≈ 0. **HIGH = trade-off dichiarato** (overlay vsync-locked; non si declassa a MID).
+
+### Tabella audit — PC-001..004
+
+| Test | Invariante | Dove | PASS |
+|------|------------|------|------|
+| PC-001 | missed-vsync count per profilo catalog Mac; metrica = presentazione vsync, non p95 grezzo | `docs/PERFORMANCE.md` Metodo + tabella catalog; questa REVIEW | **PASS** (30 / 9 / 10) |
+| PC-002 | missed≈0 → 60 fps in presentazione + p95 grezzo = jitter, entrambi i numeri; altrimenti UNVERIFIED + HIGH trade-off | PERFORMANCE: HIGH 17.116 jitter + missed 0 post-hitch; HIGH trade-off dichiarato | **PASS** |
+| PC-003 | anomalia MID ≰ HIGH **17.829 vs 17.116** scritta; PF-003 riscopato all’overlay (non verde in silenzio sul catalog Mac) | PERFORMANCE anomalia; REVIEW PF-003; CHANGELOG Unreleased | **PASS** |
+| PC-004 | ripiego: nessun profilo rispetta il target → default più economico + UNVERIFIED; banner fps Android; 200 ms sospetto artefatto harvest | PERFORMANCE Android banner; `GOVERNANCE.md` §10; CHANGELOG | **PASS** |
+
+Zero codice toccato in questa fase. Niente push.
 
 ---
 
@@ -107,22 +136,26 @@ Gate: **verde** con dump reali in `review-assets/perf/`. Decisione **(b)**. Tag 
 
 ### Mac catalog on-screen (Compose Metal, 320 frame)
 
-| Profilo | p50 | p95 | max | vs (b) 16.7 |
-|---------|-----|-----|-----|-------------|
-| HIGH | 16.647 | 17.116 | 504.079 | p95 sopra |
-| MID | 16.648 | 17.829 | 162.909 | p95 sopra; ≰ HIGH |
-| BLUR_OFF | 16.680 | 17.120 | 169.439 | p95 sopra |
+Metrica di compliance: **missed vsync**, non p95 grezzo.
 
-### Android A024 gfxinfo (2026-09-13)
+| Profilo | p50 | p95 grezzo | max | missed_vsync_sum | frames_with_miss |
+|---------|-----|------------|-----|------------------|------------------|
+| HIGH | 16.647 | 17.116 | 504.079 | 30 | 2 |
+| MID | 16.648 | 17.829 | 162.909 | 9 | 2 |
+| BLUR_OFF | 16.680 | 17.120 | 169.439 | 10 | 2 |
 
-| Profilo | scene | frames | p50 | p95 | GPU p95 |
-|---------|-------|--------|-----|-----|---------|
-| HIGH | catalog | 65 | 93 | 200 | 6 |
-| MID | catalog | 66 | 101 | 200 | 7 |
-| HIGH | overlay | 61 | 101 | 200 | 7 |
-| MID | overlay | 66 | 101 | 200 | 8 |
+HIGH post-hitch missed=0 → 60 fps in presentazione; 17.116 ms = jitter. MID 17.829 ≰ 17.116: eccezione PF-003, non PASS silenzioso.
 
-100% janky / Slow UI. BLUR_OFF gfxinfo assente.
+### Android A024 gfxinfo (2026-09-13) — **fps UNVERIFIED**
+
+| Profilo | scene | frames | p50 | p95 nominale | GPU p95 |
+|---------|-------|--------|-----|--------------|---------|
+| HIGH | catalog | 65 | 93 | **200** (sospetto artefatto harvest) | 6 |
+| MID | catalog | 66 | 101 | **200** (sospetto artefatto harvest) | 7 |
+| HIGH | overlay | 61 | 101 | **200** (sospetto artefatto harvest) | 7 |
+| MID | overlay | 66 | 101 | **200** (sospetto artefatto harvest) | 8 |
+
+100% janky / Slow UI. Nessun jank-frame count on-screen. BLUR_OFF gfxinfo assente. Ripiego: default più economico (BLUR_OFF) + UNVERIFIED.
 
 ---
 

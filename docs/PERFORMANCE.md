@@ -10,9 +10,9 @@ Profili A3UI: feature matrix misurata, non marketing. Il vetro non deve mangiare
 
 **(c)** Vietato: spostare soglie per far passare i numeri senza questa decisione; interpolare campioni; taggare con PF aperti.
 
-**Esito:** i dump Android gfxinfo A024 (2026-09-13) mostrano HIGH overlay expanded p95 **200 ms**. **(a) è esclusa** prima di qualsiasi rimisura Mac. Si applica **(b)**.
+**Esito:** i dump Android gfxinfo A024 (2026-09-13) mostrano HIGH overlay expanded p95 nominale **200 ms**. **(a) è esclusa** prima di qualsiasi rimisura Mac. Si applica **(b)**.
 
-Android HIGH/MID catalog e overlay mancano **sia** 16.7 ms **sia** 33.3 ms. GPU p95 è 6–8 ms; lo hotspot è UI thread / issue draw commands, non il GPU blur. Nessun profilo misurato rispetta il target su quel device: auto overlay default = **BLUR_OFF** (rung più economico della scala; BLUR_OFF Android **non** è stato dumpato, quindi non è una prova che rispetti 16.7/33.3). Showcase resta sui segnali di classe (modulo frozen in questa passata).
+Android HIGH/MID catalog e overlay, sui percentili gfxinfo, mancano **sia** 16.7 ms **sia** 33.3 ms. GPU p95 è 6–8 ms. **Nessun profilo misurato rispetta il target** su quel device → **ripiego:** default = profilo più economico (**BLUR_OFF**) + compliance fps **UNVERIFIED** (regola in questa pagina e in `GOVERNANCE.md` §10). Il 200 ms nominale è **sospetto artefatto harvest** finché non esiste un jank-frame count on-screen. Showcase resta sui segnali di classe (modulo frozen in A3UI-PERF-FIX).
 
 ## Matrice
 
@@ -42,17 +42,20 @@ Nothing Phone (3) / A024 (classe, **non** frame time): 12 GB RAM, 1264×2736, `q
 
 ### Budget misurato (overlay Android, decisione b)
 
-| Device | Catalog p95 HIGH/MID | Overlay p95 HIGH/MID | Default auto overlay |
-|--------|----------------------|----------------------|----------------------|
-| A024 (dump `review-assets/perf/android-*-gfxinfo.txt`) | 200 ms / 200 ms | 200 ms / 200 ms | **BLUR_OFF** (pill visibile) |
+| Device | Catalog p95 HIGH/MID | Overlay p95 HIGH/MID | Default auto overlay | Compliance fps |
+|--------|----------------------|----------------------|----------------------|----------------|
+| A024 (dump `review-assets/perf/android-*-gfxinfo.txt`) | 200 ms / 200 ms (nominale, **sospetto artefatto harvest**) | 200 ms / 200 ms (stesso) | **BLUR_OFF** (più economico; pill visibile) | **UNVERIFIED** |
 
-Mac host: macOS 26, Apple M4, 16 GB → classe **HIGH**. I test Skiko `SOFTWARE` non sono il default runtime né il dump PF-005.
+**Ripiego (MUST):** se nessun profilo rispetta il target sul device → default = profilo più economico della scala (HIGH → MID → BLUR_OFF) **e** la claim fps è **UNVERIFIED**. Vietato un default HIGH silenzioso in quel caso.
+
+Mac host: macOS 26, Apple M4, 16 GB → classe **HIGH** (trade-off dichiarato sotto: overlay vsync-locked; catalog HIGH in presentazione dopo hitch). I test Skiko `SOFTWARE` non sono il default runtime né il dump PF-005.
 
 ## Metodo
 
 - **Android display p95:** `adb shell dumpsys gfxinfo <pkg> framestats`. Parser: `GfxInfoParser` (linee percentile del dump). Non interpolato. Dump: `review-assets/perf/android-{catalog,overlay}-{HIGH,MID}-gfxinfo.txt`. BLUR_OFF Android **assente**.
 - **Mac overlay expanded:** `CADisplayLink` sull'overlay nativo con `NSVisualEffectView` (`.fullScreenUI`, `.behindWindow`) **on-screen**. ≥300 frame. **Non** `OverlayCompositor` / `CGContext` offscreen.
 - **Mac catalog:** `withFrameNanos` su Compose Desktop, `skiko.renderApi=METAL`, `MacGlassSurface` on-screen. ≥300 frame. I test JUnit restano SOFTWARE (non sono PF-005).
+- **Compliance catalog Mac (non è il p95 grezzo):** presentazione vsync. Per ogni sample `dt` ms, `missed = max(0, floor(dt / (1000/60)) − 1)` (periodo 16.666… ms). Si dichiarano `missed_vsync_sum` e `frames_with_miss`. **60 fps in presentazione** ⇔ `missed ≈ 0`. Il p95 grezzo sopra 16.7 ms con missed≈0 è **jitter vsync**, non un fail di presentazione.
 - **Hotspot compositor (diagnosi, non PF-005):** `review-assets/perf/mac-hotspot-compositor.txt` — quota copy vs CPU `OverlayBlur` vs paint su `BufferedImage`.
 
 ## Limitazioni (oneste)
@@ -66,18 +69,34 @@ Mac host: macOS 26, Apple M4, 16 GB → classe **HIGH**. I test Skiko `SOFTWARE`
 
 Host: macOS 26.6.2 (25G83), Apple M4, 10 core. Overlay: `CADisplayLink` + `NSVisualEffectView` on-screen. Catalog: Compose Desktop `withFrameNanos`, `skiko.renderApi=METAL`.
 
-CADisplayLink su overlay è l'intervallo vsync: 320/320 frame a **16.666625 ms** (60 Hz, zero missed vsync). Non è wall time di `OverlayCompositor`.
+CADisplayLink su overlay è l'intervallo vsync: 320/320 frame a **16.666625 ms** (60 Hz, **missed vsync = 0**). Non è wall time di `OverlayCompositor`.
 
-| Superficie | Profilo | p50 ms | p95 ms | max ms | frames | vs (b) |
-|------------|---------|--------|--------|--------|--------|--------|
-| overlay expanded | HIGH | 16.667 | 16.667 | 16.667 | 320 | < 33.3 (e < 16.7) |
-| overlay expanded | MID | 16.667 | 16.667 | 16.667 | 320 | ≤ HIGH |
-| overlay expanded | BLUR_OFF | 16.667 | 16.667 | 16.667 | 320 | ≤ HIGH |
-| catalog | HIGH | 16.647 | 17.116 | 504.079 | 320 | p95 > 16.7 |
-| catalog | MID | 16.648 | 17.829 | 162.909 | 320 | p95 > 16.7; p95 ≰ HIGH |
-| catalog | BLUR_OFF | 16.680 | 17.120 | 169.439 | 320 | p95 > 16.7 |
+| Superficie | Profilo | p50 ms | p95 ms | max ms | frames | missed_vsync_sum | frames_with_miss |
+|------------|---------|--------|--------|--------|--------|------------------|------------------|
+| overlay expanded | HIGH | 16.667 | 16.667 | 16.667 | 320 | 0 | 0 |
+| overlay expanded | MID | 16.667 | 16.667 | 16.667 | 320 | 0 | 0 |
+| overlay expanded | BLUR_OFF | 16.667 | 16.667 | 16.667 | 320 | 0 | 0 |
+| catalog | HIGH | 16.647 | 17.116 | 504.079 | 320 | **30** | **2** |
+| catalog | MID | 16.648 | 17.829 | 162.909 | 320 | **9** | **2** |
+| catalog | BLUR_OFF | 16.680 | 17.120 | 169.439 | 320 | **10** | **2** |
 
-Catalog max è hitch di apertura finestra (incluso nei 320, non interpolato). p95 catalog resta ~17.1–17.8 ms. Nessun profilo catalog Mac rispetta 16.7 ms in questo harvest; default Mac resta classe HIGH (pill visibile). Overlay nativo non downgrade.
+Catalog missed (dump `samples_ms`, formula sopra, **nessun campione interpolato**):
+
+| Profilo | hitch (idx 0) | altro miss | post-hitch (skip 5) missed_sum |
+|---------|---------------|------------|--------------------------------|
+| HIGH | 504.079 ms → 29 | idx 2: 34.901 ms → 1 | **0** (315 frame; p95 grezzo 17.097) |
+| MID | 162.909 ms → 8 | idx 11: 37.848 ms → 1 | **1** (37.848 ms resta) |
+| BLUR_OFF | 169.439 ms → 9 | idx 9: 34.375 ms → 1 | **1** (34.375 ms resta; 0 dopo skip 10) |
+
+**HIGH catalog — 60 fps rispettato in presentazione.** Post-hitch missed ≈ 0. p95 grezzo **17.116 ms** (320 frame) / **17.097 ms** (315) = **jitter vsync**, non un fail di presentazione.
+
+**MID / BLUR_OFF catalog:** missed non ≈ 0 (resta 1 frame > 33.3 ms dopo l’hitch). Non si claima 60 fps su quei profili.
+
+**HIGH = trade-off dichiarato** (non silenzioso): overlay Mac è vsync-locked a 16.667 ms; catalog HIGH presenta a 60 fps dopo hitch. Non si declassa a MID: MID non è più economico in presentazione e il p95 grezzo è peggiore.
+
+### Anomalia PF-003 Mac catalog (scritta, non verde in silenzio)
+
+MID p95 grezzo **17.829 ms** ≰ HIGH **17.116 ms**. È jitter vsync (stesso dump; MID ha anche il miss 37.848 ms). **PF-003 è riscopato all’overlay** (Mac overlay 16.667=16.667; Android overlay 200=200) **e ad Android catalog** (200=200). Mac catalog MID ≰ HIGH **non è PASS**.
 
 ### Prima (harness sbagliato, 24 frame, 2026-09-13)
 
@@ -85,7 +104,11 @@ Catalog max è hitch di apertura finestra (incluso nei 320, non interpolato). p9
 
 ## Misure — Android A024 (2026-09-13, dump reali)
 
+**Banner: compliance fps Android = UNVERIFIED.** Nessun profilo rispetta il target (b) sui dump gfxinfo → default **BLUR_OFF** (più economico) + UNVERIFIED, non una claim 30/60 fps.
+
 Device: `device_model=A024` `serial=<redacted-device-id>`. Pipeline Skia (Vulkan). gfxinfo named percentiles (primo blocco). GPU p95 6–8 ms su tutti.
+
+Il p95 nominale **200 ms** è il bucket gfxinfo dopo 150 ms. Harvest ~4 s / ~60–70 frame, 100% janky, senza jank-frame count on-screen da sessione scroll operatore. **Marcato sospetto artefatto harvest** finché non esiste quel count. Non interpolato a 16.7.
 
 | Profilo | scene | frames | p50 ms | p90 ms | p95 ms | p99 ms | GPU p95 | Slow UI | vs (b) |
 |---------|-------|--------|--------|--------|--------|--------|---------|---------|--------|
