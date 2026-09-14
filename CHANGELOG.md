@@ -17,6 +17,7 @@ Each historical entry cites the git tag and the tagged commit SHA.
 ### Changed
 
 - A3UI perf **(b)**: catalog target remains 60 fps (p95 < 16.7 ms); overlay expanded target is 30 fps (p95 < 33.3 ms). Declared because measured HIGH overlay expanded p95 on A024 gfxinfo is 200 ms, so **(a)** (16.7 ms on both platforms) cannot close. Overlay auto-detect on A024 defaults to BLUR_OFF with a visible profile pill. Mac display blur is `NSVisualEffectView`; CPU `OverlayBlur` is not the display path.
+- A3UI perf compliance (docs, `a3ui-perf-v0.2`): (1) Mac catalog compliance metric is **presentation vsync** (missed-vsync count), not raw p95. HIGH catalog: 60 fps in presentation after hitch (missed=0 on 315 frames); raw p95 **17.116 ms** is vsync jitter. MID catalog raw p95 **17.829 ms** ≰ HIGH **17.116 ms** declared as jitter; PF-003 rescoped to overlay (Mac catalog exception written, not silent green). (2) Android: no profile meets the target → default = cheapest profile (BLUR_OFF) + fps **UNVERIFIED** (`GOVERNANCE.md` §10); gfxinfo nominal **200 ms** marked as suspected harvest artifact until an on-screen jank-frame count exists.
 
 ### Deprecated
 

@@ -100,3 +100,11 @@ Module tags (`core-v0.5`, `renderer-android-v0.16`, `a3ui-a11y-v0.1`, …) MUST 
 ## 9. Divergences
 
 When two implementations disagree, a change MUST declare which implementation is wrong and why. A change MUST NOT silently reconcile the outputs.
+
+## 10. A3UI performance profile fallback
+
+This section is operational for A3UI implementation tags (`a3ui-perf-*` and overlay/renderer profile defaults). It MUST NOT be read as a protocol MAJOR, MINOR, or PATCH to `SPEC_A3-EP` / `SPEC_A3UI`.
+
+When measured frame times on a device show that **no** declared profile meets the documented surface target in `docs/PERFORMANCE.md`, auto-detect MUST default to the cheapest remaining profile on the ladder (HIGH → MID → BLUR_OFF) **and** the fps claim for that device MUST be recorded as **UNVERIFIED**. A silent HIGH default in that case is forbidden. The active profile MUST remain visible (`profile-pill`).
+
+A gfxinfo named percentile MUST NOT be treated as a verified on-screen jank-frame count. Until an on-screen jank-frame harvest exists, a coarse bucket such as 200 ms MUST be labelled a suspected harvest artifact in `docs/PERFORMANCE.md`.
