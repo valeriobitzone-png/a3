@@ -20,7 +20,8 @@ enum class OverlayCollapseReason {
     DISMISS,
     TIMEOUT,
     TERMINAL,
-    UNDER_FOCUS
+    UNDER_FOCUS,
+    SENSITIVE
 }
 
 enum class OverlayTapTarget {
@@ -116,6 +117,10 @@ object OverlayLifecycle {
         if (state.phase != OverlayPhase.EXPANDED) return state
         return collapse(state, now, OverlayCollapseReason.UNDER_FOCUS)
     }
+
+    /** Sensitive expanded surfaces SHOULD collapse (shoulder surfing). */
+    fun hideSensitive(state: OverlayLifecycleState, now: Long): OverlayLifecycleState =
+        collapse(state, now, OverlayCollapseReason.SENSITIVE)
 
     fun tick(
         state: OverlayLifecycleState,

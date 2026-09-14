@@ -26,6 +26,7 @@ object OverlayFlight {
     const val RAIL_URL = "https://www.google.com/search?q=Frecciarossa%20Roma%20Milano%20domani"
     const val CAR_URL = "https://www.google.com/maps/dir/Rome/Milan"
 
+    /** Static travel cards. No screen pixels. Never agent capture input. */
     fun present(): OverlaySession = OverlaySession(
         intent = INTENT,
         planDigest = "overlay-flight-v0.1",
