@@ -54,7 +54,7 @@ class OverlayPermissionActivity : ComponentActivity() {
         root.addView(TextView(this).apply {
             text = OverlayPolicy.ANDROID_OVERLAY_PERMISSION +
                 " is requested, never assumed. MediaProjection is optional; deny → " +
-                OverlayPolicy.BLUR_UNAVAILABLE
+                OverlayPolicy.BLUR_UNAVAILABLE + ". " + OverlayCaptureLaw.CONSENT_COPY
             textSize = 14f
         })
         if (!canDraw) {

@@ -252,6 +252,14 @@ class OverlayCommonTest {
     }
 
     @Test
+    fun OL_009_ov_regression_still_present() {
+        OV_001_android_permission_is_explicit()
+        OV_002_backdrop_honest_when_projection_denied()
+        OV_007_flight_decomposes_and_opens_browser()
+        OV_008_freeze_core_broker_renderers_launcher()
+    }
+
+    @Test
     fun OL_010_freeze_includes_agent() {
         fun diff(vararg paths: String): String {
             val proc = ProcessBuilder("git", "diff", "--stat", "--", *paths)

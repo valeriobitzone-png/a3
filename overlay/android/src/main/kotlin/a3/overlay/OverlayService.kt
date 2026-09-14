@@ -64,6 +64,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     private var timeoutMs = OverlayLifecycle.DEFAULT_TIMEOUT_MS
     private var reduced = false
     private var dismissOutside = true
+    private var surfaceKind = OverlaySurfaceKind.ROUTINE
     private val timeoutRun = Runnable {
         applyLife(OverlayLifecycle.tick(life, now(), timeoutMs))
     }
@@ -98,14 +99,22 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         }
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        if (intent?.getBooleanExtra(EXTRA_SENSITIVE, false) == true) {
+            surfaceKind = OverlaySurfaceKind.SENSITIVE
+        }
         if (pillView == null) {
             life = OverlayLifecycle.start(now())
             attachPill()
         }
-        if (projectionGranted && projection == null) {
+        if (projectionGranted &&
+            projection == null &&
+            OverlaySensitiveLaw.mayShowExpanded(surfaceKind)
+        ) {
             startProjection(intent)
         }
-        if (intent?.getBooleanExtra(EXTRA_EXPAND, false) == true) {
+        if (surfaceKind == OverlaySurfaceKind.SENSITIVE) {
+            applyLife(OverlayLifecycle.hideSensitive(life, now()))
+        } else if (intent?.getBooleanExtra(EXTRA_EXPAND, false) == true) {
             applyLife(OverlayLifecycle.expand(life, now()))
         }
         if (intent?.getBooleanExtra(EXTRA_COLLAPSE, false) == true) {
@@ -137,6 +146,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         virtualDisplay?.release()
         reader?.close()
         projection?.stop()
+        blurred?.recycle()
+        blurred = null
         removeView(backdropView)
         removeView(sheetView)
         removeView(pillView)
@@ -165,12 +176,18 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
     }
 
     private fun applyLife(next: OverlayLifecycleState) {
+        val gated =
+            if (!OverlaySensitiveLaw.mayShowExpanded(surfaceKind) && next.phase == OverlayPhase.EXPANDED) {
+                OverlayLifecycle.hideSensitive(next, now())
+            } else {
+                next
+            }
         val prev = life
-        life = next
-        markState.value = next.mark
-        phaseState.value = next.phase
-        if (prev.phase != next.phase) {
-            if (next.phase == OverlayPhase.EXPANDED) showExpanded() else hideExpanded()
+        life = gated
+        markState.value = gated.mark
+        phaseState.value = gated.phase
+        if (prev.phase != gated.phase) {
+            if (gated.phase == OverlayPhase.EXPANDED) showExpanded() else hideExpanded()
         }
         scheduleTimeout()
     }
@@ -188,7 +205,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
 
     private fun attachPill() {
         if (pillView != null) return
-        val wrap = host()
+        val wrap = OverlayHostFrame()
+        wrap.bindTrees()
         val compose = ComposeView(wrap.context).apply {
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
             bindTrees()
@@ -201,7 +219,9 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                     OverlayPill(
                         mark = markState.value,
                         onTap = {
-                            if (life.phase == OverlayPhase.COLLAPSED) {
+                            if (life.phase == OverlayPhase.COLLAPSED &&
+                                OverlaySensitiveLaw.mayShowExpanded(surfaceKind)
+                            ) {
                                 applyLife(OverlayLifecycle.expand(life, now()))
                             }
                         },
@@ -241,6 +261,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         if (ms == 0L) {
             removeView(sheet)
             removeView(back)
+            blurred?.recycle()
+            blurred = null
             return
         }
         if (sheet != null) {
@@ -253,6 +275,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         }
         back?.animate()?.alpha(0f)?.setDuration(ms)?.withEndAction {
             removeView(back)
+            blurred?.recycle()
+            blurred = null
         }?.start()
         if (back == null && sheet == null) return
         if (sheet == null && back != null) {
@@ -355,6 +379,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         applyLife(OverlayLifecycle.terminal(life, now(), worked))
     }
 
+    /** One-shot bitmap for visible blur only. Never agent input, never persisted, never off-device. */
     private fun startProjection(intent: Intent?) {
         val data = if (Build.VERSION.SDK_INT >= 33) {
             intent?.getParcelableExtra(EXTRA_PROJECTION_DATA, Intent::class.java)
@@ -404,14 +429,21 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 )
                 bitmap.copyPixelsFromBuffer(buf)
                 val cropped = android.graphics.Bitmap.createBitmap(bitmap, 0, 0, image.width, image.height)
+                bitmap.recycle()
                 val next = OverlayBitmapBlur.copy(cropped)
+                cropped.recycle()
                 val radius = OverlayProfileAndroid.decide(this).matrix.blurRadiusPx
+                val previous = blurred
                 blurred = next
+                previous?.recycle()
                 handler.post {
                     if (life.phase == OverlayPhase.EXPANDED) {
                         if (backdropView == null) attachBackdrop()
                         backdropView?.setImageBitmap(next)
                         backdropView?.let { OverlayBackdropGpu.apply(it, radius) }
+                    } else {
+                        next.recycle()
+                        if (blurred === next) blurred = null
                     }
                     virtualDisplay?.release()
                     virtualDisplay = null
@@ -476,10 +508,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         nm.notify(2, n)
     }
 
-    private fun host(): FrameLayout = FrameLayout(this).apply {
-        setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        bindTrees()
-    }
+    private fun host(): FrameLayout = OverlayHostFrame()
 
     private fun View.bindTrees() {
         setViewTreeLifecycleOwner(this@OverlayService)
@@ -492,8 +521,23 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         runCatching { windowManager.removeView(view) }
     }
 
-    inner class OverlaySheetFrame : FrameLayout(this@OverlayService) {
+    /** filterTouchesWhenObscured + FLAG_WINDOW_IS_OBSCURED: hostile windows cannot tapjack A3 actions. */
+    open inner class OverlayHostFrame : FrameLayout(this@OverlayService) {
+        init {
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            bindTrees()
+            filterTouchesWhenObscured = true
+        }
+
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+            if (!OverlayTapJacking.allowsA3Action(event.flags)) return true
+            return super.dispatchTouchEvent(event)
+        }
+    }
+
+    inner class OverlaySheetFrame : OverlayHostFrame() {
         override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (!OverlayTapJacking.allowsA3Action(event.flags)) return true
             if (event.action == MotionEvent.ACTION_OUTSIDE) {
                 applyLife(OverlayLifecycle.underFocus(life, now()))
                 return true
@@ -515,6 +559,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
         const val EXTRA_TIMEOUT_MS = "timeout_ms"
         const val EXTRA_DISMISS_OUTSIDE = "dismiss_outside"
         const val EXTRA_PROFILE = "profile"
+        const val EXTRA_SENSITIVE = "sensitive"
 
         fun start(
             context: Context,
@@ -525,7 +570,8 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
             expand: Boolean = false,
             reduced: Boolean = false,
             timeoutMs: Long = OverlayLifecycle.DEFAULT_TIMEOUT_MS,
-            profile: String? = null
+            profile: String? = null,
+            sensitive: Boolean = false
         ) {
             val intent = Intent(context, OverlayService::class.java)
                 .putExtra(EXTRA_PROJECTION, projectionGranted)
@@ -533,6 +579,7 @@ class OverlayService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedStat
                 .putExtra(EXTRA_EXPAND, expand)
                 .putExtra(EXTRA_REDUCED, reduced)
                 .putExtra(EXTRA_TIMEOUT_MS, timeoutMs)
+                .putExtra(EXTRA_SENSITIVE, sensitive)
             if (data != null) intent.putExtra(EXTRA_PROJECTION_DATA, data)
             if (choose != null) intent.putExtra(EXTRA_CHOOSE, choose)
             if (profile != null) intent.putExtra(EXTRA_PROFILE, profile)

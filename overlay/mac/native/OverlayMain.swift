@@ -51,6 +51,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     var harvestFrames = 0
     var harvestLog: String?
     var harvestScene = "overlay"
+    var sensitive = false
     var frameDeltas: [Double] = []
     var lastFrameTs: CFTimeInterval = 0
     var displayLink: CADisplayLink?
@@ -65,6 +66,8 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
             NSApp.setActivationPolicy(.regular)
             showHarvestWallpaper()
         }
+        // window level + event isolation: NSPanel .floating + .nonactivatingPanel.
+        // Hit-test is not hijackable by the app under the glass; a window above .floating can still cover (residual).
         panel.level = .floating
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -311,6 +314,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
 
     @objc func pillTap() {
         lastInteraction = Date()
+        if sensitive { return }
         if phase == .collapsed {
             expand()
         }
@@ -340,6 +344,7 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func expand() {
+        if sensitive { return }
         lastInteraction = Date()
         phase = .expanded
         applyPhase(animated: !reducedMotion)
@@ -425,6 +430,9 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startAxObserver() {
+        // AX declared reads: AXIsProcessTrusted (consent bit only);
+        // NSWorkspace frontmost application localizedName (app title, not view content);
+        // AXObserver kAXFocusedWindowChangedNotification with empty callback (no text, no bounds dump).
         guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return }
         var observer: AXObserver?
         let callback: AXObserverCallback = { _, _, _, _ in }
@@ -519,6 +527,10 @@ final class OverlayDelegate: NSObject, NSApplicationDelegate {
         if harvesting {
             phase = .expanded
             timeoutMs = 3_600_000
+        } else if args.contains("--sensitive") {
+            // OverlaySurfaceKind.SENSITIVE: collapse/hidden (shoulder surfing SHOULD).
+            sensitive = true
+            phase = .collapsed
         }
         if let app = NSWorkspace.shared.frontmostApplication {
             frontmost = frontmost ?? app.localizedName

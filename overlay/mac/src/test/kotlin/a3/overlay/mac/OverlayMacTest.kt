@@ -153,4 +153,27 @@ class OverlayMacTest {
         }
         println("PASS PF-005 on-screen dumps ≥300")
     }
+
+    @Test
+    fun TH_003_mac_window_level_and_event_isolation() {
+        assertEquals("window level + event isolation", OverlayMacWindow.EVENT_ISOLATION)
+        val swift = nativeSrc.readText()
+        assertTrue(swift.contains(".floating"))
+        assertTrue(swift.contains(".nonactivatingPanel"))
+        assertTrue(swift.contains("window level + event isolation"))
+        assertTrue(swift.contains("mouse events outside the pill"))
+        assertTrue(swift.contains("ignoresMouseEvents"))
+        for (read in OverlayMacWindow.axReads()) {
+            assertTrue(swift.contains(read), read)
+        }
+        assertTrue(swift.contains("{ _, _, _, _ in }"))
+    }
+
+    @Test
+    fun TH_005_mac_sensitive_stays_collapsed() {
+        val swift = nativeSrc.readText()
+        assertTrue(swift.contains("--sensitive"))
+        assertTrue(swift.contains("if sensitive { return }"))
+        assertTrue(swift.contains("OverlaySurfaceKind.SENSITIVE"))
+    }
 }

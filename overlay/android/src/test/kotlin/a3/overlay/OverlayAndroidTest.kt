@@ -129,4 +129,43 @@ class OverlayAndroidTest {
         assertTrue(service.contains("transitionMs"))
         assertTrue(service.contains("DEFAULT_TIMEOUT_MS"))
     }
+
+    @Test
+    fun TH_002_media_projection_bitmap_is_blur_only() {
+        val service = File("src/main/kotlin/a3/overlay/OverlayService.kt").readText()
+        assertTrue(service.contains("MediaProjection"))
+        assertTrue(service.contains("OverlayBackdropGpu.apply"))
+        assertTrue(service.contains("Never agent input, never persisted, never off-device"))
+        assertTrue(service.contains(".recycle()"))
+        assertFalse(service.contains("FileOutputStream"))
+        assertFalse(service.contains("HttpURLConnection"))
+        assertFalse(service.contains("OkHttp"))
+        assertFalse(service.contains("java.net.URL"))
+        assertFalse(service.contains("Bitmap.compress"))
+        val copy = File("src/main/kotlin/a3/overlay/OverlayBitmapBlur.kt").readText()
+        assertFalse(copy.contains("FileOutputStream"))
+        assertFalse(copy.contains("HttpURLConnection"))
+        val gpu = File("src/main/kotlin/a3/overlay/OverlayBackdropGpu.kt").readText()
+        assertFalse(gpu.contains("FileOutputStream"))
+        val settings = File("src/main/kotlin/a3/overlay/OverlayPermissionActivity.kt").readText()
+        assertTrue(settings.contains("OverlayCaptureLaw.CONSENT_COPY"))
+        assertFalse(OverlayCaptureLaw.PERSIST_ALLOWED)
+        assertFalse(OverlayCaptureLaw.OFF_DEVICE_ALLOWED)
+    }
+
+    @Test
+    fun TH_003_obscured_touch_is_not_an_a3_action() {
+        assertTrue(OverlayTapJacking.allowsA3Action(0))
+        assertFalse(OverlayTapJacking.allowsA3Action(OverlayTapJacking.FLAG_WINDOW_IS_OBSCURED))
+        assertFalse(OverlayTapJacking.allowsA3Action(OverlayTapJacking.FLAG_WINDOW_IS_PARTIALLY_OBSCURED))
+        assertFalse(
+            OverlayTapJacking.allowsA3Action(
+                OverlayTapJacking.FLAG_WINDOW_IS_OBSCURED or OverlayTapJacking.FLAG_WINDOW_IS_PARTIALLY_OBSCURED
+            )
+        )
+        val service = File("src/main/kotlin/a3/overlay/OverlayService.kt").readText()
+        assertTrue(service.contains("filterTouchesWhenObscured = true"))
+        assertTrue(service.contains("OverlayTapJacking.allowsA3Action"))
+        assertTrue(service.contains("dispatchTouchEvent"))
+    }
 }
