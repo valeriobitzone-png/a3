@@ -357,6 +357,8 @@ class EnvelopeTest {
             "REVIEW_PROTOCOL_V2.md",
             "REVIEW_CORE_ENVELOPE.md",
             "settings.gradle.kts",
+            "CHANGELOG.md",
+            "docs/",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

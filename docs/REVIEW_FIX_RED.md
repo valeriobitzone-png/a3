@@ -67,7 +67,7 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 - Progress announce: da `< 200` ms a `< 500` ms (ancora ≪ timeout keystore 1s)
 
 ### Core freeze porcelain (`EN_008`, `CF_008`, `ULP_004`, `TC_007`, `TM_006`, `T12_009`)
-- Aggiunto allowlist `review-assets/` (stesso invariante F7)
+- Aggiunto allowlist `review-assets/`, `CHANGELOG.md`, `docs/` (stesso invariante F7; FIX-RED tocca changelog/docs)
 
 ---
 

@@ -257,6 +257,8 @@ class TemporalTest {
             "core/temporal/",
             "settings.gradle.kts",
             "REVIEW_CORE_TEMPORAL.md",
+            "CHANGELOG.md",
+            "docs/",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")

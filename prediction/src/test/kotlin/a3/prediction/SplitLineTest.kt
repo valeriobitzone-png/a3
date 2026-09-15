@@ -93,7 +93,7 @@ class SplitLineTest {
             return out
         }
         // review-assets/ is rewritten by visual/agent tests in the same suite; exclude like sibling freezes.
-        val frozen = diff(".", ":!core/runtime", ":!prediction", ":!docs", ":!review-assets")
+        val frozen = diff(".", ":!core/runtime", ":!prediction", ":!docs", ":!review-assets", ":!CHANGELOG.md")
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
             .directory(root)
@@ -101,7 +101,7 @@ class SplitLineTest {
             .start()
         val porcelain = status.inputStream.bufferedReader().readText()
         check(status.waitFor() == 0)
-        val allowed = listOf("core/runtime/", "prediction/", "docs/", "review-assets/")
+        val allowed = listOf("core/runtime/", "prediction/", "docs/", "review-assets/", "CHANGELOG.md")
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
             val path = line.drop(3).trim().removePrefix("?? ").let {
