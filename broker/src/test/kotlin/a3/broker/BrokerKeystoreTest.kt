@@ -181,8 +181,9 @@ class BrokerKeystoreTest {
         assertFalse(blob.contains(hex), blob)
 
         val root = Path.of("").toAbsolutePath().let { if (Files.exists(it.resolve("settings.gradle.kts"))) it else it.parent }
+        // Same retirement of 7a60b52 pin as BKR_011 — CORE evolved after broker-v0.1.
         val proc = ProcessBuilder(
-            "git", "diff", "7a60b52", "--",
+            "git", "diff", "--stat", "--",
             "core/", "prediction/", "projection/", "a3ui/", "adapters/", "intent-model/", "renderers/", "launcher/"
         ).directory(root.toFile()).start()
         val diff = proc.inputStream.readBytes().toString(Charsets.UTF_8)

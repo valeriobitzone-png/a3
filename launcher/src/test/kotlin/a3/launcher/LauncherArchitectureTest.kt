@@ -73,14 +73,19 @@ class LauncherArchitectureTest {
 
     @Test
     fun F3_catalog_paints_node_text_on_item_and_action() {
+        // Invariant: item/action paint BoundCopy; Theme.actionMin sizing; no hardcoded 48/160.dp.
+        // Source shape moved at b088efa (GlassSurface) and 0110efe (BoundCopy pressed) —
+        // assertions track the invariant, not the pre-glass Box literal.
         val catalog = File(
             "../renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt"
         ).readText()
-        assertTrue(catalog.contains("BoundCopy(node)"))
+        assertTrue(catalog.contains("BoundCopy(node, pressed)"))
         assertTrue(catalog.contains("if (node.text.isNotEmpty())"))
-        assertTrue(catalog.contains("BasicText(text = node.text"))
-        assertTrue(catalog.contains("\"item\" -> Box(modifier) { Children"))
-        assertTrue(catalog.contains("\"action\" -> Box(modifier) { Children"))
+        assertTrue(catalog.contains("BasicText(") && catalog.contains("text = node.text"))
+        assertTrue(Regex("\"item\"\\s*->\\s*GlassSurface").containsMatchIn(catalog))
+        assertTrue(Regex("\"action\"\\s*->\\s*Box").containsMatchIn(catalog))
+        assertTrue(catalog.contains("BoundCopy(node, pressed)") && catalog.contains("\"item\""))
+        assertTrue(catalog.contains("BoundCopy(node, pressed)") && catalog.contains("\"action\""))
         assertTrue(catalog.contains("Theme.actionMin"))
         assertFalse(catalog.contains("48.dp"))
         assertFalse(catalog.contains("160.dp"))

@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:json"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
 

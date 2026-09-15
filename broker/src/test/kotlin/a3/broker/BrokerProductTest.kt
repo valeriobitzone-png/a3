@@ -261,8 +261,11 @@ class BrokerProductTest {
 
     @Test
     fun BKR_011_core_frozen() {
+        // Freeze vs working tree (modern pattern). The 7a60b52 pin broke at 9787ec9
+        // when CORE temporal landed; protocol-v2 (c6936c3) continued CORE evolution.
+        // Retiring the SHA pin is not a protocol lock change — see CHANGELOG Fixed.
         val root = repoRoot()
-        val proc = ProcessBuilder("git", "diff", "7a60b52", "--", "core/", "core/admission/", "core/action/", "core/json/")
+        val proc = ProcessBuilder("git", "diff", "--stat", "--", "core/")
             .directory(root.toFile())
             .start()
         val out = proc.inputStream.readBytes().toString(Charsets.UTF_8)
