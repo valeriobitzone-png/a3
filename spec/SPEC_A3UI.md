@@ -10,7 +10,7 @@ Consumes: SPEC_A3-EP 0.1.0
 Obsoletes: none
 ```
 
-The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 12 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
+The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 13 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
 
 ---
 
@@ -254,6 +254,22 @@ A binding MUST reject re-binding on `DISMISSED` with an explicit error.
 On `ALIVE`, a new `DataRef` MUST be applied by re-binding without form regeneration. On `FROZEN`, the new `DataRef` MUST be queued and MUST be applied when the surface is restored. On `PROPOSED` or `MOUNTED`, the initial data MUST remain part of the proposal until the surface is alive.
 
 A renderer MUST NOT be required to test form identity, re-binding, or invalidation.
+
+---
+
+## 13. Namespace di estensione
+
+A surface MAY carry an optional `extensions` field containing keys of the form `x-<consumatore>-*` and opaque consumer payloads.
+
+A3UI MUST validate only that each extension key starts with `x-`; A3UI MUST transport the opaque payload and MUST NOT interpret it. In short: A3UI trasporta il payload opaco, non interpreta il payload.
+
+A renderer that does not recognize an extension key MUST ignore that key and MUST draw the rest of the valid surface without error.
+
+A renderer that recognizes an extension key MAY use it, but the surface MUST remain valid when the key is absent or ignored.
+
+An implementation MUST NOT add a new primitive to the seven-primitive catalog for consumer-specific data; data that does not fit the catalog MUST use an `x-*` extension.
+
+The extension namespace MUST NOT alter the A3-EP protocol or cause A3UI to import or name a consumer implementation.
 
 ---
 
