@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     implementation(project(":a3ui"))
+    implementation(project(":a3ui:lifecycle"))
     api("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     testImplementation(kotlin("test"))
 }
