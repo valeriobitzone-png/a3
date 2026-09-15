@@ -34,6 +34,7 @@ Each historical entry cites the git tag and the tagged commit SHA.
 - `:core:t12` live probe skips with a clear message when `A3_T12_API_KEY` is unset (environment assumption), instead of failing the default suite.
 - Robolectric `testReleaseUnitTest` can resolve Compose activities: `releaseImplementation(ui-test-manifest)` on launcher/showcase/a3ui-conformance-android (was debug-only).
 - Renderer R9 contentDescription assertion accepts SpokenLaw CTA reading after the painted text (`f0aeac5`).
+- Ignore macOS Finder conflict copies (`* 2.*`) so freeze porcelain is not poisoned when tests rewrite `review-assets/`.
 
 ### Security
 
