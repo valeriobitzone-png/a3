@@ -16,6 +16,7 @@ import a3.renderers.android.core.interp.A3UIInterpreter
 import a3.renderers.android.core.model.ColorValue
 import a3.renderers.android.core.model.RendererContext
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
@@ -123,8 +124,12 @@ class Renderer03ComposeAcceptanceTest {
         composeRule.onNodeWithTag("item_train.slot.b").assert(
             SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("09:12"))
         )
+        // SpokenLaw (f0aeac5) appends CTA reading for actions — painted text remains the first token.
         composeRule.onNodeWithTag("action_ticket.owned").assert(
-            SemanticsMatcher.expectValue(SemanticsProperties.ContentDescription, listOf("true"))
+            SemanticsMatcher("action contentDescription starts with painted text") { node ->
+                val desc = node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
+                desc.isNotEmpty() && (desc.first() == "true" || desc.any { it.startsWith("true") })
+            }
         )
         composeRule.onNodeWithText("Confirm").assertDoesNotExist()
     }
