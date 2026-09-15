@@ -76,9 +76,9 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 | ID | Gate | Esito |
 |----|------|-------|
 | FR-001 | Tabella classificazione sopra | **PASS** |
-| FR-002 | `./gradlew test` exit 0 | pending |
-| FR-003 | t12 senza key = SKIP; con key = PASS (run singolo) | **PASS** (skip senza key); live con key se presente |
-| FR-004 | python conformance + spec tests | pending (dopo restore `review-assets/`) |
+| FR-002 | `./gradlew test` exit 0 | **PASS** (`BUILD SUCCESSFUL`, exit 0; HEAD `9eee5ff`) |
+| FR-003 | t12 senza key = SKIP; con key = PASS (run singolo) | **PASS** skip senza key (messaggio: `A3_T12_API_KEY is not set — live Gemini probe skipped…`); key assente in ambiente → live PASS non eseguito |
+| FR-004 | python conformance + spec tests | **PASS** (CS/PV/SP/AU tutti PASS dopo `git restore review-assets/`) |
 | FR-005 | Diff test = solo skip F3 + fix reali; asserzioni elencate | **PASS** |
 
 ---
