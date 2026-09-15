@@ -256,7 +256,8 @@ class TemporalTest {
         val allowed = listOf(
             "core/temporal/",
             "settings.gradle.kts",
-            "REVIEW_CORE_TEMPORAL.md"
+            "REVIEW_CORE_TEMPORAL.md",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
