@@ -1,4 +1,4 @@
-package a3.core.prediction
+package a3.prediction
 
 import a3.core.model.*
 import a3.core.model.Claim
@@ -31,6 +31,8 @@ import kotlin.test.assertTrue
 
 /**
  * P1, P2, P7, P9 — require BeliefWriter / AcceptedObservation (runtime module).
+ * Lives in :prediction (extension), not :core:runtime, so the §9 public subtree
+ * has no compile or test arc toward prediction.
  */
 class PredictionWorldGateTest {
     private val t = Instant.parse("2026-08-27T08:00:00Z")
