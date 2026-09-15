@@ -10,7 +10,7 @@ Consumes: SPEC_A3-EP 0.1.0
 Obsoletes: none
 ```
 
-The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 10 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
+The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 11 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
 
 ---
 
@@ -208,6 +208,32 @@ Pass-through when COLLAPSED MUST deliver input to the app underneath and MUST NO
 EXPANDED surfaces MUST be hit-tested by a3ui and MUST NOT leak tuple fields into the under-app process.
 
 An implementation MUST NOT treat the under-app as a trusted renderer of marks.
+
+---
+
+## 11. Surface lifecycle
+
+An ephemeral surface MUST follow the lifecycle `PROPOSED → MOUNTED → ALIVE → FROZEN → DISMISSED`.
+
+The producer (agent/A3) MUST propose a surface and MUST NOT dismiss it.
+
+The host or renderer shell MUST transition `MOUNTED → ALIVE`, `ALIVE → FROZEN`, `FROZEN → ALIVE`, and any live or mounted surface to `DISMISSED` when its lifetime ends.
+
+The shell MUST NOT create `PROPOSED`; a proposal received before its container is mounted MUST be queued and MUST NOT be lost. Pre-mount proposals MUST remain queued until their container arrives.
+
+A shell MUST reject every transition not listed in the transition table below.
+
+| From | To | Owner | Rule |
+|------|----|-------|------|
+| `PROPOSED` | `MOUNTED` | shell | mount the queued proposal into its container |
+| `MOUNTED` | `ALIVE` | shell | activate the mounted surface |
+| `ALIVE` | `FROZEN` | shell | declare preserved state and discarded state |
+| `FROZEN` | `ALIVE` | shell | restore only the declared preserved state; report what is not restored |
+| `MOUNTED` or `ALIVE` or `FROZEN` | `DISMISSED` | shell | deallocate explicitly |
+
+A surface in `FROZEN` MUST declare what it conserves and what it does not conserve before it can return to `ALIVE`.
+
+A surface in `DISMISSED` MUST be deallocated explicitly and MUST leave no residual registry, queue, or lifecycle reference.
 
 ---
 
