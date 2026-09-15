@@ -15,6 +15,8 @@ Niente push. Tag `fix-red-v0.1` solo a gate verde.
 | F3 | `:core:t12` live senza `A3_T12_API_KEY` | **Ambiente** | Suite live da `7d573ea` (`T12LiveTest`). Fail = `T12Reject` da `GeminiClient.apiKey()` se env vuota | `apiKey()` throw se unset; default suite non ha la key | `Assumptions.assumeTrue` → **SKIP** motivato. Con key: run singolo `:core:t12:test` |
 | F4 | `testReleaseUnitTest` Robolectric “Unable to resolve activity” | **Pre-esistente / AGP** (emerso al gate full-tree) | `ui-test-manifest` solo `debugImplementation` | Intent ComponentActivity non risolto in release | `releaseImplementation(ui-test-manifest)` su launcher, showcase, a3ui-conformance-android |
 | F5 | R9 ContentDescription `listOf("true")` | **Pre-esistente / asserzione stale** dopo `f0aeac5` | SpokenLaw aggiunge “conferma abilitata” | `ContentDescription = [true, conferma abilitata]` | Matcher: primo token = testo dipinto |
+| F6 | Freeze porcelain su `* 2.*` | **Ambiente (macOS)** | Finder conflict copies durante write paralleli su `review-assets/` | `unexpected path ?? "… 2.png"` | `.gitignore` pattern `* 2.*` |
+| F7 | `SL_005` / `TH_009` fail mid-suite | **Pre-esistente / freeze incompleto** vs pattern sibling | Suite full-tree riscrive `review-assets/` (agent/renderer) | `git diff` fuori dai path freezati non vuoto | Allowlist/`:!review-assets` come SH_009/OV_008 |
 
 Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabili.
 
@@ -53,6 +55,12 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 ### Gradle (launcher, showcase, a3ui-conformance-android)
 - Aggiunto `releaseImplementation("androidx.compose.ui:ui-test-manifest")` — non è un’asserzione, è harness Robolectric
 
+### `prediction/.../SplitLineTest.kt` — `SL_005`
+- `git diff` / porcelain: aggiunti `:!review-assets` e allowlist `review-assets/` (allineamento a freeze renderer/overlay; non indebolisce invariante moduli)
+
+### `overlay/.../ThreatTest.kt` — `TH_009`
+- Stesso allowlist `review-assets/`
+
 ---
 
 ## Tabella audit — FR-001..005
@@ -60,9 +68,9 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 | ID | Gate | Esito |
 |----|------|-------|
 | FR-001 | Tabella classificazione sopra | **PASS** |
-| FR-002 | `./gradlew test` exit 0 | **PASS** |
-| FR-003 | t12 senza key = SKIP; con key = PASS (run singolo) | **PASS** |
-| FR-004 | python conformance + spec tests | **PASS** |
+| FR-002 | `./gradlew test` exit 0 | pending |
+| FR-003 | t12 senza key = SKIP; con key = PASS (run singolo) | **PASS** (skip senza key); live con key se presente |
+| FR-004 | python conformance + spec tests | pending (dopo restore `review-assets/`) |
 | FR-005 | Diff test = solo skip F3 + fix reali; asserzioni elencate | **PASS** |
 
 ---

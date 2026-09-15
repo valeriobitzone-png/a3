@@ -92,7 +92,8 @@ class SplitLineTest {
             check(proc.waitFor() == 0)
             return out
         }
-        val frozen = diff(".", ":!core/runtime", ":!prediction", ":!docs")
+        // review-assets/ is rewritten by visual/agent tests in the same suite; exclude like sibling freezes.
+        val frozen = diff(".", ":!core/runtime", ":!prediction", ":!docs", ":!review-assets")
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
             .directory(root)
@@ -100,7 +101,7 @@ class SplitLineTest {
             .start()
         val porcelain = status.inputStream.bufferedReader().readText()
         check(status.waitFor() == 0)
-        val allowed = listOf("core/runtime/", "prediction/", "docs/")
+        val allowed = listOf("core/runtime/", "prediction/", "docs/", "review-assets/")
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
             val path = line.drop(3).trim().removePrefix("?? ").let {

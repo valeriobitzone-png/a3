@@ -136,7 +136,8 @@ class ThreatTest {
             assertEquals(0, proc.waitFor())
             return out
         }
-        val frozen = diff(".", ":!overlay", ":!docs")
+        // review-assets/ is rewritten by visual/agent tests in the same suite; exclude like sibling freezes.
+        val frozen = diff(".", ":!overlay", ":!docs", ":!review-assets")
         assertTrue(frozen.isBlank(), frozen)
         val status = ProcessBuilder("git", "status", "--porcelain")
             .directory(root)
@@ -144,7 +145,7 @@ class ThreatTest {
             .start()
         val porcelain = status.inputStream.bufferedReader().readText()
         assertEquals(0, status.waitFor())
-        val allowed = listOf("overlay/", "docs/")
+        val allowed = listOf("overlay/", "docs/", "review-assets/")
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
             val path = line.drop(3).trim().removePrefix("?? ").let {
