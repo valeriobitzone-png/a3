@@ -29,7 +29,9 @@ Each historical entry cites the git tag and the tagged commit SHA.
 
 ### Fixed
 
-- None.
+- Broker freeze tests (`BKR_011`, `BKR_016`) no longer pin `core/` (and related trees) to SHA `7a60b52` (`broker-v0.1`). That pin broke at `9787ec9` (explicit temporal stamps) and stayed red through protocol-v2 (`c6936c3`). The freeze is now empty `git diff --stat` vs the working tree (same pattern as other module freezes). Not a lock-vector change; lock v2 vectors remain immutable.
+- Launcher `F3` catalog assertions track BoundCopy on item/action after glass (`b088efa`) and pressed (`0110efe`) — invariant unchanged: BoundCopy + `Theme.actionMin`, no hardcoded `48.dp`/`160.dp`.
+- `:core:t12` live probe skips with a clear message when `A3_T12_API_KEY` is unset (environment assumption), instead of failing the default suite.
 
 ### Security
 
