@@ -10,7 +10,7 @@ Consumes: SPEC_A3-EP 0.1.0
 Obsoletes: none
 ```
 
-The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 11 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
+The key words MUST, MUST NOT, SHOULD, and MAY in this document MUST be interpreted as in [RFC 2119]. An implementation MUST treat line 1 of this document as the a3ui contract. Sections 1 through 12 MUST be treated as normative. Appendices MUST be treated as non-normative unless a sentence in an appendix uses MUST, MUST NOT, SHOULD, or MAY. For AU-001, a page MUST be 500 words of sections 1 through 10, and the normative body MUST NOT exceed 12 pages.
 
 ---
 
@@ -234,6 +234,26 @@ A shell MUST reject every transition not listed in the transition table below.
 A surface in `FROZEN` MUST declare what it conserves and what it does not conserve before it can return to `ALIVE`.
 
 A surface in `DISMISSED` MUST be deallocated explicitly and MUST leave no residual registry, queue, or lifecycle reference.
+
+---
+
+## 12. Re-binding e invalidazione
+
+A form MUST expose a `formKey` that identifies its form type, and a form MUST be generated once for each `formKey`.
+
+A surface MUST expose a stable `surfaceId`, and the `surfaceId` MUST remain unchanged across re-binding.
+
+A binding MUST carry `DataRef` references with source and lineage, and MUST NOT copy data values into the form shape.
+
+A change of data values MUST perform a re-bind of the `DataRef`; it MUST NOT regenerate the form for values alone. L'implementazione MUST NOT rigenerare per soli valori.
+
+A change of `formKey` or schema MUST perform a declared form regeneration, and the generation counter MUST increase. Un cambio formKey/schema MUST be dichiarato come invalidazione della forma.
+
+A binding MUST reject re-binding on `DISMISSED` with an explicit error.
+
+On `ALIVE`, a new `DataRef` MUST be applied by re-binding without form regeneration. On `FROZEN`, the new `DataRef` MUST be queued and MUST be applied when the surface is restored. On `PROPOSED` or `MOUNTED`, the initial data MUST remain part of the proposal until the surface is alive.
+
+A renderer MUST NOT be required to test form identity, re-binding, or invalidation.
 
 ---
 
