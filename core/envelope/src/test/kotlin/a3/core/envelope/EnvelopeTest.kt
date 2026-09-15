@@ -356,7 +356,8 @@ class EnvelopeTest {
             "spec/",
             "REVIEW_PROTOCOL_V2.md",
             "REVIEW_CORE_ENVELOPE.md",
-            "settings.gradle.kts"
+            "settings.gradle.kts",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {

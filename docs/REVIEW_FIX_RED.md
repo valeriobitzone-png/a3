@@ -18,6 +18,7 @@ Niente push. Tag `fix-red-v0.1` solo a gate verde.
 | F6 | Freeze porcelain su `* 2.*` | **Ambiente (macOS)** | Finder conflict copies durante write paralleli su `review-assets/` | `unexpected path ?? "… 2.png"` | `.gitignore` pattern `* 2.*` |
 | F7 | `SL_005` / `TH_009` fail mid-suite | **Pre-esistente / freeze incompleto** vs pattern sibling | Suite full-tree riscrive `review-assets/` (agent/renderer) | `git diff` fuori dai path freezati non vuoto | Allowlist/`:!review-assets` come SH_009/OV_008 |
 | F8 | `BKR_013` `progress too late` (237ms) | **Ambiente / flake load** | Bound 200ms da broker-v0.1; sotto suite full con `--rerun-tasks` scheduling >200ms | `progress too late: (237, contacting…)` | Bound 500ms ≪ timeout keystore 1s (invariante: announce prima del budget, non wall-clock 200ms) |
+| F9 | Core freeze porcelain (`EN_008`…) su `review-assets/` | **Pre-esistente / freeze incompleto** | Dirt leftover da run precedenti o rewrite visual mid-tree | `unexpected path M review-assets/…` | Allowlist `review-assets/` su freeze CORE (come renderer) |
 
 Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabili.
 
@@ -64,6 +65,9 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 
 ### `broker/.../BrokerKeystoreTest.kt` — `BKR_013`
 - Progress announce: da `< 200` ms a `< 500` ms (ancora ≪ timeout keystore 1s)
+
+### Core freeze porcelain (`EN_008`, `CF_008`, `ULP_004`, `TC_007`, `TM_006`, `T12_009`)
+- Aggiunto allowlist `review-assets/` (stesso invariante F7)
 
 ---
 

@@ -227,7 +227,8 @@ class TruthTest {
         val allowed = listOf(
             "core/truth/",
             "settings.gradle.kts",
-            "REVIEW_CORE_TRUTH.md"
+            "REVIEW_CORE_TRUTH.md",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {

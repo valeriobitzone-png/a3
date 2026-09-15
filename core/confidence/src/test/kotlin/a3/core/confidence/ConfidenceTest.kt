@@ -266,7 +266,8 @@ class ConfidenceTest {
         val allowed = listOf(
             "core/confidence/",
             "settings.gradle.kts",
-            "REVIEW_CORE_CONFIDENCE.md"
+            "REVIEW_CORE_CONFIDENCE.md",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
@@ -380,7 +381,7 @@ class ConfidenceTest {
             .directory(root).redirectErrorStream(true).start()
         val porcelain = status.inputStream.bufferedReader().readText()
         assertEquals(0, status.waitFor())
-        val allowed = listOf("core/confidence/", "REVIEW_CORE_CONFIDENCE.md")
+        val allowed = listOf("core/confidence/", "REVIEW_CORE_CONFIDENCE.md", "review-assets/")
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
             val path = line.drop(3).trim().removePrefix("?? ").let {

@@ -171,7 +171,8 @@ class T12LiveTest {
             "docs/",
             "CHANGELOG.md",
             "broker/",
-            "launcher/"
+            "launcher/",
+            "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
         for (line in porcelain.lineSequence().filter { it.isNotBlank() }) {
