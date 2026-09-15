@@ -13,6 +13,8 @@ Niente push. Tag `fix-red-v0.1` solo a gate verde.
 | F1 | `:broker` `BKR_011` / `BKR_016` vs `7a60b52` | **Pre-esistente / pin stale** (non regressione broker; non bug protocollo) | Pin introdotto in `7a60b52` (`broker-v0.1`, 2026-09-07). **Primo fail:** `9787ec9` (temporal stamps, 2026-09-11). Restato rosso attraverso `c6936c3` (`protocol-v2-v0.1`) | `git log --reverse 673531f..HEAD -- core/` inizia con `9787ec9`; `git diff 7a60b52 -- core/` non vuoto | Aggiornato freeze a empty `git diff --stat` vs working tree + nota CHANGELOG. Lock v2 immutabile |
 | F2 | `:launcher` `F3_catalog_paints_node_text_on_item_and_action` | **Pre-esistente / asserzioni stale** | Test da `f18c393`. **Primo fail di forma:** `b088efa` (GlassSurface al posto di `Box(modifier) { Children`). Poi `0110efe` (`BoundCopy(node, pressed)`) | Catalog corrente: `"item" -> GlassSurface…BoundCopy(node, pressed)`; niente `"item" -> Box(modifier) { Children` | Aggiornate asserzioni all’invariante (BoundCopy + Theme.actionMin; no 48/160.dp) |
 | F3 | `:core:t12` live senza `A3_T12_API_KEY` | **Ambiente** | Suite live da `7d573ea` (`T12LiveTest`). Fail = `T12Reject` da `GeminiClient.apiKey()` se env vuota | `apiKey()` throw se unset; default suite non ha la key | `Assumptions.assumeTrue` → **SKIP** motivato. Con key: run singolo `:core:t12:test` |
+| F4 | `testReleaseUnitTest` Robolectric “Unable to resolve activity” | **Pre-esistente / AGP** (emerso al gate full-tree) | `ui-test-manifest` solo `debugImplementation` | Intent ComponentActivity non risolto in release | `releaseImplementation(ui-test-manifest)` su launcher, showcase, a3ui-conformance-android |
+| F5 | R9 ContentDescription `listOf("true")` | **Pre-esistente / asserzione stale** dopo `f0aeac5` | SpokenLaw aggiunge “conferma abilitata” | `ContentDescription = [true, conferma abilitata]` | Matcher: primo token = testo dipinto |
 
 Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabili.
 
@@ -40,9 +42,16 @@ Nessun fallimento è bug di protocollo che richieda lock v3. Vettori v2 immutabi
 
 ### `core/t12/.../T12LiveTest.kt`
 - Aggiunto `requireLiveApiKey()` → `assumeTrue` (SKIP se env assente)
-- `Shared.report` e `T12_010` / `T12_009` chiamano lo skip prima del probe
+- `Shared.report` e `T12_010` chiamano lo skip prima del probe
+- `T12_009` freeze resta eseguibile senza key (model check solo se key presente)
 - **Rimossa** l’asserzione hard-fail `assertTrue(key.isNotEmpty())` in T12_010 (sostituita dallo skip)
 - Nessuna cancellazione di T12-001..010
+
+### `renderers/.../Renderer03ComposeAcceptanceTest.kt` — `R9_…`
+- ContentDescription action: da `listOf("true")` a matcher “inizia con / contiene il testo dipinto” (SpokenLaw)
+
+### Gradle (launcher, showcase, a3ui-conformance-android)
+- Aggiunto `releaseImplementation("androidx.compose.ui:ui-test-manifest")` — non è un’asserzione, è harness Robolectric
 
 ---
 

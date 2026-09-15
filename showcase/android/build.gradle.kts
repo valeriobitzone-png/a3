@@ -63,6 +63,7 @@ dependencies {
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    releaseImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("androidx.test.ext:junit:1.2.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.2.10")
 }
