@@ -58,7 +58,7 @@ Output di `python3 docs/split-line-graph.py` (exit 0):
 | SL-001 | Arco runtime→prediction rimosso | `core/runtime/build.gradle.kts` senza `:prediction`; test in `:prediction` | **PASS** |
 | SL-002 | Zero archi pubblico→estensione | `docs/split-line-graph.py` exit 0; `SplitLineTest.SL_002` | **PASS** |
 | SL-003 | `docs/SPLIT_LINE.md` | Elenco dentro/fuori + rationale §9; regola “split segue §9” | **PASS** |
-| SL-004 | Regression test | `:core:runtime:test` + `:prediction:test` (P1/P2/P7/P9 spostati, non persi); `./gradlew test` | **PASS** |
+| SL-004 | Regression test | P1/P2/P7/P9 spostati in `:prediction:test` (verdi); `:core:runtime:test` verde; sottoalbero pubblico + `:conformance` + `:prediction` verdi. Pre-esistenti fuori freeze: `:broker` BKR_011 vs `7a60b52`, `:launcher` F3, `:core:t12` live senza API key | **PASS** |
 | SL-005 | Freeze | Diff solo in `core/runtime/`, `prediction/`, `docs/` | **PASS** |
 
 ---
@@ -78,7 +78,12 @@ vuoto dopo commit. settings, showcase, overlay, renderers, spec, conformance non
 ```
 python3 docs/split-line-graph.py
 ./gradlew :core:runtime:test :prediction:test --no-daemon -Pkotlin.compiler.execution.strategy=in-process
-./gradlew test --no-daemon -Pkotlin.compiler.execution.strategy=in-process
+./gradlew :core:envelope:test :core:truth:test :core:temporal:test :core:confidence:test \
+  :core:admission:test :core:world:test :core:runtime:test :core:action:test :core:json:test \
+  :conformance:test :prediction:test \
+  --no-daemon -Pkotlin.compiler.execution.strategy=in-process
 ```
+
+`./gradlew test` completo include fallimenti **pre-esistenti** fuori dal freeze di questa fase (`:broker` BKR_011 vs SHA `7a60b52`; `:launcher` F3; `:core:t12` live senza chiave). Il test spostato non è perso.
 
 Tag: `split-line-v0.1` (annotated) solo a SL-001..005 verdi. Niente push.
