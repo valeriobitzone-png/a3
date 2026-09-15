@@ -7,3 +7,5 @@ local.properties
 *.keystore
 .env
 .env.*
+# macOS Finder conflict copies ("file 2.png") pollute freeze porcelain during parallel assets writes
+* 2.*
