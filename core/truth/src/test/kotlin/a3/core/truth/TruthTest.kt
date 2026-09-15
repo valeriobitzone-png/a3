@@ -228,6 +228,8 @@ class TruthTest {
             "core/truth/",
             "settings.gradle.kts",
             "REVIEW_CORE_TRUTH.md",
+            "CHANGELOG.md",
+            "docs/",
             "review-assets/"
         )
         val ignore = listOf(".kotlin/", ".DS_Store")
