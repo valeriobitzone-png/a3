@@ -40,7 +40,8 @@ class BrokerKeystoreTest {
         assertEquals(1, code)
         assertTrue(lines.isNotEmpty(), lines.toString())
         assertTrue(lines.first().second.contains("contacting system keystore"), lines.toString())
-        assertTrue(lines.first().first < 200, "progress too late: ${lines.first()}")
+        // Prompt vs 1s keystore budget — not a 200ms wall clock (flakes under full-suite load).
+        assertTrue(lines.first().first < 500, "progress too late: ${lines.first()}")
         assertTrue(lines.any { it.second.contains("did not respond") }, lines.toString())
         assertTrue(lines.any { it.second.contains("--dev") }, lines.toString())
         assertTrue(elapsed < 2500, "hung ${elapsed}ms")

@@ -36,6 +36,7 @@ Each historical entry cites the git tag and the tagged commit SHA.
 - Renderer R9 contentDescription assertion accepts SpokenLaw CTA reading after the painted text (`f0aeac5`).
 - Ignore macOS Finder conflict copies (`* 2.*`) so freeze porcelain is not poisoned when tests rewrite `review-assets/`.
 - Split-line / threat freeze tests allowlist `review-assets/` like sibling renderer freezes (visual suite rewrites goldens mid-run).
+- BKR_013 progress announce bound 500ms (≪ 1s keystore timeout) so full-suite load does not flake a 200ms wall-clock.
 
 ### Security
 
