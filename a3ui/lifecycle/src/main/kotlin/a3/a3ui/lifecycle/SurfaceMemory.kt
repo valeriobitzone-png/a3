@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Part of the A3 universe. See LICENSE.
 package a3.a3ui.lifecycle
 
 /** Registry owned by the shell; dismissed surfaces are deallocated immediately. */

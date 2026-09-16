@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # A3 MCP Adapter 0.1 — capability source, non fondazione
 
 ## Scopo

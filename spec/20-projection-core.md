@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Projection Core
 
 Normative rules for the presentation branch. Projection is off-path relative to the closed loop `Intent → Goal → State → Capability → Plan → Policy → Execution → Observation → State`.

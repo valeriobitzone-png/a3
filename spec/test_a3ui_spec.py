@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Part of the A3 universe. See LICENSE.
 """AU-001..010 gate for spec/SPEC_A3UI.md. Does not modify code."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # A3 Intent Provider 0.1 — propone, non decide
 
 ## Scopo

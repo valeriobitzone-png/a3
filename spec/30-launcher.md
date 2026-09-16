@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # A3 Launcher 0.1 — primo volto
 
 ## Scopo

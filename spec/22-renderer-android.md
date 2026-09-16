@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Renderer Android
 
 The first physical interpreter of `A3UISurface`. The renderer is an **interpreter, not an agent**.
