@@ -36,7 +36,7 @@ Pre-publication handoff audit for the six sibling repositories. Publication and 
 
 ## SPDX and locked bytes
 
-A3's idempotent SPDX pass reports `scanned=446 changed=0` on the verification run. Counts: `.kt=371`, `.kts=34`, `.py=6`, `.sh=5`, and 30 CC-BY Markdown files under `spec/`. The family pass reports `scanned=472 changed=52` on its first run and `changed=0` on its second: all `.ts/.tsx/.go` and sibling Python sources are now covered as well. JSON is intentionally excluded because it has no comment syntax; lock vectors and fixtures were not edited.
+A3's idempotent SPDX pass reports `scanned=447 changed=0` on the verification run. Counts: `.kt=371`, `.kts=34`, `.py=7`, `.sh=5`, and 30 CC-BY Markdown files under `spec/`. The family pass reports `scanned=473 changed=52` on its first run and `changed=0` on its second: all `.ts/.tsx/.go` and sibling Python sources are now covered as well. JSON is intentionally excluded because it has no comment syntax; lock vectors and fixtures were not edited.
 
 The v2 lock set and A3UI fixtures were compared byte-for-byte; expected SHA-256 values are the values recorded in the A3, TypeScript, and Go reviews. No source change alters bytes beneath an SPDX header.
 
