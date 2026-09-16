@@ -231,7 +231,7 @@ class RendererExposureTest {
                 ExposureRaster.paint(shown, highContrast = true)
             )
         }
-        assertEquals(nonDefault.size, hashes.values.toSet().size, "mono collision: $hashes")
+        assertEquals(nonDefault.size, hashes.values.toSet().size, "fingerprint collision: $hashes")
         val catalog = File("src/main/kotlin/a3/renderers/android/compose/ComposeCatalog.kt").readText()
         val exposure = File("src/main/kotlin/a3/renderers/android/compose/Exposure.kt").readText()
         assertTrue(exposure.contains("dashPathEffect"))

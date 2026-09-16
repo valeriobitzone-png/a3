@@ -13,7 +13,7 @@ AUDIT-FIRST. Protocol: FASE LAUNCHER-PROOF (fixture incerta + prova fisica). Bas
 |------|--------|
 | Modello | Nothing Phone (3) (`ro.product.brand_device_name`) |
 | SKU | A024 / `MetroidEEA` |
-| **Seriale** | **`<redacted-device-id>`** |
+| **Device identifier** | **`<redacted-device-id>`** |
 | OS | Nothing OS 5.0 (`ro.nothing.version.id`) |
 | Android | 17 (API 37) — stock, moderno; Tab A9 resta riferimento storico |
 

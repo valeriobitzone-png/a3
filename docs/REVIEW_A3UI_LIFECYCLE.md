@@ -41,4 +41,4 @@ Observed result: empty. The only spec change is `spec/SPEC_A3UI.md`; the only im
 
 ## Provenance and exclusions
 
-This implementation is new headless Kotlin code in this repository. It imports no renderer, graphics, MONO, broker, agent, or A3-EP implementation module. No B3–B7 work is included. No renderer is used by the tests. No files or tests were deleted or weakened.
+This implementation is new headless Kotlin code in this repository. It imports no renderer, graphics, private consumer, broker, agent, or A3-EP implementation module. No B3–B7 work is included. No renderer is used by the tests. No files or tests were deleted or weakened.

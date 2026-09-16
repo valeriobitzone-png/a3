@@ -33,7 +33,7 @@ Moduli eseguiti **separati**, niente `./gradlew test` aggregato, niente `--rerun
 | RX-001 | resa epistemica distinguibile | `Exposure` + `ExposureRaster.paint(RenderedOutput+axis)` seed 320×80; catalogo mostra mark per ogni valore non-default | collisioni di fingerprint; incerto dipinto come default | **PASS** |
 | RX-002 | a11y obbligatoria | ogni non-default → `stateDescription` non vuota **in** `contentDescription`; reduced-motion ON → mark visibili, nessun `-motion-*` | motion come unica resa | **PASS** |
 | RX-003 | announce TalkBack | `CountingAnnounce` su transizione HELD / UNKNOWN / CONTRADICTED / STALE / COMPENSATED | transizione critica senza frase | **PASS** |
-| RX-004 | alto contrasto | `highContrast=true`: hatch / dash / `\|\|` / `[held]` / strikethrough; fingerprint mono distinti | distinzione solo cromatica | **PASS** |
+| RX-004 | alto contrasto | `highContrast=true`: hatch / dash / `\|\|` / `[held]` / strikethrough; fingerprint distinti | distinzione solo cromatica | **PASS** |
 | RX-005 | 5 verbi | HELD pulse 2800 · UNKNOWN shimmer 800 una tantum · CONTRADICTED crack-reverse 240 · STALE fade-out 180 · COMPENSATED fade-back 220; **nessuno** su BELIEVED/FRESH/HIGH/NA | shimmer in loop; verbo su default | **PASS** |
 | RX-006 | reduced-motion | `Exposure.motionMs(*, reduced=true)=0` per ogni stato; mark + `n1-axis` restano | resa incompleta a motion=0 | **PASS** |
 | RX-007 | freeze | diff frozen vuoto; `:a3ui/` vuoto | riapertura asse | **PASS** |

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # 41 — Keys Broker
 
-**Status:** SIGNED 2026-09-07 · Valerio · file on disk  
+**Status:** SIGNED 2026-09-07 · file on disk
 **Baseline core:** `origin/main` `2b35939` · `core-admission-v0.1` · `core-action-v0.1`  
 **Evidence:** throwaway spike esterno, path locale redatto (`531c7b7` S1, `85e090c` S2/S3/R3). Spike code is **not** product and must never be promoted.
 
@@ -118,7 +118,7 @@ Evidenza spike: «broker ovunque» perde su passi; audit-compliance (UNKNOWN + r
 
 **Aperta.** Monetizzazione non decisa.
 
-- Default Apache-2.0 **solo se** Valerio conferma esplicitamente «monetizzazione = niente».
+- Default Apache-2.0 **solo se** il committente conferma esplicitamente «monetizzazione = niente».
 - Finché non c’è quella conferma, nessuna LICENSE broker in questo file e nessun default applicato.
 
 ---
@@ -141,4 +141,4 @@ Broker **prodotto** riscritto dai findings (mai dallo spike), con:
 - formato registro di questa spec (incl. i due requisiti M3(b)),
 - binding su `core-admission` + `core-action` già chiusi.
 
-Prompt Cursor: solo dopo ordine esplicito di Valerio.
+Prompt Cursor: solo dopo ordine esplicito del committente.

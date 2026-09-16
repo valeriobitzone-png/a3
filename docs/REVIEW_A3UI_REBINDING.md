@@ -36,4 +36,4 @@ Observed result: empty. No renderer or graphics code was added. No conformance s
 
 ## Provenance and exclusions
 
-The implementation is new headless Kotlin code in this repository. `DataRef` requires `source` and `lineage`; no value payload is copied into a form. No MONO import or name is used. No tests were deleted or weakened, and no renderer is used by the B3 tests.
+The implementation is new headless Kotlin code in this repository. `DataRef` requires `source` and `lineage`; no value payload is copied into a form. No private consumer import or name is used. No tests were deleted or weakened, and no renderer is used by the B3 tests.

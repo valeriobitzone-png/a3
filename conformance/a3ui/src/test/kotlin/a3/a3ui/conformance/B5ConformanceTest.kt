@@ -83,11 +83,11 @@ class B5ConformanceTest {
     }
 
     @Test
-    fun AC_030_x_mono_gate_extension_passes_opaque() {
+    fun AC_030_x_consumer_gate_extension_passes_opaque() {
         val extension = SurfaceExtensions.of(
-            mapOf("x-mono-gate" to mapOf("status" to "pending"))
+            mapOf("x-consumer-gate" to mapOf("status" to "pending"))
         )
-        assertEquals(mapOf("status" to "pending"), extension["x-mono-gate"])
+        assertEquals(mapOf("status" to "pending"), extension["x-consumer-gate"])
     }
 
     @Test
@@ -99,10 +99,10 @@ class B5ConformanceTest {
 
     @Test
     fun AC_032_unknown_extension_is_ignored_and_surface_is_drawn() {
-        val extension = SurfaceExtensions.of(mapOf("x-mono-gate" to "opaque"))
+        val extension = SurfaceExtensions.of(mapOf("x-consumer-gate" to "opaque"))
         val result = ExtensionRendererStub().render("ac-032", extension)
         assertTrue(result.drawn)
-        assertEquals(setOf("x-mono-gate"), result.ignoredExtensions)
+        assertEquals(setOf("x-consumer-gate"), result.ignoredExtensions)
     }
 
     @Test
