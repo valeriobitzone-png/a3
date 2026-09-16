@@ -48,7 +48,7 @@ Measured: repository scans, source-header audit, cover file hashes/types, test e
 
 | Repository | HEAD commit | Tag |
 |---|---|---|
-| `a3` | `ceb199d` | `closeout-v1.0` |
+| `a3` | `HEAD (tagged)` | `closeout-v1.0` |
 | `a3-ts` | `f155d67` | `prepub-v1.0` |
 | `a3-go` | `4dd335b` | `prepub-v1.0` |
 | `a3ui-web` | `1a30fb2` | `prepub-v1.0` |
