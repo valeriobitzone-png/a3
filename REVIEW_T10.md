@@ -81,7 +81,7 @@ Nessun campo nuovo in a3ui / `HapticEvent`. Bind solo:
 
 ## A6 — fisica Tab A9
 
-Serial `R9ZY80P8GRH`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1` → `.MainActivity`.
+Serial `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1` → `.MainActivity`.
 
 Stesso sink (PCM `AudioTrackFoleySink`), log `a3.foley`:
 
@@ -93,7 +93,7 @@ stop generators=0 gain=0.08
 stop generators=0 gain=0.08    ← lavoro / freeze
 ```
 
-**Log FUORI repo:** `/Users/ambrogio/Downloads/a3-t10-foley.log`
+**Log FUORI repo:** `<local-downloads-path-redacted>/a3-t10-foley.log`
 
 **Result:** **PASS.**
 

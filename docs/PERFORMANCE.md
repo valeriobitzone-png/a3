@@ -106,7 +106,7 @@ MID p95 grezzo **17.829 ms** ≰ HIGH **17.116 ms**. È jitter vsync (stesso dum
 
 **Banner: compliance fps Android = UNVERIFIED.** Nessun profilo rispetta il target (b) sui dump gfxinfo → default **BLUR_OFF** (più economico) + UNVERIFIED, non una claim 30/60 fps.
 
-Device: `device_model=A024` `serial=00022156R003829`. Pipeline Skia (Vulkan). gfxinfo named percentiles (primo blocco). GPU p95 6–8 ms su tutti.
+Device: `device_model=A024` `device_id=<redacted-device-id>`. Pipeline Skia (Vulkan). gfxinfo named percentiles (primo blocco). GPU p95 6–8 ms su tutti.
 
 Il p95 nominale **200 ms** è il bucket gfxinfo dopo 150 ms. Harvest ~4 s / ~60–70 frame, 100% janky, senza jank-frame count on-screen da sessione scroll operatore. **Marcato sospetto artefatto harvest** finché non esiste quel count. Non interpolato a 16.7.
 

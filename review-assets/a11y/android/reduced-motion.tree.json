@@ -42,6 +42,17 @@
     "children": []
   },
   {
+    "tag": "profile-pill",
+    "text": ["HIGH · visible"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 72,
+    "height": 14,
+    "children": []
+  },
+  {
     "tag": "a11y-motion-ms",
     "text": ["motion-ms=0"],
     "enabled": true,
@@ -60,7 +71,7 @@
     "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
     "traversalIndex": 0.0,
     "width": 387,
-    "height": 200,
+    "height": 198,
     "children": [
     {
       "tag": null,
@@ -127,7 +138,7 @@
     "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
     "traversalIndex": 1.0,
     "width": 387,
-    "height": 201,
+    "height": 197,
     "children": [
     {
       "tag": null,
@@ -205,7 +216,7 @@
     "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
     "traversalIndex": 2.0,
     "width": 387,
-    "height": 201,
+    "height": 197,
     "children": [
     {
       "tag": null,
@@ -261,7 +272,7 @@
     "contentDescription": "Volo, conferma abilitata",
     "traversalIndex": 3.0,
     "width": 387,
-    "height": 201,
+    "height": 197,
     "children": [
     {
       "tag": null,

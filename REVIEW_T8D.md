@@ -3,7 +3,7 @@
 **Unfrozen:** `launcher/src/debug/AndroidManifest.xml` (eliminato) + this review. **No tag.**  
 **Frozen SOURCE intact:** `core/`, `prediction/`, `projection/`, `a3ui/`, `renderers/`, `adapters/`, `intent-model/`, e tutto `launcher/` tranne quel debug manifest. `MainActivity.kt` non toccato.
 
-Screenshot (not in git): `/Users/ambrogio/Downloads/a3-t8d-single-entry.png`
+Screenshot (not in git): `<local-downloads-path-redacted>/a3-t8d-single-entry.png`
 
 ---
 
@@ -21,10 +21,10 @@ Dopo il taglio il file non dichiarava nient'altro → eliminato. `src/main/Andro
 
 **Invariant:** `dumpsys package a3.launcher` su MAIN elenca solo `a3.launcher/.MainActivity`. Zero `androidx.activity.ComponentActivity` in quelle righe.
 
-**How:** `./gradlew :launcher:clean :launcher:assembleDebug` (niente `--rerun-tasks` aggregato). APK `launcher/build/outputs/apk/debug/launcher-debug.apk` mtime `2026-08-30T17:28:44+02:00` > `f18c393` (`2026-08-30T15:19:07+02:00`). Cold reinstall Tab A9 serial `R9ZY80P8GRH`.
+**How:** `./gradlew :launcher:clean :launcher:assembleDebug` (niente `--rerun-tasks` aggregato). APK `launcher/build/outputs/apk/debug/launcher-debug.apk` mtime `2026-08-30T17:28:44+02:00` > `f18c393` (`2026-08-30T15:19:07+02:00`). Cold reinstall Tab A9 device id `<redacted-device-id>`.
 
 ```
-adb -s R9ZY80P8GRH shell dumpsys package a3.launcher | grep -A3 "android.intent.action.MAIN"
+adb -s <redacted-device-id> shell dumpsys package a3.launcher | grep -A3 "android.intent.action.MAIN"
       android.intent.action.MAIN:
         66233db a3.launcher/.MainActivity filter 9fefe78
           Action: "android.intent.action.MAIN"

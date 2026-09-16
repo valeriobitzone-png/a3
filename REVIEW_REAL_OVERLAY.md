@@ -2,7 +2,7 @@
 
 AUDIT-FIRST. Protocol: FASE REAL-OVERLAY — a3ui as epistemic window manager **above real apps**. New modules: `:overlay:common`, `:overlay:android`, `:overlay:mac`. Consumes `:a3ui` / `:agent` (agent only in common tests + mac JVM). Frozen: `core/`, `broker/`, `renderers/`, `launcher/`. Niente push. Tag `overlay-v0.1` solo a gate verde.
 
-**Contratto:** le surface dell'agent appaiono sopra Chrome / WhatsApp / Safari / Mail, non dentro il launcher. Il backdrop blur è cattura reale (MediaProjection → `OverlayBlur` su Android, `NSVisualEffectView.behindWindow` su Mac) oppure è assente con messaggio onesto `blur unavailable`. Nessun frost finto.
+**Contratto:** le surface dell'agent appaiono sopra Chrome / Safari / Mail, non dentro il launcher. Il backdrop blur è cattura reale (MediaProjection → `OverlayBlur` su Android, `NSVisualEffectView.behindWindow` su Mac) oppure è assente con messaggio onesto `blur unavailable`. Nessun frost finto.
 
 ---
 
@@ -30,7 +30,7 @@ vuoto. Porcelain allowlist: `overlay/`, `showcase/`, `settings.gradle.kts`, `REV
 
 Niente overlay di default. Niente blur finto se la cattura è negata. Android 14+ registra `MediaProjection.Callback` prima di `createVirtualDisplay`.
 
-Device: Nothing Phone (3) `00022156R003829` (API 37). Mac: ARZOPA 1920×1080.
+Device: Nothing Phone (3) `<redacted-device-id>` (API 37). Mac: ARZOPA 1920×1080.
 
 ---
 
@@ -42,7 +42,7 @@ Device: Nothing Phone (3) `00022156R003829` (API 37). Mac: ARZOPA 1920×1080.
 | `ov-002-android-blur-unavailable.png` | overlay sopra Google Flights, `blur unavailable` |
 | `ov-002-android-real-blur.png` | MediaProjection attiva (pill rossa), Chrome Roma–Milano **sfocato**, glass cards sopra |
 | `ov-003-android-chrome.png` | Google Flights visibile sotto le surface |
-| `ov-003-android-whatsapp.png` | chat WhatsApp visibile sotto le surface |
+
 | `ov-005-mac-safari-blur.png` | Safari apple.com/it **sfocato** (`NSVisualEffectView`), menu Safari, cards |
 | `ov-006-mac-mail.png` | Mail sotto blur + overlay (sheet Apple Intelligence di Mail in primo piano) |
 | `ov-007-android-flight-over-chrome.png` | intent volo + cards sopra Chrome |
@@ -56,7 +56,7 @@ Device: Nothing Phone (3) `00022156R003829` (API 37). Mac: ARZOPA 1920×1080.
 |------|------------|----------|------|
 | OV-001 | `SYSTEM_ALERT_WINDOW` esplicito; deny → overlay off | policy + manifest + activity + screenshot deny | **PASS** |
 | OV-002 | MediaProjection sì → `REAL_BLUR`; no → `blur unavailable` | deny screenshot + grant screenshot con Chrome sfocato | **PASS** |
-| OV-003 | overlay sopra Chrome/WhatsApp | `ov-003-android-chrome.png` / `ov-003-android-whatsapp.png` | **PASS** |
+| OV-003 | overlay sopra Chrome | `ov-003-android-chrome.png` | **PASS** |
 | OV-004 | NSWindow floating senza permesso speciale; AX opzionale | Swift `.floating` + `AXObserver` + overlay live Safari | **PASS** |
 | OV-005 | `.fullScreenUI` + `.behindWindow` → blur reale sopra Safari | `ov-005-mac-safari-blur.png` | **PASS** |
 | OV-006 | overlay persistente sopra Safari/Mail | `ov-006-mac-safari-persist.png` / `ov-006-mac-mail.png` | **PASS** |

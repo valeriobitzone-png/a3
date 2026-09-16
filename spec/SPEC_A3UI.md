@@ -261,7 +261,7 @@ A renderer MUST NOT be required to test form identity, re-binding, or invalidati
 
 A surface MAY carry an optional `extensions` field containing keys of the form `x-<consumatore>-*` and opaque consumer payloads.
 
-A3UI MUST validate only that each extension key starts with `x-`; A3UI MUST transport the opaque payload and MUST NOT interpret it. In short: A3UI trasporta il payload opaco, non interpreta il payload.
+A3UI MUST validate only that each extension key starts with `x-`; A3UI MUST transport the opaque payload and MUST NOT interpret it. A3UI MUST transport the payload opaco and MUST NOT interpret the payload.
 
 A renderer that does not recognize an extension key MUST ignore that key and MUST draw the rest of the valid surface without error.
 

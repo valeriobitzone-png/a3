@@ -4,7 +4,7 @@ prodotto. Unico scopo: il primo comando dell'estraneo non si appende in silenzio
 
 Scongelato: SOLO :broker. FROZEN: core/, core/admission/, core/action/,
 core/json/, prediction/, projection/, a3ui/, renderers/, adapters/,
-intent-model/, launcher/. Spike /Users/ambrogio/Desktop/a3-broker-spike
+intent-model/, launcher/. Spike esterno con path locale redatto,
 intatto (85e090c). Niente push. Niente LICENSE (DECISION-2 aperta).
 
 FATTO (wart reale, non FAIL del 12/12):

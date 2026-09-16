@@ -6,7 +6,7 @@ AUDIT-FIRST. Protocol: `CURSOR_BROKER_PRODUCT.md`. Baseline `41cdcf7` (spec/41 s
 
 Nuovo: `:broker`. Consuma `:core:admission`, `:core:action`, `:core:json`, stdlib, `org.biscuitsec:biscuit:4.0.1`. FROZEN: `core/`, `core/json/`, `core/admission/`, `core/action/`, prediction, projection, a3ui, adapters, intent-model, renderers, launcher.
 
-Spike `/Users/ambrogio/Desktop/a3-broker-spike` HEAD `85e090c` (invariato, status pulito). Non toccato.
+Spike esterno con path locale redatto, HEAD `85e090c` (invariato, status pulito). Non toccato.
 
 ---
 

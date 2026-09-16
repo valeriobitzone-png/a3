@@ -30,7 +30,7 @@ Timeout idle: **20s**. Collapse dopo dispatch: **≤ 300ms** (spring 220ms se mo
 
 ## Screenshot / video reali
 
-Device: Nothing Phone (3) `00022156R003829` (API 37). Mac: ARZOPA 1920×1080.
+Device: Nothing Phone (3) `<redacted-device-id>` (API 37). Mac: ARZOPA 1920×1080.
 
 | File | Cosa si vede |
 |------|----------------|

@@ -1,2 +1,3 @@
-device_model=A024
-serial=00022156R003829
+device_model=synthetic-android
+profile=UNVERIFIED
+device_id=redacted

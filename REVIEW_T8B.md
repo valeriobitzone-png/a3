@@ -4,7 +4,7 @@
 **Frozen SOURCE intact:** `core/`, `prediction/`, `projection/`, `a3ui/`, `renderers/`, `adapters/`, `intent-model/`.  
 Renderer 0.2 catalog is read-only. No Node built by hand. No labels drawn in `A3Screen`.
 
-Screenshot (not in git): `/Users/ambrogio/Downloads/a3-t8b-first-frame.png`
+Screenshot (not in git): `<local-downloads-path-redacted>/a3-t8b-first-frame.png`
 
 ---
 

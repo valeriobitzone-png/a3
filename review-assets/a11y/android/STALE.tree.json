@@ -42,6 +42,17 @@
     "children": []
   },
   {
+    "tag": "profile-pill",
+    "text": ["HIGH · visible"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 72,
+    "height": 14,
+    "children": []
+  },
+  {
     "tag": "a11y-motion-ms",
     "text": ["motion-ms=240"],
     "enabled": true,
@@ -71,7 +82,7 @@
     "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
     "traversalIndex": 0.0,
     "width": 387,
-    "height": 795,
+    "height": 781,
     "children": [
     {
       "tag": null,

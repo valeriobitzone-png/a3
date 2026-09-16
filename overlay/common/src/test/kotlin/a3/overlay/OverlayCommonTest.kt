@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 A3 contributors
+
 package a3.overlay
 
 import a3.agent.admit.AgentAdmission
@@ -123,7 +126,6 @@ class OverlayCommonTest {
             "ov-002-android-blur-unavailable.png",
             "ov-002-android-real-blur.png",
             "ov-003-android-chrome.png",
-            "ov-003-android-whatsapp.png",
             "ov-005-mac-safari-blur.png",
             "ov-006-mac-mail.png",
             "ov-007-android-flight-over-chrome.png",

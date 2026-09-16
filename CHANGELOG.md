@@ -8,6 +8,21 @@ as defined in `GOVERNANCE.md`.
 
 Each historical entry cites the git tag and the tagged commit SHA.
 
+## [1.0.0-closeout]
+
+### Added
+
+- `closeout-v1.0` — repository scrub, repeatable slice process, honest status documentation, tri-partite licensing, DCO guidance, and final architecture/mapping docs.
+
+### Changed
+
+- Review assets containing real chat captures, URL dumps, device identifiers, local paths, or generated personal metadata were removed or replaced with synthetic redacted fixtures. Historical reviews now state those evidence boundaries explicitly.
+
+### Notes
+
+- Entries before 1.0.0 may cite SHA values from the private development repository. Continuity between histories is verifiable by the bytes of the lock vectors, not by those SHA values.
+- Android fps and representative MID hardware validation remain UNVERIFIED.
+
 ## [Unreleased]
 
 ### Added

@@ -13,11 +13,11 @@ AUDIT-FIRST. Protocol: FASE LAUNCHER-PROOF (fixture incerta + prova fisica). Bas
 |------|--------|
 | Modello | Nothing Phone (3) (`ro.product.brand_device_name`) |
 | SKU | A024 / `MetroidEEA` |
-| **Seriale** | **`00022156R003829`** |
+| **Seriale** | **`<redacted-device-id>`** |
 | OS | Nothing OS 5.0 (`ro.nothing.version.id`) |
 | Android | 17 (API 37) — stock, moderno; Tab A9 resta riferimento storico |
 
-APK: `launcher/build/outputs/apk/debug/launcher-debug.apk` installato con `adb -s 00022156R003829 install -r`.
+APK: `launcher/build/outputs/apk/debug/launcher-debug.apk` installato con `adb -s <redacted-device-id> install -r`.
 
 ---
 
@@ -124,6 +124,6 @@ SHA-256:
 ## Gradle (output reale)
 
 `:launcher:testDebugUnitTest` — 26 test, 0 failed (LP-001..004, LP-006 + suite esistente).  
-`:launcher:assembleDebug` — SUCCESS. Install `Success` su `00022156R003829`.
+`:launcher:assembleDebug` — SUCCESS. Install `Success` su `<redacted-device-id>`.
 
 Tag **locale** a verde: `launcher-v0.5`. `a3ui-core-v0.5` / `renderer-android-v0.9` non bumpati. Niente push.

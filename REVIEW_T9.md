@@ -133,11 +133,11 @@ Host: Mini 16GB, 2026-08-30. **No** `./gradlew test --rerun-tasks`. **No** aggre
 
 ## G8 — fisica Tab A9
 
-Serial `R9ZY80P8GRH`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1`.
+Serial `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1`.
 
 - Focus: `a3.launcher/.MainActivity`
 - Dump: nodi treno full-width 800px, field/price/action con peso verticale, copy `08:45`/`09:12`/`10:03`/`Ada`/`12.40`/`hold 08:45`
-- Screenshot **fuori repo:** `/Users/ambrogio/Downloads/a3-t9-occupied.png`
+- Screenshot **fuori repo:** `<local-downloads-path-redacted>/a3-t9-occupied.png`
 
 **Result:** **PASS.**
 

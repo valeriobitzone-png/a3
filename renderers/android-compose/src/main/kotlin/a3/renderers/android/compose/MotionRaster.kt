@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 A3 contributors
+
 package a3.renderers.android.compose
 
 import android.graphics.Bitmap
@@ -208,7 +211,7 @@ internal object MotionRaster {
 
     private fun ffmpegBin(): String {
         val candidates = listOf(
-            "/Users/ambrogio/.local/bin/ffmpeg",
+            "ffmpeg",
             "/opt/homebrew/bin/ffmpeg",
             "/usr/bin/ffmpeg"
         )

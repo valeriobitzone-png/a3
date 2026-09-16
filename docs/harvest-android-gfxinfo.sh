@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: 2026 A3 contributors
+
 # Harvest dumpsys gfxinfo framestats from a physical Android device.
 # Does not invent numbers. Exits non-zero if no device is attached.
 set -euo pipefail
@@ -24,7 +27,7 @@ fi
 
 MODEL="$("$ADB" shell getprop ro.product.model | tr -d '\r')"
 echo "device_model=$MODEL" | tee "$OUT/android-device.txt"
-echo "serial=$(echo "$DEVICES" | head -n1)" | tee -a "$OUT/android-device.txt"
+echo "device_id=<redacted-device-id>" | tee -a "$OUT/android-device.txt"
 
 "$ADB" shell am force-stop "$PKG" || true
 "$ADB" shell dumpsys gfxinfo "$PKG" reset >/dev/null || true
