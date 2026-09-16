@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
 TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
-SCRUB_TERMS = ("<redacted-user>", "/" + "Users/", "<redacted-host>", "<redacted-device-id>", "<redacted-device-id>")
+SCRUB_TERMS = (("<redacted-user>"), "/" + "Users/", "<redacted-host>", "<redacted-device-id>", "<redacted-device-id>")
 SCRUB = re.compile("|".join(re.escape(term) for term in SCRUB_TERMS), re.I)
 OVERCLAIM = re.compile(r"OS sensoriale|restyler|impedisce ogni errore|guardiano", re.I)
 
