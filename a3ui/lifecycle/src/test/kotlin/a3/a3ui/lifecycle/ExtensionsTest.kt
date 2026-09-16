@@ -47,8 +47,8 @@ class ExtensionsTest {
     fun NS_005_spec_contains_opaque_transport_rule() {
         val spec = File("../../spec/SPEC_A3UI.md").readText()
         assertTrue(spec.contains("## 13. Namespace di estensione"))
-        assertTrue(spec.contains("trasporta il payload opaco"))
-        assertTrue(spec.contains("non interpreta"))
+        assertTrue(spec.contains("MUST transport the opaque payload"))
+        assertTrue(spec.contains("MUST NOT interpret it"))
         assertTrue(spec.contains("x-<consumatore>-*"))
     }
 
