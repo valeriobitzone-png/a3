@@ -66,4 +66,4 @@ Tocco a core/ · promuovere spike · LICENSE · push · allargare scope gate ·
 aggiungere OAuth/Drive · silenzio su init · timeout senza messaggio ·
 riscrivere BKR-001 come claim di passi · --rerun-tasks.
 
-STOP dopo il tag. Poi S-A (CURSOR_A3UI_AXIS.md) solo su ordine Valerio.
+STOP dopo il tag. Poi S-A (CURSOR_A3UI_AXIS.md) solo su ordine esplicito del committente.

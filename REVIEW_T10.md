@@ -81,7 +81,7 @@ Nessun campo nuovo in a3ui / `HapticEvent`. Bind solo:
 
 ## A6 — fisica Tab A9
 
-Serial `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1` → `.MainActivity`.
+Device identifier `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1` → `.MainActivity`.
 
 Stesso sink (PCM `AudioTrackFoleySink`), log `a3.foley`:
 

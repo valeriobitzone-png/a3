@@ -214,4 +214,4 @@ compensation che riscrive la storia · Command senza idempotencyKey ·
 auth senza planDigest/beliefRevisionHash · spec/41 · broker prodotto ·
 T12-spike · step 3/4/5.
 
-STOP dopo il tag. Poi solo ciò che Valerio ordina esplicitamente.
+STOP dopo il tag. Poi solo ciò che il committente ordina esplicitamente.

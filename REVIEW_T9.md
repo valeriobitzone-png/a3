@@ -107,7 +107,7 @@ Stage renderer-owned (non CanonicalJson, non RenderedOutput): `ascolto|lavoro|pr
 
 ## G7 — moduli separati
 
-Host: Mini 16GB, 2026-08-30. **No** `./gradlew test --rerun-tasks`. **No** aggregato.
+Host profile: representative desktop, 2026-08-30. **No** `./gradlew test --rerun-tasks`. **No** aggregato.
 
 ```
 ./gradlew :renderers:android-core:test --no-parallel
@@ -133,7 +133,7 @@ Host: Mini 16GB, 2026-08-30. **No** `./gradlew test --rerun-tasks`. **No** aggre
 
 ## G8 — fisica Tab A9
 
-Serial `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1`.
+Device identifier `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category.LAUNCHER 1`.
 
 - Focus: `a3.launcher/.MainActivity`
 - Dump: nodi treno full-width 800px, field/price/action con peso verticale, copy `08:45`/`09:12`/`10:03`/`Ada`/`12.40`/`hold 08:45`

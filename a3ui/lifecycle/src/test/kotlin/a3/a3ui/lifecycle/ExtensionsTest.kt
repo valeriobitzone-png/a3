@@ -10,11 +10,11 @@ import kotlin.test.assertTrue
 
 class ExtensionsTest {
     @Test
-    fun NS_001_valid_mono_extension_crosses_opaque_protocol() {
+    fun NS_001_valid_consumer_extension_crosses_opaque_protocol() {
         val payload = mapOf("status" to "pending")
-        val extensions = SurfaceExtensions.of(mapOf("x-private-gate" to payload))
-        assertEquals(payload, extensions["x-private-gate"])
-        assertEquals(setOf("x-private-gate"), extensions.keys)
+        val extensions = SurfaceExtensions.of(mapOf("x-consumer-gate" to payload))
+        assertEquals(payload, extensions["x-consumer-gate"])
+        assertEquals(setOf("x-consumer-gate"), extensions.keys)
     }
 
     @Test
@@ -28,11 +28,11 @@ class ExtensionsTest {
     @Test
     fun NS_003_unknown_extension_is_ignored_by_renderer_stub() {
         val extensions = SurfaceExtensions.of(
-            mapOf("x-private-gate" to mapOf("status" to "pending"))
+            mapOf("x-consumer-gate" to mapOf("status" to "pending"))
         )
         val rendered = ExtensionRendererStub().render("surface-3", extensions)
         assertTrue(rendered.drawn)
-        assertEquals(setOf("x-private-gate"), rendered.ignoredExtensions)
+        assertEquals(setOf("x-consumer-gate"), rendered.ignoredExtensions)
     }
 
     @Test

@@ -31,7 +31,7 @@ Niente aggregato. `:android-compose` / `:a3ui` / `:core` non riaperti.
 | MR-002 | PresentationHash byte-identity | `PresentationHash.of(SurfaceComposer.compose(calendar))` = `4159f43f6537a84eea0ea920983a974d97c4ca6805df3efb9607e89302ee5dde` (Android S-C) | hash diverso; renderer che muta il tree | **PASS** |
 | MR-003 | VoiceOver | `semantics.contentDescription` = copy + stateDescription + frasi protocollo; `stateDescription` a3ui sul nodo | nodo non-default muto | **PASS** |
 | MR-004 | Reduce Motion | `MacExposure.motionMs(*, true)=0`; mark visibili; nessun `-motion-*`; raster identico al normale (motion fuori dal paint) | motion come unica resa | **PASS** |
-| MR-005 | alto contrasto | hatch AGING, doppio bordo hotel, fingerprint 4 nodi distinti in mono | distinzione solo ambra | **PASS** |
+| MR-005 | alto contrasto | hatch AGING, doppio bordo hotel, fingerprint 4 nodi distinti | distinzione solo ambra | **PASS** |
 | MR-006 | ArchUnit | `a3.renderers.mac.compose` ↛ `android.compose` / `a3.core` / `a3.a3ui` / `a3.broker`; gradle `implementation` solo `:renderers:android-core` + compose desktop | import a3ui in main | **PASS** |
 | MR-007 | freeze | diff frozen vuoto | tocco android-compose/core | **PASS** |
 

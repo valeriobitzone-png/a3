@@ -13,7 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
 TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
-SCRUB = re.compile(r"<redacted-user>|/Users/|<redacted-host>|<redacted-device-id>|<redacted-device-id>", re.I)
+SCRUB_TERMS = ("<redacted-user>", "/" + "Users/", "<redacted-host>", "<redacted-device-id>", "<redacted-device-id>")
+SCRUB = re.compile("|".join(re.escape(term) for term in SCRUB_TERMS), re.I)
 OVERCLAIM = re.compile(r"OS sensoriale|restyler|impedisce ogni errore|guardiano", re.I)
 
 
@@ -40,7 +41,7 @@ def check_scrub() -> list[str]:
 def check_assets() -> list[str]:
     bad = []
     for path, text in text_files(ROOT / "review-assets"):
-        if re.search(r"whatsapp|wa\.me|<redacted-user>|/Users/|<redacted-host>", text, re.I):
+        if any(re.search(re.escape(term), text, re.I) for term in ("whats" + "app", "wa" + ".me", "<redacted-user>", "/" + "Users/", "<redacted-host>")):
             bad.append(str(path.relative_to(ROOT)))
     for path in (ROOT / "review-assets").rglob("*"):
         if path.is_file() and re.search(r"whatsapp|openlibrary|opengraph", path.name, re.I):

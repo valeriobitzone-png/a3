@@ -35,7 +35,7 @@ The scrub check ignores only the audit script's own regex literals. It found no 
 | CO-001 | Personal path/device scrub has no undeclared residue | `python3 tools/closeout_audit.py`; targeted grep | PASS |
 | CO-002 | Review assets contain no real chat, URL dump, or personal-data evidence | Asset inventory plus audit script | PASS |
 | CO-003 | License files exist and SPDX headers cover the full declared source scope | `tools/spdx_apply.py`, `tools/closeout_audit.py`; 371 `.kt`, 34 `.kts`, 6 `.py`, 5 `.sh` | PASS after SPDX-PASS |
-| CO-004 | Final docs state verified and unverified claims honestly | `MANIFESTO.md`, `README.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `OPEN_SOURCE.md`, mapping | PASS |
+| CO-004 | Final docs state verified and unverified claims honestly | `MANIFESTO.md`, `README.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `OPEN_SOURCE.md` | PASS |
 | CO-005 | DCO 1.1 is present | `CONTRIBUTING.md` | PASS |
 | CO-006 | Slice process and REVIEW template are present | `docs/PROCESS.md` | PASS |
 | CO-007 | Required Kotlin, Python, spec, and A3UI conformance suites pass | Gate output recorded below | PASS after clean closeout commit |

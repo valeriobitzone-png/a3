@@ -221,9 +221,9 @@ class MacRendererTest {
         composeRule.onNodeWithTag("text_cal.hotel-held").assertIsDisplayed()
         composeRule.onNodeWithTag("text_cal.flight-aging").assertIsDisplayed()
         composeRule.onNodeWithTag("text_cal.dinner-compensated").assertIsDisplayed()
-        val mono = MacRaster.paint(calendar, highContrast = true)
+        val grayscaleRaster = MacRaster.paint(calendar, highContrast = true)
         val color = MacRaster.paint(calendar, highContrast = false)
-        assertNotEquals(MacRaster.fingerprint(mono), MacRaster.fingerprint(color))
+        assertNotEquals(MacRaster.fingerprint(grayscaleRaster), MacRaster.fingerprint(color))
         val flight = MacRaster.paint(MacFixtures.byId(calendar, "text_cal.flight"), highContrast = true)
         val hotel = MacRaster.paint(MacFixtures.byId(calendar, "text_cal.hotel"), highContrast = true)
         val dinner = MacRaster.paint(MacFixtures.byId(calendar, "text_cal.dinner"), highContrast = true)
@@ -235,6 +235,6 @@ class MacRendererTest {
             MacRaster.fingerprint(meeting)
         )
         assertEquals(4, hashes.size)
-        save("mac-renderer-high-contrast.png", mono)
+        save("mac-renderer-high-contrast.png", grayscaleRaster)
     }
 }
