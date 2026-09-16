@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Part of the A3 universe. See LICENSE.
 package a3.a3ui.lifecycle
 
 /** A reference to external data; a form never stores the referenced value. */

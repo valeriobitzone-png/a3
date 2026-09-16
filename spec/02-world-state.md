@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # World State
 
 A3 stores a belief state, not assumed ground truth.

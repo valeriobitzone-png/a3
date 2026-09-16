@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # A3UI Core
 
 Normative rules for temporal and visual **intent**. A3UI is off-path relative to

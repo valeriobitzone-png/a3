@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Planner Errors
 
 The planner must return a typed failure rather than an undeclared partial plan.

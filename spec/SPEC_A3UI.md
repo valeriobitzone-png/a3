@@ -1,5 +1,6 @@
 Sopra il lavoro reale, prima del tap, vedi cosa il sistema sa, da dove, quanto è vecchio, e quale azione è vietata.
 
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # a3ui: Epistemic Window Manager
 
 ```

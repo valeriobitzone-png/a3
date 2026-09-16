@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Observation
 
 Observation is the authoritative execution evidence used to update belief state.

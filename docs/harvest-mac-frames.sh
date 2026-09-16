@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Part of the A3 universe. See LICENSE.
 # On-screen Mac harvest: overlay NSVisualEffectView CADisplayLink + catalog Compose Metal.
 # Writes review-assets/perf/mac-{overlay-expanded,catalog}-{HIGH,MID,BLUR_OFF}.txt
 # MUST NOT use OverlayCompositor CPU wall time as the display dump.

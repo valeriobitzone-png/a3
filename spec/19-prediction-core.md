@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Prediction Core
 
 Normative rules for the optional predictive branch. The closed loop remains `Intent → Goal → State → Capability → Plan → Policy → Execution → Observation → State`. Prediction is off-path.

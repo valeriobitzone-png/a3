@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# Part of the A3 universe. See LICENSE.
 """CS-001..009 Python parity for A3-EP conformance. Same vectors as Kotlin."""
 
 from __future__ import annotations

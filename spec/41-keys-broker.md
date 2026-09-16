@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # 41 — Keys Broker
 
 **Status:** SIGNED 2026-09-07 · Valerio · file on disk  

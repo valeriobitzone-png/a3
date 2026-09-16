@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Part of the A3 universe. See LICENSE.
 package a3.conformance
 
 import a3.core.envelope.TYPE_ACTION_AUTHORIZED

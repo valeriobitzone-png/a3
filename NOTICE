@@ -6,3 +6,9 @@ Project code is Apache-2.0. The specifications and protocol schemas under
 spec/ are CC BY 4.0. Graphics tokens and visual reference assets are CC BY 4.0
 in the a3ui-graphics repository. Third-party dependencies retain their
 upstream licenses; see their respective metadata and notices.
+
+SPDX closeout scope: 371 `.kt`, 34 `.kts`, 6 `.py`, and 5 `.sh` files
+carry the Apache-2.0 header. Markdown files under `spec/` carry the CC-BY-4.0
+header. JSON files are intentionally excluded because JSON has no comment
+syntax; lock vectors and A3UI fixtures remain byte-identical and are covered
+by this notice and `spec/LICENSE-CC-BY`.

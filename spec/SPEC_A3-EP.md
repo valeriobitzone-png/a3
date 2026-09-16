@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # A3-EP: Epistemic Hygiene Contract
 
 ```

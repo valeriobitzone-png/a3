@@ -1,3 +1,4 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 # Outcome
 
 A3 separates the predicted result from the measured result.

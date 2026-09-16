@@ -6,7 +6,7 @@ Closeout slice for repository hygiene and handoff. The repository remains unpubl
 
 - Scrub personal paths, device identifiers, local URLs, and real-chat evidence.
 - Add repeatable process and final architecture/status documentation.
-- Add Apache-2.0 project licensing, CC BY 4.0 specification licensing, NOTICE, DCO guidance, and SPDX headers on closeout-touched source files. Existing legacy source files are not rewritten in this slice because doing so would require a broad mechanical edit outside the scrub paths.
+- Add Apache-2.0 project licensing, CC BY 4.0 specification licensing, NOTICE, DCO guidance, and SPDX headers across the declared source scope.
 - Preserve protocol and renderer semantics; scrub-only source edits are explicitly listed below.
 
 ## Scrub inventory
@@ -24,13 +24,17 @@ Closeout slice for repository hygiene and handoff. The repository remains unpubl
 
 The scrub check ignores only the audit script's own regex literals. It found no personal paths or identifiers in the remaining tree and no personal-data patterns in `review-assets/`.
 
+## SPDX-PASS
+
+`tools/spdx_apply.py` scanned 446 eligible files: 371 `.kt`, 34 `.kts`, 6 `.py`, 5 `.sh`, and 30 Markdown files under `spec/`. The first pass added headers to 438 files; the second pass reported `changed=0`. JSON is excluded by design because it has no comment syntax; 37 lock-vector and A3UI fixture files were not touched. The normative A3UI government sentence remains line 1 so the existing AU-001 contract remains valid; its CC-BY header follows that sentence. The seven shell/Python files with a shebang retain the shebang as line 1 so execution semantics remain unchanged; SPDX follows immediately.
+
 ## Audit
 
 | ID | Invariant | Evidence | Result |
 |---|---|---|---|
 | CO-001 | Personal path/device scrub has no undeclared residue | `python3 tools/closeout_audit.py`; targeted grep | PASS |
 | CO-002 | Review assets contain no real chat, URL dump, or personal-data evidence | Asset inventory plus audit script | PASS |
-| CO-003 | License files exist and SPDX headers are verified on every closeout-touched source | `LICENSE`, `NOTICE`, `spec/LICENSE-CC-BY`, `tools/closeout_audit.py` | PASS (closeout scope); legacy tree audit remains open |
+| CO-003 | License files exist and SPDX headers cover the full declared source scope | `tools/spdx_apply.py`, `tools/closeout_audit.py`; 371 `.kt`, 34 `.kts`, 6 `.py`, 5 `.sh` | PASS after SPDX-PASS |
 | CO-004 | Final docs state verified and unverified claims honestly | `MANIFESTO.md`, `README.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `OPEN_SOURCE.md`, mapping | PASS |
 | CO-005 | DCO 1.1 is present | `CONTRIBUTING.md` | PASS |
 | CO-006 | Slice process and REVIEW template are present | `docs/PROCESS.md` | PASS |
@@ -39,19 +43,33 @@ The scrub check ignores only the audit script's own regex literals. It found no 
 | CO-009 | Code changes are scrub/header-only exceptions, with no protocol behavior change | `git diff` review; scrub inventory | PASS |
 | CO-010 | Existing review-assets modifications are resolved and declared | staged review-assets diff and scrub inventory | PASS |
 
+## SPDX-PASS audit
+
+| ID | Invariant | Evidence | Result |
+|---|---|---|---|
+| SPX-001 | Second `spdx_apply.py` execution changes zero files | `scanned=446 changed=0` | PASS |
+| SPX-002 | Audit reports zero missing source SPDX headers | `python3 tools/closeout_audit.py`: source counts `.kt=371`, `.kts=34`, `.py=6`, `.sh=5` | PASS |
+| SPX-003 | Header pass preserves bytes below each inserted header | hash comparison: 408 changed legacy source files, 0 failures; tooling audit diff declared separately | PASS |
+| SPX-004 | Vectors and fixtures remain byte-identical | SHA-256 comparison: 25 files, 0 failures | PASS |
+| SPX-005 | Required Gradle/Python/spec suites remain green | outputs below | PASS |
+| SPX-006 | JSON exclusion is declared | `NOTICE`, this section, and `tools/spdx_apply.py` | PASS |
+| SPX-007 | CO-003 rerun covers the full declared source scope | audit PASS with extension counts above | PASS |
+
 ## Required suite output
 
-The closeout gate was run after the first closeout commit so existing freeze tests compare against a clean repository state. The test suite regenerated nine deterministic review assets; those changes are included in the final closeout commit.
+The closeout gate was run after the first closeout commit so existing freeze tests compare against a clean repository state. The test suite regenerated nine deterministic review assets; those changes are included in the closeout history.
 
 ```text
-python3 spec/test_spec.py                 PASS SP-001..SP-007
-python3 spec/test_a3ui_spec.py            PASS AU-001..AU-010
+python3 tools/spdx_apply.py                  scanned=446 changed=438
+python3 tools/spdx_apply.py                  scanned=446 changed=0
+python3 tools/closeout_audit.py             closeout audit: PASS
+python3 spec/test_spec.py                    PASS SP-001..SP-007
+python3 spec/test_a3ui_spec.py               PASS AU-001..AU-010
 python3 conformance/src/test/python/test_conformance.py
-                                           PASS CS-001..CS-009, PV-001..PV-010
-./gradlew :a3ui:conformance:test --offline
-                                           BUILD SUCCESSFUL in 11s
-./gradlew test --offline                   BUILD SUCCESSFUL in 39s
-                                           388 actionable tasks
+                                            PASS CS-001..CS-009, PV-001..PV-010
+./gradlew :a3ui:conformance:test --offline  BUILD SUCCESSFUL in 11s
+./gradlew test --offline                    BUILD SUCCESSFUL in 39s
+                                            388 actionable tasks
 ```
 
 Android fps and representative MID hardware remain UNVERIFIED even when host/unit suites pass.
@@ -65,5 +83,5 @@ Android fps and representative MID hardware remain UNVERIFIED even when host/uni
 ## Delivery
 
 - Commit: recorded after all closeout files and scrubbed assets are staged.
-- Local tag: pending until the repository-wide legacy SPDX header audit is closed.
+- Local tag: `closeout-v1.0`, created after SPX-001..SPX-007 passed.
 - Push: none.

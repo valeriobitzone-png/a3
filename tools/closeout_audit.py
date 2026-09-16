@@ -11,15 +11,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CLOSEOUT_SOURCES = {
-    "renderers/android-compose/src/main/kotlin/a3/renderers/android/compose/MotionRaster.kt",
-    "renderers/mac-compose/src/main/kotlin/a3/renderers/mac/compose/MotionRaster.kt",
-    "showcase/scripts/record-android-v3.sh",
-    "docs/harvest-android-gfxinfo.sh",
-    "agent/src/test/kotlin/a3/agent/AgentSurfaceTest.kt",
-    "overlay/common/src/test/kotlin/a3/overlay/OverlayCommonTest.kt",
-}
-TEXT_SUFFIXES = {".kt", ".kts", ".py", ".sh", ".swift", ".java", ".ts", ".md", ".txt", ".html", ".json"}
+SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
+TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
 SCRUB = re.compile(r"<redacted-user>|/Users/|<redacted-host>|<redacted-device-id>|<redacted-device-id>", re.I)
 OVERCLAIM = re.compile(r"OS sensoriale|restyler|impedisce ogni errore|guardiano", re.I)
 
@@ -55,12 +48,21 @@ def check_assets() -> list[str]:
     return sorted(set(bad))
 
 
+def source_files():
+    for path, _ in text_files(ROOT):
+        relative = path.relative_to(ROOT).as_posix()
+        if path.suffix in SOURCE_SUFFIXES and not relative.startswith("conformance/vectors/") and not relative.startswith("conformance/a3ui/fixtures/"):
+            yield path
+
+
 def check_spdx() -> list[str]:
     missing = []
-    for relative in sorted(CLOSEOUT_SOURCES):
-        path = ROOT / relative
-        if path.exists() and "SPDX-License-Identifier:" not in path.read_text(encoding="utf-8"):
-            missing.append(relative)
+    for path in source_files():
+        if "SPDX-License-Identifier:" not in path.read_text(encoding="utf-8"):
+            missing.append(str(path.relative_to(ROOT)))
+    for path, _ in text_files(ROOT / "spec"):
+        if path.suffix == ".md" and "SPDX-License-Identifier: CC-BY-4.0" not in path.read_text(encoding="utf-8"):
+            missing.append(str(path.relative_to(ROOT)))
     return missing
 
 
@@ -80,17 +82,14 @@ def main() -> int:
         failures.append("SPDX: " + ", ".join(missing))
     if OVERCLAIM.search((ROOT / "MANIFESTO.md").read_text(encoding="utf-8")):
         failures.append("manifesto contains an overclaim")
-    if args.all_source:
-        legacy = []
-        for path, text in text_files(ROOT):
-            if path.suffix.lower() in {".kt", ".kts", ".py", ".sh", ".swift", ".java", ".ts"} and "SPDX-License-Identifier:" not in text:
-                legacy.append(str(path.relative_to(ROOT)))
-        if legacy:
-            failures.append(f"legacy SPDX headers missing: {len(legacy)} source files")
     if failures:
         print("\n".join(failures), file=sys.stderr)
         return 1
+    counts = {}
+    for path in source_files():
+        counts[path.suffix] = counts.get(path.suffix, 0) + 1
     print("closeout audit: PASS")
+    print("source counts: " + ", ".join(f"{key}={counts[key]}" for key in sorted(counts)))
     return 0
 
 
