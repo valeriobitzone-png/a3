@@ -42,6 +42,17 @@
     "children": []
   },
   {
+    "tag": "profile-pill",
+    "text": ["HIGH · visible"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 72,
+    "height": 14,
+    "children": []
+  },
+  {
     "tag": "a11y-motion-ms",
     "text": ["motion-ms=240"],
     "enabled": true,
@@ -60,7 +71,7 @@
     "contentDescription": "Hotel, uncertain, conferma disabilitata, ragione: unknown confirmation required",
     "traversalIndex": 0.0,
     "width": 387,
-    "height": 132,
+    "height": 128,
     "children": [
     {
       "tag": null,
@@ -105,7 +116,7 @@
     "contentDescription": "Hotel Milano, stale 2 ore, prezzo 89 euro, conferma abilitata, warning: stale 2 ore",
     "traversalIndex": 1.0,
     "width": 387,
-    "height": 131,
+    "height": 129,
     "children": [
     {
       "tag": null,
@@ -159,7 +170,7 @@
       "contentDescription": null,
       "traversalIndex": null,
       "width": 64,
-      "height": 16,
+      "height": 14,
       "children": []
     }
     ]
@@ -172,7 +183,7 @@
     "contentDescription": "Hotel, held, conferma disabilitata, ragione: held pending review",
     "traversalIndex": 2.0,
     "width": 387,
-    "height": 131,
+    "height": 129,
     "children": [
     {
       "tag": null,
@@ -217,7 +228,7 @@
     "contentDescription": "Calendario, contradicted, conferma disabilitata, ragione: contradicted resolve conflict first",
     "traversalIndex": 3.0,
     "width": 387,
-    "height": 131,
+    "height": 129,
     "children": [
     {
       "tag": null,
@@ -282,7 +293,7 @@
       "contentDescription": null,
       "traversalIndex": null,
       "width": 206,
-      "height": 3,
+      "height": 1,
       "children": []
     }
     ]
@@ -295,7 +306,7 @@
     "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
     "traversalIndex": 4.0,
     "width": 387,
-    "height": 131,
+    "height": 129,
     "children": [
     {
       "tag": null,
@@ -351,7 +362,7 @@
     "contentDescription": "Volo, conferma abilitata",
     "traversalIndex": 5.0,
     "width": 387,
-    "height": 131,
+    "height": 129,
     "children": [
     {
       "tag": null,

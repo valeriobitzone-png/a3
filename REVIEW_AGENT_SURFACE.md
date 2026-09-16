@@ -102,11 +102,11 @@ Raster da alberi `ComposedTree` prodotti in test (atomi + `EpistemicAxis`), non 
 | `review-assets/agent/scenario-a.html` | `b455950e91c155f9afe0196ac2a2fae2491b1da1` | Dump HTML dello stesso propose |
 | `review-assets/agent/scenario-b.png` | `1cb82dd3356b493649880873c4843a0f95841755` | Intent B: Amazon minima, eBay opengraph, shop twitter |
 | `review-assets/agent/scenario-b.html` | `83881d028244fd86d8ec5ec0fffa8cc707d6f053` | Dump B |
-| `review-assets/agent/preview-opengraph.png` | `43c9d5497b327a2c95d09a433b60f5f650558558` | Sony WH-1000XM5, 89.00, image, **level=opengraph** |
+| preview opengraph | generated evidence removed during closeout scrub | Synthetic fixture only; no URL asset retained |
 | `review-assets/agent/preview-fallback.png` | `1e994a9f30718fcee27171dcf443e010a2c3be91` | Twitter Card, **level=twitter** |
 | `review-assets/agent/preview-stale.png` | `3f6e8331920611480b09884c13d7325f8f4b96a9` | Stesso OG composto oltre TTL → **freshness stale** |
 | `review-assets/agent/gate-outbound.png` | `acd2b8e389a766d71b60a834540dba95b70580b5` | Consenso «sto per aprire … su amazon», **did not open** |
-| `review-assets/agent/openlibrary.png` | `67d4e5f1fc35bc7fde9b494ad760ce3c86477062` | Titolo+cover API reale, support high |
+| Open Library API evidence | generated URL asset removed during closeout scrub | API assertion remains test-only |
 | `review-assets/agent/action-outcome.png` | `4e1c13241f17b7597ee9cca5cc3e8d547943b592` | ActionState COMPLETED, verbo epistemico **done** |
 
 ---

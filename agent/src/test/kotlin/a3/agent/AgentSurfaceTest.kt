@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 A3 contributors
+
 package a3.agent
 
 import a3.a3ui.engine.Epistemic
@@ -160,10 +163,7 @@ class AgentSurfaceTest {
         assertEquals(PreviewLevel.OPENGRAPH, option.previewLevel)
         assertNotNull(option.imageUrl)
         assertEquals("89.00", option.price)
-        writeAsset("preview-opengraph.png", SurfaceShot.option(option, "preview ricco · opengraph"))
-        File(assets(), "preview-opengraph.html").writeText(
-            "<p>level=${option.previewLevel?.wire()} title=${option.title} price=${option.price} image=${option.imageUrl}</p>"
-        )
+        assertEquals(PreviewLevel.OPENGRAPH, option.previewLevel)
     }
 
     @Test
@@ -254,10 +254,7 @@ class AgentSurfaceTest {
         assertEquals(EpistemicSupport.HIGH, option.axis.support)
         assertEquals(EpistemicFreshness.FRESH, option.axis.freshness)
         assertEquals(hits.apiTimestamp, option.claims.first().observedAt)
-        writeAsset("openlibrary.png", SurfaceShot.option(option, "Open Library API"))
-        File(assets(), "openlibrary.html").writeText(
-            "<p>${doc.title}</p><p>${doc.coverUrl}</p><p>apiTimestamp=${hits.apiTimestamp}</p>"
-        )
+        assertTrue(option.title.isNotBlank())
         assertTrue(AdoptedApis.names.contains("Open Library"))
         assertTrue(AdoptedApis.ebaySearch("cuffie").contains("ebay.com"))
         assertTrue(AdoptedApis.openFoodFactsSearch("pasta").contains("openfoodfacts"))

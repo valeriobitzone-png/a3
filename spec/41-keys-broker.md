@@ -2,7 +2,7 @@
 
 **Status:** SIGNED 2026-09-07 · Valerio · file on disk  
 **Baseline core:** `origin/main` `2b35939` · `core-admission-v0.1` · `core-action-v0.1`  
-**Evidence:** throwaway spike `<home>/Desktop/a3-broker-spike` (`531c7b7` S1, `85e090c` S2/S3/R3). Spike code is **not** product and must never be promoted.
+**Evidence:** throwaway spike esterno, path locale redatto (`531c7b7` S1, `85e090c` S2/S3/R3). Spike code is **not** product and must never be promoted.
 
 Prerequisites now in core (not chat):
 - Step 1 admission: belief / claim fold with expiry → revoca legata al belief

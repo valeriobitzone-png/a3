@@ -6,8 +6,8 @@
 Copy is `node.text` from interpret 0.2. Never invented. Foundation `BasicText` only. No Material `Text` / `Button`.
 
 Screenshots (not in git):
-- `<home>/Downloads/a3-r03-paint.png` — `08:45` / `09:12` / `10:03`, `Ada`, `12.40`, confirm atom `true`
-- `<home>/Downloads/a3-r03-trust.png` — tap on `true` → overlay copy `approve`
+- `<local-downloads-path-redacted>/a3-r03-paint.png` — `08:45` / `09:12` / `10:03`, `Ada`, `12.40`, confirm atom `true`
+- `<local-downloads-path-redacted>/a3-r03-trust.png` — tap on `true` → overlay copy `approve`
 
 ---
 

@@ -1,36 +1,24 @@
-# A3 — Manifesto
+# A3 manifesto
 
-## Le domande
-MCP: What can I call? · A2UI: What can I render? · AI: What can I say?
-**A3: What should become true? · A3UI: How should that future state be experienced?**
+> Sopra il lavoro reale, prima del tap, vedi cosa il sistema sa, da dove, quanto è vecchio, e quale azione è vietata.
 
-## Tesi
-Un OS per agent non è una chat con widget. È un runtime che separa realtà, intenzione, possibilità e azione in macchine a stati verificabili indipendentemente.
+A3-EP keeps belief, action, and reality distinct. A3UI consumes that protocol and makes uncertainty, provenance, age, and permitted action visible before interaction.
 
-## Invariante
-Prediction may prepare. Policy may authorize. Execution may change the world.
-Observation determines what actually happened.
+## Stato onesto
 
-L'unico writer di `WorldState` è `WorldState.apply(AcceptedObservation)`:
-vero su classe, sul closed loop live, e sul replay (fold di apply su un world fresco).
+### VERIFIED
 
-## Motion legato allo stato
-Ogni animazione è emessa da un evento epistemico verificato, mai da una scelta drammatica.
-Il renderer decide COME materializzare un verbo per device; non decide QUALE verbo.
-Niente placeholder: l'esperienza materializza lo stato reale.
+- A3-EP lock vectors and conformance suites are executable in Kotlin and Python.
+- A3UI mark-to-CTA behavior is covered by the Compose and Web conformance suites.
+- Surface lifecycle, re-binding, and opaque extensions have headless tests.
+- The textual CLI consumes the shared fixtures by path and renders the seven-primitives catalog.
+- The repository has separate spec, implementation, renderer, and graphics-token boundaries.
 
-## Un suono = una causa visibile
-Foley, non UI pack. Silenzio è materiale. Volume sotto la voce.
-Sintesi real-time, mai file.
+### UNVERIFIED
 
-## Obsolescenza, non wrapper
-MCP/A2UI/AI sono adapter: implementazioni intercambiabili che non devono cambiare lo stato epistemico.
-Se MCP sparisse domani, A3 non se ne accorgerebbe a livello epistemico.
-A3 definisce il contratto sopra le tecnologie; non le assorbe.
+- Android fps and on-screen jank-frame count remain **UNVERIFIED**.
+- The declared MID hardware profile has not been validated on representative hardware.
+- Physical-device screenshots are evidence for their recorded run, not a general performance guarantee.
+- Third-party adoption has not yet been demonstrated.
 
-## Deterministic-first
-La 0.1 gira senza LLM. L'intelligenza entra come provider che propone (`confidence < 1`);
-Goal / Policy / Trust decidono.
-
-## Licenza
-AGPL-3 all'apertura pubblica. Nessun brevetto. Finché il repo è privato, questo file non è disclosure.
+This repository makes no product-wide or universal guarantee. It is a protocol, a set of consumers, and an evidence trail.

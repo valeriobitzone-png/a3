@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: 2026 A3 contributors
+
 package a3.renderers.mac.compose
 
 import java.awt.BasicStroke
@@ -139,7 +142,7 @@ internal object MotionRaster {
         require(count > 0)
         val pattern = File(dir, "f%03d.png").absolutePath
         val ffmpeg = listOf(
-            "<home>/.local/bin/ffmpeg",
+            "ffmpeg",
             "/opt/homebrew/bin/ffmpeg",
             "/usr/bin/ffmpeg"
         ).firstOrNull { File(it).canExecute() } ?: "ffmpeg"

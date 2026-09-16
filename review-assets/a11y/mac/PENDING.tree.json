@@ -42,6 +42,17 @@
     "children": []
   },
   {
+    "tag": "profile-pill",
+    "text": ["HIGH · visible"],
+    "enabled": true,
+    "stateDescription": null,
+    "contentDescription": null,
+    "traversalIndex": null,
+    "width": 77,
+    "height": 14,
+    "children": []
+  },
+  {
     "tag": "a11y-motion-ms",
     "text": ["motion-ms=240"],
     "enabled": true,
@@ -71,7 +82,7 @@
     "contentDescription": "Treno, in verifica, slot riservato, conferma disabilitata, ragione: in verifica, slot riservato",
     "traversalIndex": 0.0,
     "width": 696,
-    "height": 688,
+    "height": 674,
     "children": [
     {
       "tag": null,

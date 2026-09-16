@@ -93,7 +93,7 @@ stop generators=0 gain=0.08
 stop generators=0 gain=0.08    ← lavoro / freeze
 ```
 
-**Log FUORI repo:** `<home>/Downloads/a3-t10-foley.log`
+**Log FUORI repo:** `<local-downloads-path-redacted>/a3-t10-foley.log`
 
 **Result:** **PASS.**
 

@@ -1,2 +1,3 @@
-device_model=A024
-serial=<redacted-device-id>
+device_model=synthetic-android
+profile=UNVERIFIED
+device_id=redacted

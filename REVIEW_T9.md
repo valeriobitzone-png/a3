@@ -137,7 +137,7 @@ Serial `<redacted-device-id>`. `monkey -p a3.launcher -c android.intent.category
 
 - Focus: `a3.launcher/.MainActivity`
 - Dump: nodi treno full-width 800px, field/price/action con peso verticale, copy `08:45`/`09:12`/`10:03`/`Ada`/`12.40`/`hold 08:45`
-- Screenshot **fuori repo:** `<home>/Downloads/a3-t9-occupied.png`
+- Screenshot **fuori repo:** `<local-downloads-path-redacted>/a3-t9-occupied.png`
 
 **Result:** **PASS.**
 

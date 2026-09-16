@@ -1,0 +1,8 @@
+A3 / A3UI
+
+Copyright 2026 the A3 contributors.
+
+Project code is Apache-2.0. The specifications and protocol schemas under
+spec/ are CC BY 4.0. Graphics tokens and visual reference assets are CC BY 4.0
+in the a3ui-graphics repository. Third-party dependencies retain their
+upstream licenses; see their respective metadata and notices.
