@@ -6,7 +6,7 @@ Closeout slice for repository hygiene and handoff. The repository remains unpubl
 
 - Scrub personal paths, device identifiers, local URLs, and real-chat evidence.
 - Add repeatable process and final architecture/status documentation.
-- Add Apache-2.0 project licensing, CC BY 4.0 specification licensing, NOTICE, DCO guidance, and SPDX headers on closeout-touched source files.
+- Add Apache-2.0 project licensing, CC BY 4.0 specification licensing, NOTICE, DCO guidance, and SPDX headers on closeout-touched source files. Existing legacy source files are not rewritten in this slice because doing so would require a broad mechanical edit outside the scrub paths.
 - Preserve protocol and renderer semantics; scrub-only source edits are explicitly listed below.
 
 ## Scrub inventory
@@ -30,7 +30,7 @@ The scrub check ignores only the audit script's own regex literals. It found no 
 |---|---|---|---|
 | CO-001 | Personal path/device scrub has no undeclared residue | `python3 tools/closeout_audit.py`; targeted grep | PASS |
 | CO-002 | Review assets contain no real chat, URL dump, or personal-data evidence | Asset inventory plus audit script | PASS |
-| CO-003 | License files exist and SPDX headers are verified on every closeout-touched source | `LICENSE`, `NOTICE`, `spec/LICENSE-CC-BY`, `tools/closeout_audit.py` | PASS |
+| CO-003 | License files exist and SPDX headers are verified on every closeout-touched source | `LICENSE`, `NOTICE`, `spec/LICENSE-CC-BY`, `tools/closeout_audit.py` | PASS (closeout scope); legacy tree audit remains open |
 | CO-004 | Final docs state verified and unverified claims honestly | `MANIFESTO.md`, `README.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `OPEN_SOURCE.md`, mapping | PASS |
 | CO-005 | DCO 1.1 is present | `CONTRIBUTING.md` | PASS |
 | CO-006 | Slice process and REVIEW template are present | `docs/PROCESS.md` | PASS |
@@ -65,5 +65,5 @@ Android fps and representative MID hardware remain UNVERIFIED even when host/uni
 ## Delivery
 
 - Commit: recorded after all closeout files and scrubbed assets are staged.
-- Local tag: `closeout-v1.0`, created only after all gates are green.
+- Local tag: pending until the repository-wide legacy SPDX header audit is closed.
 - Push: none.
