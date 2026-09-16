@@ -44,4 +44,15 @@ The v2 lock set and A3UI fixtures were compared byte-for-byte; expected SHA-256 
 
 Measured: repository scans, source-header audit, cover file hashes/types, test exits, and lock-vector hashes. Deduced: semantic equivalence across independent implementations from the shared lock corpus. Unverified: public adoption, physical Android FPS, representative mid hardware, and downstream visual fidelity.
 
+## Delivery
+
+| Repository | HEAD commit | Tag |
+|---|---|---|
+| `a3` | `8cffa01` | `closeout-v1.0` |
+| `a3-ts` | `f155d67` | `prepub-v1.0` |
+| `a3-go` | `4dd335b` | `prepub-v1.0` |
+| `a3ui-web` | `1a30fb2` | `prepub-v1.0` |
+| `a3ui-cli` | `2a50d8d` | `prepub-v1.0` |
+| `a3ui-graphics` | `d719a40` | `prepub-v1.0` |
+
 No push or publication was performed.
