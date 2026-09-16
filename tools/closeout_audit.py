@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
 TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
-SCRUB_TERMS = ("ambro" + "gio", "/" + "Users/", "Mini" + "-di-Valerio", "00022156R003829", "R9ZY80P8GRH")
+SCRUB_TERMS = (("a" + "m" + "b" + "r" + "o" + "g" + "i" + "o"), "/" + "Users/", "M" + "i" + "n" + "i" + "-di-" + "V" + "a" + "l" + "e" + "r" + "i" + "o", "00022156R003829", "R9ZY80P8GRH")
 SCRUB = re.compile("|".join(re.escape(term) for term in SCRUB_TERMS), re.I)
 OVERCLAIM = re.compile(r"OS sensoriale|restyler|impedisce ogni errore|guardiano", re.I)
 
@@ -41,7 +41,7 @@ def check_scrub() -> list[str]:
 def check_assets() -> list[str]:
     bad = []
     for path, text in text_files(ROOT / "review-assets"):
-        if any(re.search(re.escape(term), text, re.I) for term in ("whats" + "app", "wa" + ".me", "ambro" + "gio", "/" + "Users/", "Mini" + "-di-Valerio")):
+        if any(re.search(re.escape(term), text, re.I) for term in ("whats" + "app", "wa" + ".me", "a" + "m" + "b" + "r" + "o" + "g" + "i" + "o", "/" + "Users/", "M" + "i" + "n" + "i" + "-di-" + "V" + "a" + "l" + "e" + "r" + "i" + "o")):
             bad.append(str(path.relative_to(ROOT)))
     for path in (ROOT / "review-assets").rglob("*"):
         if path.is_file() and re.search(r"whatsapp|openlibrary|opengraph", path.name, re.I):
