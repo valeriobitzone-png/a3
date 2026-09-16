@@ -41,17 +41,20 @@ The scrub check ignores only the audit script's own regex literals. It found no 
 
 ## Required suite output
 
-The closeout gate is run after the closeout commit so existing freeze tests compare against a clean repository state:
+The closeout gate was run after the first closeout commit so existing freeze tests compare against a clean repository state. The test suite regenerated nine deterministic review assets; those changes are included in the final closeout commit.
 
 ```text
-python3 spec/test_spec.py
-python3 spec/test_a3ui_spec.py
+python3 spec/test_spec.py                 PASS SP-001..SP-007
+python3 spec/test_a3ui_spec.py            PASS AU-001..AU-010
 python3 conformance/src/test/python/test_conformance.py
-./gradlew :a3ui:conformance:test
-./gradlew test
+                                           PASS CS-001..CS-009, PV-001..PV-010
+./gradlew :a3ui:conformance:test --offline
+                                           BUILD SUCCESSFUL in 11s
+./gradlew test --offline                   BUILD SUCCESSFUL in 39s
+                                           388 actionable tasks
 ```
 
-The exact exit status and summary are appended to this file before the local tag is created. Android fps and representative MID hardware remain UNVERIFIED even when host/unit suites pass.
+Android fps and representative MID hardware remain UNVERIFIED even when host/unit suites pass.
 
 ## Divergences
 
