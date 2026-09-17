@@ -6,7 +6,7 @@ Before opening a change:
 
 1. Run the relevant focused tests and the required regression suite.
 2. Check frozen paths and `git diff --check`.
-3. Do not add personal data, secrets, generated local paths, or real chat captures.
+3. Do not add personal data, secrets, generated local paths, or private captures.
 4. Declare platform or implementation divergences in the REVIEW; never reconcile them silently.
 5. Keep UNKNOWN and provenance explicit. Do not infer FACT from a receipt, sandbox, or model.
 

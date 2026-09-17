@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  spec-and-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run specification tests
+        run: |
+          python3 spec/test_spec.py
+          python3 spec/test_a3ui_spec.py
+      - name: Run Python conformance
+        run: python3 conformance/src/test/python/test_conformance.py

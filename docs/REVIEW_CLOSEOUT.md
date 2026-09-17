@@ -4,7 +4,7 @@ Closeout slice for repository hygiene and handoff. The repository remains unpubl
 
 ## Scope
 
-- Scrub personal paths, device identifiers, local URLs, and real-chat evidence.
+- Scrub personal paths, device identifiers, local URLs, and private evidence.
 - Add repeatable process and final architecture/status documentation.
 - Add Apache-2.0 project licensing, CC BY 4.0 specification licensing, NOTICE, DCO guidance, and SPDX headers across the declared source scope.
 - Preserve protocol and renderer semantics; scrub-only source edits are explicitly listed below.
@@ -17,9 +17,9 @@ Closeout slice for repository hygiene and handoff. The repository remains unpubl
 | Renderer ffmpeg paths | Replaced hard-coded workstation paths with `ffmpeg` lookup | Runtime behavior remains tool lookup; no local path is encoded |
 | Android recording script | Replaced hard-coded device identifier with required `DEVICE_ID` environment input | No physical device identifier in source |
 | Android performance metadata and MID captures | Replaced with synthetic redacted fixtures; status is UNVERIFIED | No device serial or private capture metadata |
-| `review-assets/overlay/*whatsapp*` | Removed | Real chat capture is not public evidence |
+| `review-assets/overlay/*whatsapp*` | Removed | Private capture is not public evidence |
 | `review-assets/agent/openlibrary.*` and `preview-opengraph.*` | Removed; tests retain assertions without URL dumps | URL/API response evidence is not committed as an asset |
-| Agent/overlay test asset writers | Removed writes of deleted URL/API/chat evidence | Full test runs cannot regenerate scrubbed assets |
+| Agent/overlay test asset writers | Removed writes of deleted URL/API/private evidence | Full test runs cannot regenerate scrubbed assets |
 | `local.properties` | Removed local-only workstation configuration | It contained a private SDK path and is not a tracked project input |
 
 The scrub check ignores only the audit script's own regex literals. It found no personal paths or identifiers in the remaining tree and no personal-data patterns in `review-assets/`.
@@ -33,7 +33,7 @@ The scrub check ignores only the audit script's own regex literals. It found no 
 | ID | Invariant | Evidence | Result |
 |---|---|---|---|
 | CO-001 | Personal path/device scrub has no undeclared residue | `python3 tools/closeout_audit.py`; targeted grep | PASS |
-| CO-002 | Review assets contain no real chat, URL dump, or personal-data evidence | Asset inventory plus audit script | PASS |
+| CO-002 | Review assets contain no private, URL-dump, or personal-data evidence | Asset inventory plus audit script | PASS |
 | CO-003 | License files exist and SPDX headers cover the full declared source scope | `tools/spdx_apply.py`, `tools/closeout_audit.py`; 371 `.kt`, 34 `.kts`, 6 `.py`, 5 `.sh` | PASS after SPDX-PASS |
 | CO-004 | Final docs state verified and unverified claims honestly | `MANIFESTO.md`, `README.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `OPEN_SOURCE.md` | PASS |
 | CO-005 | DCO 1.1 is present | `CONTRIBUTING.md` | PASS |

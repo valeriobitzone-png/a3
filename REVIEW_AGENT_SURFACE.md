@@ -71,7 +71,7 @@ AG-001..012 verdi.
 | Fixture `/meta` | `meta` | `<title>` + `meta description` |
 | Fixture `/bare` | `minima` | nessun meta; retailer+query |
 | Amazon simulato `/amazon` 403 | `minima` | anti-bot; **OG dichiarato inaffidabile**; no retry, no scrape |
-| robots `Disallow: /` | `minima` | pagina **non** fetchata |
+| robots `Disallow: /` | `minima` | pagina **non** scaricata |
 | timeout `/slow` | `minima` | request abortita |
 
 ---
