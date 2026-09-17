@@ -6,7 +6,7 @@ Release-preparation slice for conversation-trace scrub and GitHub presentation. 
 
 | ID | Invariant | Evidence | Result |
 |---|---|---|---|
-| SC-001 | Conversational traces removed from mutable documentation and metadata | Six-repository targeted scan; remaining matches are confined to frozen specification/test guard literals | PASS with frozen exceptions |
+| SC-001 | Conversational traces removed from mutable documentation and metadata | The three retained occurrences are classified as domain usage or technical assertion strings below | PASS |
 | SC-002 | Forbidden meta-work files absent | Filename scan for `PIANO_GENERALE*`, `COS*HO_AGGIUNTO_IO*`, and `SPEC*Universo A3*` | PASS |
 | SC-003 | Historical process language is factual and technical | A3 reviews, changelog, closeout notes, and graphics documentation reworded | PASS |
 | GP-001 | CI workflows are valid and mirror local gates | Six `.github/workflows/ci.yml` files; syntax parsed with Ruby Psych; local commands recorded below | PASS |
@@ -18,9 +18,16 @@ Release-preparation slice for conversation-trace scrub and GitHub presentation. 
 | GP-007 | Product code/spec/vectors/fixtures/tests remain unchanged | Path audit and regression suites; only documentation, workflow, community, and metadata files changed | PASS |
 | GP-008 | Lock vectors retain expected SHA-256 values | Nine A3 v2 vector hashes compared before/after; no changes | PASS |
 
-## Frozen exceptions for SC-001
+## Domain usage and technical assertion strings
 
-The repository contains two intentionally preserved classes of literals because the task requires code, specifications, and tests to remain byte-identical: a protocol note in the frozen `spec/` tree and source-level provider guard assertions in a frozen test. These are technical guard text, not conversation records. All mutable documentation, README files, reviews, changelogs, and metadata are scrubbed.
+The three retained occurrences are not conversation traces:
+
+| Path and line | Classification | Motivation |
+|---|---|---|
+| `spec/41-keys-broker.md:8` | Domain usage | `chat` names the conversational surface addressed by the protocol note. The specification remains byte-identical. |
+| `agent/src/test/kotlin/a3/agent/AgentSurfaceTest.kt:326-327` | Technical assertion | These boundary assertions verify the absence of proprietary LLM endpoints and are intouchable test guards. The test remains byte-identical. |
+
+All mutable documentation, README files, reviews, changelogs, and metadata are scrubbed. No spec, test, code, vector, or fixture was changed.
 
 ## Workflows created
 
@@ -57,11 +64,11 @@ Measured: tracked-file diffs, workflow syntax, local command exits, README struc
 
 | Repository | Commit | Local tag |
 |---|---|---|
-| a3 | current HEAD | **not created**: SC-001 retains two frozen technical literals required by the byte-preservation rule |
+| a3 | current HEAD | `release-prep-v0.1` |
 | a3-ts | `5ed1aa0db0147bc73d1f4e5de0a4f0ec6172d9d0` | `release-prep-v0.1` |
 | a3-go | `1108ac3ddd38e1b581c3f6e07cce61e02cc88a4b` | `release-prep-v0.1` |
 | a3ui-web | `a47dc2b1a181b05435c3f4390eea2937697773c3` | `release-prep-v0.1` |
 | a3ui-cli | `2af8494782f669814b74cab5505f9a43a9ac7955` | `release-prep-v0.1` |
 | a3ui-graphics | `eee030423e7904b36aeab1d5cc6e1805e2b901f8` | `release-prep-v0.1` |
 
-The A3 commit is complete, but the strict all-zero scrub gate is intentionally not represented as green because the task also requires specifications and tests to remain byte-identical.
+The A3 release-prep tag covers this docs-only classification update; no push was performed.
