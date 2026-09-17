@@ -16,7 +16,7 @@ Each historical entry cites the git tag and the tagged commit SHA.
 
 ### Changed
 
-- Review assets containing real chat captures, URL dumps, device identifiers, local paths, or generated personal metadata were removed or replaced with synthetic redacted fixtures. Historical reviews now state those evidence boundaries explicitly.
+- Review assets containing private captures, URL dumps, device identifiers, local paths, or generated private metadata were removed or replaced with synthetic redacted fixtures. Historical reviews now state those evidence boundaries explicitly.
 
 ### Notes
 

@@ -1,0 +1,21 @@
+name: Extension proposal
+description: Propose a backward-compatible capability or contract change
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and use case
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: Proposed contract and compatibility
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Tests and provenance
+    validations:
+      required: true

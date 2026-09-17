@@ -211,4 +211,4 @@ Nessuno. `consentPresentationHash` resta opzionale sullo `Authorization` e non √
 
 `core-action-v0.1`. Bump di sorgente: `core-v0.5` (`:core:runtime`), `mcp-adapter-v0.3` (`:adapters:mcp`). Non bumpati: `:core:admission` / `core-admission-v0.1`, `core-json-v0.1`, renderer-*, intent-model-*, prediction, projection, a3ui, launcher.
 
-Niente push. STOP. Poi solo ci√≤ che il committente ordina esplicitamente.
+Niente push. STOP. Le modifiche successive richiedono un nuovo obiettivo documentato.
