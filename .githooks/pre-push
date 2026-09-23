@@ -1,0 +1,18 @@
+#!/bin/sh
+# Public boundary guard on every commit and tag about to be pushed: content,
+# messages and identities. Enable once per clone:
+#   git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel)
+guard="$root/tools/public_boundary.py"
+[ -f "$guard" ] || guard="${A3_BOUNDARY_GUARD:-$root/../a3/tools/public_boundary.py}"
+if [ ! -f "$guard" ]; then
+  echo "PUBLIC_BOUNDARY_FAIL: guard not found ($guard). PUBLICATION BLOCKED."
+  exit 1
+fi
+zero=0000000000000000000000000000000000000000
+while read -r lref lsha rref rsha; do
+  [ "$lsha" = "$zero" ] && continue                     # deleting a ref
+  if [ "$rsha" = "$zero" ]; then rng="$lsha --not --remotes"; else rng="$rsha..$lsha"; fi
+  python3 "$guard" --root "$root" --range "$rng" || exit 1
+done
+exit 0

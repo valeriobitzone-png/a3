@@ -1,0 +1,11 @@
+#!/bin/sh
+# Public boundary guard on the staged content. Enable once per clone:
+#   git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel)
+guard="$root/tools/public_boundary.py"
+[ -f "$guard" ] || guard="${A3_BOUNDARY_GUARD:-$root/../a3/tools/public_boundary.py}"
+if [ ! -f "$guard" ]; then
+  echo "PUBLIC_BOUNDARY_FAIL: guard not found ($guard). PUBLICATION BLOCKED."
+  exit 1
+fi
+exec python3 "$guard" --root "$root" --staged

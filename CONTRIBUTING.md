@@ -10,6 +10,16 @@ Before opening a change:
 4. Declare platform or implementation divergences in the REVIEW; never reconcile them silently.
 5. Keep UNKNOWN and provenance explicit. Do not infer FACT from a receipt, sandbox, or model.
 
+## Public boundary
+
+Public repositories must not carry local paths, local user or host names, device identifiers, credentials, references to private repositories or internal-only artifacts. The guard `tools/public_boundary.py` checks this deterministically; CI runs it on the full history and a finding blocks publication. Enable the same check locally, once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Exceptions go in `.public-boundary-allow` with a written reason.
+
 ## Developer Certificate of Origin
 
 By making a contribution to this project, I certify that:

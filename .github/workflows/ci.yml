@@ -9,6 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Public boundary guard (tree and full history)
+        run: |
+          python3 tools/public_boundary.py
+          python3 tools/public_boundary.py --history
+          python3 python/tests/test_public_boundary.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'

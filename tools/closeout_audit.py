@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import re
 import sys
 from pathlib import Path
@@ -14,26 +13,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
 TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
-# Private identifiers are kept as SHA-256 digests of the lowercased token, never
-# in clear: a scrub list must not publish what it scrubs.
-SCRUB_DIGESTS = frozenset({
-    "4f4b638c5e618622e13d7bf6f0266c25f927b9b308a48c14b2ab3f8d1ff42d78",
-    "31bfe2b3b4d3f909bcb3be1b059bacc26ae770efdf3e595a27c7f8f73cf74ed2",
-    "2b89b5c78ebbeb66f6b49092e7c790f53e8a47f6c78c80904dcb35759c2c6b7a",
-    "5d07417abd2f3eef176ea0c546abd9b74c011d397aed0dc59cafd2e9ead65d76",
-})
+# The scrub rules live in the public boundary guard (tools/public_boundary.py):
+# local paths, local user/host names and device identifiers, kept as digests.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import public_boundary as _pb  # noqa: E402
 
 
 def _scrub_hit(text: str) -> bool:
-    if "/users/" in text.lower():
-        return True
-    for token in re.findall(r"[A-Za-z0-9-]+", text):
-        parts = token.lower().split("-")
-        for i in range(len(parts)):
-            for j in range(i + 1, len(parts) + 1):
-                if hashlib.sha256("-".join(parts[i:j]).encode()).hexdigest() in SCRUB_DIGESTS:
-                    return True
-    return False
+    return any(rule in ("PB-002", "PB-003", "PB-004") for rule, _ in _pb.scan_text(text))
 
 
 class _Scrub:
