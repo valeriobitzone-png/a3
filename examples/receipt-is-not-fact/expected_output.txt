@@ -1,0 +1,25 @@
+Task: email invoice INV-7 to anna@example.com
+
+RUN 1 · naive agent · tool has a bug
+  tool answered   {"ok": true, "message_id": "msg-001"}
+  agent believes  FACT: invoice INV-7 was emailed to anna@example.com
+  agent says      "Done: the invoice was sent."
+  the world       outbox empty   <- the agent believes something false
+
+RUN 2 · agent with A3 · same buggy tool
+  tool answered   {"ok": true, "message_id": "msg-001"}
+  A3              REJECTED CF-001: FACT from an execution receipt (a receipt is OBSERVATION whatever it contains)
+  recorded as     OBSERVATION (receipt:sha256:d8acb0801c6dd17b)
+  check outbox    NOT FOUND
+  agent says      "The tool answered ok, but the email is not in the outbox. Not marking it as sent."
+
+RUN 3 · agent with A3 · working tool
+  tool answered   {"ok": true, "message_id": "msg-002"}
+  A3              REJECTED CF-001: FACT from an execution receipt (a receipt is OBSERVATION whatever it contains)
+  recorded as     OBSERVATION (receipt:sha256:ba670f92410d47f7)
+  check outbox    FOUND
+  A3              FACT (ref ver-msg-002)
+  agent says      "Sent, and verified in the outbox."
+
+A receipt says the call returned. Only a check of the world says it happened.
+A3 behaved as specified: yes

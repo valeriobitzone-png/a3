@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+# Packaging metadata for python/a3ep. PREPARED, NOT PUBLISHED: no release on
+# PyPI exists or is authorized. The supported install path today is the
+# repository itself (see the root README). `python3 -m build` here builds a
+# local wheel for a dry run only.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a3ep"
+version = "0.2.0a1"
+description = "A3-EP truth law for agents: a tool receipt is not a fact."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+authors = [{name = "A3 contributors"}]
+dependencies = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.urls]
+Homepage = "https://github.com/valeriobitzone-png/a3"
+Specification = "https://github.com/valeriobitzone-png/a3/blob/main/spec/SPEC_A3-EP.md"
+
+[tool.setuptools]
+packages = ["a3ep"]

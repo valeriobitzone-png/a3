@@ -9,3 +9,9 @@ local.properties
 .env.*
 # macOS Finder conflict copies ("file 2.png") pollute freeze porcelain during parallel assets writes
 * 2.*
+
+# Python
+__pycache__/
+*.egg-info/
+python/build/
+python/dist/

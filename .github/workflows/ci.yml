@@ -18,3 +18,18 @@ jobs:
           python3 spec/test_a3ui_spec.py
       - name: Run Python conformance
         run: python3 conformance/src/test/python/test_conformance.py
+
+  python-a3ep:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: a3ep against the shared corpus
+        run: python3 python/tests/test_a3ep.py
+      - name: receipt-is-not-fact demo is reproducible
+        run: python3 python/tests/test_demo.py
