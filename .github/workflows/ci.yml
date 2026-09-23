@@ -33,3 +33,5 @@ jobs:
         run: python3 python/tests/test_a3ep.py
       - name: receipt-is-not-fact demo is reproducible
         run: python3 python/tests/test_demo.py
+      - name: README gate (every README command, run literally)
+        run: python3 tools/readme_gate.py

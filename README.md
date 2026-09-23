@@ -50,18 +50,36 @@ The full expected output is in [`examples/receipt-is-not-fact/expected_output.tx
 
 ## Use it in your agent
 
-The Python package `python/a3ep` is standard library only. Copy the folder into your project, or put it on your path:
+The Python package `python/a3ep` is standard library only. Save this as `agent.py` in the `a3` folder and run `python3 agent.py`, then swap the two stub functions for your own tool and your own check:
 
 ```python
-import sys; sys.path.insert(0, "path/to/a3/python")
+import sys; sys.path.insert(0, "python")          # or copy python/a3ep into your project
 from a3ep import A3Reject, Receipt, Verification, admit
 
-result = send_email(...)                          # whatever your tool returns
-admit("OBSERVATION", basis=Receipt.of(result))    # lawful: the tool answered
-admit("FACT", basis=Receipt.of(result))           # raises A3Reject, code CF-001
+def send_email(to, body):                         # your tool: this one answers ok and sends nothing
+    return {"ok": True, "message_id": "msg-001"}
 
-if outbox_contains(result["message_id"]):         # your own check of the world
-    fact = admit("FACT", basis=Verification("ver-1", "outbox:msg-001", "REAL"))
+def outbox_contains(message_id):                  # your own check of the world
+    return False
+
+result = send_email("anna@example.com", "Invoice INV-7")
+print(admit("OBSERVATION", basis=Receipt.of(result)).truth_class)    # lawful: the tool answered
+try:
+    admit("FACT", basis=Receipt.of(result))                          # the shortcut
+except A3Reject as e:
+    print("refused", e.code)
+if outbox_contains(result["message_id"]):
+    print(admit("FACT", basis=Verification("ver-1", "outbox:msg-001", "REAL")).truth_class)
+else:
+    print("not verified: do not tell the user it was sent")
+```
+
+It prints:
+
+```text
+OBSERVATION
+refused CF-001
+not verified: do not tell the user it was sent
 ```
 
 `admit` also rejects FACT from a sandbox check (CF-002), FACT with no verification (CF-003), UNKNOWN with an invented conclusion (CF-005), and a missing or unknown truth class or provenance (TR-003). Nothing is defaulted silently.
@@ -73,6 +91,7 @@ Other languages: [a3-go](https://github.com/valeriobitzone-png/a3-go) (`go get g
 ```bash
 python3 conformance/src/test/python/test_conformance.py   # shared vectors and category rejects
 python3 python/tests/test_a3ep.py                         # the Python package against the same corpus
+python3 tools/readme_gate.py                              # every command in this README, run literally
 ```
 
 CF-001 is tested as a property, not a string: [`conformance/fixtures/receipt-forms.json`](conformance/fixtures/receipt-forms.json) holds 18 receipt forms (exit codes, printed text, JSON, HTTP bodies, an MCP tool result). For every one, FACT is rejected and OBSERVATION is admitted, in Python, Kotlin, Go and TypeScript.
