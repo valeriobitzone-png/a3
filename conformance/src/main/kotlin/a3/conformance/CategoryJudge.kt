@@ -46,11 +46,29 @@ object CategoryJudge {
         node.path("claimed").path("truth_class").asText().trim().uppercase()
 
     private fun judgeReceipt(root: JsonNode): Nothing {
-        val exit = root.path("exit_code").asInt()
-        val printed = root.path("printed").asText()
+        check(root.path("kind").asText() == "receipt") { "CF-001 fixture is not a receipt" }
+        judgeReceiptClaim(claimedClass(root), root)
+        error("CF-001 fixture did not claim FACT on receipt")
+    }
+
+    /**
+     * CF-001 as a semantic property (SPEC_A3-EP sections 2, 3, 10): a receipt
+     * is OBSERVATION whatever it contains, and a FACT claim on a receipt is
+     * rejected whatever it contains. Exit code, printed text, status and
+     * payload only shape the ref; they never decide the verdict.
+     * Returns the lawful bearer when the claim is not FACT.
+     */
+    fun judgeReceiptClaim(claimed: String, receipt: JsonNode): TruthBearer {
+        val exitNode = receipt.path("exit_code")
+        val exit = if (exitNode.isInt) exitNode.asInt() else 0
+        val printed = receipt.path("printed").takeIf { it.isTextual }?.asText()
+            ?: receipt.toString()
         val lawful = fromProcessOutcome(exit, printed)
         if (lawful.truthClass == TruthClass.FACT) {
             error("classifier emitted FACT for a receipt")
+        }
+        if (claimed.trim().uppercase() != "FACT") {
+            return lawful
         }
         try {
             receiptCannotClaimDomain(
@@ -58,18 +76,15 @@ object CategoryJudge {
                     receiptId = "receipt-cf-001",
                     commandId = "cmd-cf-001",
                     dispatchId = "dispatch-cf-001",
-                    ok = exit == 0,
+                    ok = !exitNode.isInt || exit == 0,
                     at = Instant.parse("2026-08-27T11:00:00Z")
                 )
             )
         } catch (e: IllegalStateException) {
-            if (claimedClass(root) == "FACT") {
-                throw ConformanceReject(
-                    "CF-001",
-                    "FACT on receipt (exit $exit, print $printed)"
-                )
-            }
-            throw e
+            throw ConformanceReject(
+                "CF-001",
+                "FACT from an execution receipt (a receipt is OBSERVATION whatever it contains)"
+            )
         }
     }
 

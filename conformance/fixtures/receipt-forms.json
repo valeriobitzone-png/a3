@@ -1,0 +1,38 @@
+{
+  "id": "CF-001-forms",
+  "reject_code": "CF-001",
+  "law": "An execution receipt is evidence that something was dispatched and answered. It is never evidence that the world changed. Its truth class is OBSERVATION whatever it contains. A claim of FACT whose basis is a receipt MUST be rejected with CF-001, whatever the receipt contains.",
+  "normative": [
+    "SPEC_A3-EP section 2: An implementation MUST NOT copy an ACTION receipt into BELIEF as FACT.",
+    "SPEC_A3-EP section 3: An implementation MUST NOT emit FACT from an execution receipt.",
+    "SPEC_A3-EP section 3: A process exit code MUST be classified as OBSERVATION, not FACT.",
+    "SPEC_A3-EP section 3: Printed SUCCESS from a process MUST be classified as OBSERVATION, not FACT.",
+    "SPEC_A3-EP section 10: An implementation MUST NOT emit FACT from a receipt or from SANDBOX."
+  ],
+  "rule": {
+    "classify_receipt": "OBSERVATION for every form below",
+    "claimed_fact_rejects": ["FACT", "fact", " Fact "],
+    "claimed_observation_admits": ["OBSERVATION", "observation"],
+    "must_not_read": "The judge MUST NOT decide from exit_code, printed text, status, or payload. A receipt that says SUCCESS and a receipt that says nothing are the same kind of evidence."
+  },
+  "forms": [
+    {"name": "process-exit0-SUCCESS", "receipt": {"channel": "process", "exit_code": 0, "printed": "SUCCESS"}},
+    {"name": "process-exit0-OK", "receipt": {"channel": "process", "exit_code": 0, "printed": "OK"}},
+    {"name": "process-exit0-done", "receipt": {"channel": "process", "exit_code": 0, "printed": "done"}},
+    {"name": "process-exit0-success-lowercase", "receipt": {"channel": "process", "exit_code": 0, "printed": "success"}},
+    {"name": "process-exit0-padded", "receipt": {"channel": "process", "exit_code": 0, "printed": " SUCCESS\n"}},
+    {"name": "process-exit0-empty", "receipt": {"channel": "process", "exit_code": 0, "printed": ""}},
+    {"name": "process-exit0-json-text", "receipt": {"channel": "process", "exit_code": 0, "printed": "{\"status\":\"ok\",\"sent\":true}"}},
+    {"name": "process-exit1-SUCCESS", "receipt": {"channel": "process", "exit_code": 1, "printed": "SUCCESS"}},
+    {"name": "process-exit127-error", "receipt": {"channel": "process", "exit_code": 127, "printed": "command not found"}},
+    {"name": "tool-structured-ok", "receipt": {"channel": "tool", "result": {"ok": true, "message_id": "msg-001"}}},
+    {"name": "tool-boolean-true", "receipt": {"channel": "tool", "result": true}},
+    {"name": "tool-null", "receipt": {"channel": "tool", "result": null}},
+    {"name": "tool-number-zero", "receipt": {"channel": "tool", "result": 0}},
+    {"name": "tool-list", "receipt": {"channel": "tool", "result": ["sent", "queued"]}},
+    {"name": "http-200-confirmed", "receipt": {"channel": "http", "status": 200, "body": {"id": "ord_1", "state": "confirmed"}}},
+    {"name": "http-201-empty", "receipt": {"channel": "http", "status": 201, "body": ""}},
+    {"name": "mcp-tool-result", "receipt": {"channel": "mcp", "result": {"isError": false, "content": [{"type": "text", "text": "Email sent to anna@example.com"}]}}},
+    {"name": "unicode-text", "receipt": {"channel": "tool", "result": "✅ Operazione completata"}}
+  ]
+}

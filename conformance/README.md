@@ -33,7 +33,7 @@ Reject codes are the exception prefix. Silence is not a pass.
 
 | Code | File | MUST NOT |
 |------|------|----------|
-| CF-001 | `fixtures/receipt-fact-violation.json` | FACT on receipt (exit 0, print SUCCESS) |
+| CF-001 | `fixtures/receipt-fact-violation.json` + `fixtures/receipt-forms.json` | FACT from an execution receipt, whatever the receipt contains (see below) |
 | CF-002 | `fixtures/sandbox-fact-violation.json` | FACT on SANDBOX |
 | CF-003 | `fixtures/hypothesis-promotion-violation.json` | HYPOTHESIS → FACT without VerificationAdmitted |
 | CF-004 | `fixtures/attester-requester-violation.json` | attester_id = requester_id on irreversible |
@@ -45,6 +45,20 @@ Reject codes are the exception prefix. Silence is not a pass.
 
 Kotlin: `ConformanceReject(code, reason)` message `CODE: reason`. Python: same class and message shape.
 
+### CF-001 is a semantic property, not a string match
+
+The canonical invariant is the one in SPEC_A3-EP sections 2, 3 and 10:
+
+```
+execution receipt ≠ fact
+```
+
+An execution receipt says that a call was dispatched and answered. It never says that the world changed. A receipt is OBSERVATION whatever it contains, and a claim of FACT whose basis is a receipt is rejected with CF-001 whatever it contains. The only path to FACT is a VerificationAdmitted in the REAL environment (TR-001).
+
+`fixtures/receipt-fact-violation.json` (exit 0, printed `SUCCESS`) is one instance of the rule, not the rule. `fixtures/receipt-forms.json` holds 18 receipt forms: process exit codes with `SUCCESS`, `OK`, `done`, empty, padded or JSON output, non-zero exits, structured tool results, booleans, `null`, HTTP 200/201 bodies, an MCP tool result, and Unicode text. For every form an implementation MUST classify the receipt as OBSERVATION, MUST reject `FACT` (any spelling) with CF-001, and MUST NOT reject `OBSERVATION`. A judge MUST NOT decide from the exit code, the printed text, the status or the payload.
+
+Until 2026-09-23 the Python runner and a3-go rejected CF-001 only for exit 0 and the literal `SUCCESS`: a receipt printing `OK` passed as FACT. CS-010 keeps that literal rule as a negative control and fails if the forms cannot tell it from the law.
+
 ## Add an implementation
 
 Keep `conformance/vectors/v2/` byte-identical. Do not substitute local JSON. Keep `conformance/vectors/v1/` for backward tests.
@@ -55,6 +69,7 @@ Keep `conformance/vectors/v2/` byte-identical. Do not substitute local JSON. Kee
 4. Sort with key `(t_observe, source_id, seq)`, residual `(subject, key)`. Shuffled input MUST yield the same output.
 5. Fold confidence with `(min, ⊤)` where ⊤ = 1. Fail a compensating mean.
 6. Load each CF-001..CF-009 fixture and reject with that code. Do not admit the producer output.
+7. Load `fixtures/receipt-forms.json`. Every form MUST classify as OBSERVATION; `FACT` MUST be rejected with CF-001 and `OBSERVATION` MUST be admitted, for every form (CS-010).
 
 ### Kotlin
 
@@ -70,7 +85,7 @@ SHA-256 via `crypto/sha256`. RFC 8785 via a JCS package that matches `envelope-r
 
 ### Python
 
-Copy `conformance/src/test/python/test_conformance.py` and keep the vector paths. `python3 conformance/src/test/python/test_conformance.py` is the parity gate.
+Copy `conformance/src/test/python/test_conformance.py` and keep the vector paths. `python3 conformance/src/test/python/test_conformance.py` is the parity gate. It also runs CS-010 against `python/a3ep`, the standard-library Python implementation of the truth element.
 
 ## CORE vs EXTENSION
 
@@ -97,5 +112,6 @@ CS-003 RFC8785 appendix A: PASS/FAIL
 CS-004 event_id: PASS/FAIL
 CS-005 OrderingTieBreak: PASS/FAIL
 CS-006 ConfidenceMonoid: PASS/FAIL
+CS-010 ReceiptIsNotFact (receipt-forms.json): PASS/FAIL
 log: <path or paste>
 ```

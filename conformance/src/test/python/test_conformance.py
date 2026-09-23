@@ -260,13 +260,36 @@ def weighted_min(vector: dict, weights: dict) -> float:
     return acc
 
 
+def classify_receipt(receipt: object) -> str:
+    """SPEC_A3-EP section 3: an execution receipt is OBSERVATION.
+
+    The receipt is deliberately not read. Exit code, printed text, HTTP
+    status, structured payload: none of them can make a receipt a FACT."""
+    del receipt
+    return "OBSERVATION"
+
+
+def judge_receipt_claim(claimed_class: object) -> str:
+    """CF-001, semantic form: a FACT claim whose basis is a receipt is
+    rejected whatever the receipt contains. Any other claim keeps the lawful
+    classification (OBSERVATION)."""
+    if str(claimed_class).strip().upper() == "FACT":
+        raise ConformanceReject(
+            "CF-001",
+            "FACT from an execution receipt (a receipt is OBSERVATION whatever it contains)",
+        )
+    return "OBSERVATION"
+
+
 def judge(path: Path) -> None:
     root = load_json(path)
     code = root["reject_code"]
     if code == "CF-001":
-        claimed = str(root["claimed"]["truth_class"]).upper()
-        if claimed == "FACT" and int(root["exit_code"]) == 0 and root["printed"] == "SUCCESS":
-            raise ConformanceReject("CF-001", "FACT on receipt (exit 0, print SUCCESS)")
+        if root.get("kind") != "receipt":
+            raise RuntimeError("CF-001 fixture is not a receipt")
+        if classify_receipt(root) == "FACT":
+            raise RuntimeError("classifier emitted FACT for a receipt")
+        judge_receipt_claim(root["claimed"]["truth_class"])
         raise RuntimeError("CF-001 fixture did not claim FACT on receipt")
     if code == "CF-002":
         claimed = str(root["claimed"]["truth_class"]).upper()
@@ -378,6 +401,80 @@ def cs_002() -> None:
             continue
         fail("CS-002", f"{name} was not rejected")
     pass_("CS-002", "CF-001..CF-009 reject")
+
+
+def literal_receipt_rule(receipt: dict, claimed: str) -> bool:
+    """The rule CF-001 was implemented with before 2026-09-23 in Python and
+    Go: reject only exit 0 + printed "SUCCESS". Kept here as a negative
+    control: CS-010 fails if the forms cannot tell it from the law."""
+    return (
+        str(claimed).strip().upper() == "FACT"
+        and receipt.get("exit_code") == 0
+        and receipt.get("printed") == "SUCCESS"
+    )
+
+
+def receipt_law_holds(classify, judge_claim, forms: list, rule: dict) -> list:
+    """Every way a judge can get CF-001 wrong on the shared forms."""
+    errors = []
+    for form in forms:
+        name, receipt = form["name"], form["receipt"]
+        if str(classify(receipt)).strip().upper() != "OBSERVATION":
+            errors.append(f"{name}: receipt classified {classify(receipt)!r}, not OBSERVATION")
+        for claimed in rule["claimed_fact_rejects"]:
+            try:
+                judge_claim(claimed, receipt)
+            except ConformanceReject as e:
+                if e.code != "CF-001" or not str(e).startswith("CF-001:"):
+                    errors.append(f"{name}: FACT {claimed!r} rejected as {e}")
+                continue
+            except Exception as e:  # noqa: BLE001 - an implementation's own reject type
+                if getattr(e, "code", None) != "CF-001":
+                    errors.append(f"{name}: FACT {claimed!r} rejected as {e!r}")
+                continue
+            errors.append(f"{name}: FACT {claimed!r} admitted from a receipt")
+        for claimed in rule["claimed_observation_admits"]:
+            try:
+                judge_claim(claimed, receipt)
+            except Exception as e:  # noqa: BLE001
+                errors.append(f"{name}: OBSERVATION {claimed!r} wrongly rejected: {e}")
+    return errors
+
+
+def cs_010() -> None:
+    """CF-001 as a semantic property: receipt != fact, for every receipt form."""
+    doc = load_json(FIXTURES / "receipt-forms.json")
+    forms, rule = doc["forms"], doc["rule"]
+    if len(forms) < 10:
+        fail("CS-010", f"only {len(forms)} receipt forms")
+    errors = receipt_law_holds(
+        classify_receipt, lambda claimed, receipt: judge_receipt_claim(claimed), forms, rule
+    )
+    if errors:
+        fail("CS-010", "; ".join(errors))
+    # negative control: the old literal rule must fail on these forms
+    missed = [f["name"] for f in forms if not literal_receipt_rule(f["receipt"], "FACT")]
+    if not missed:
+        fail("CS-010", "forms cannot distinguish the literal SUCCESS rule from the law")
+    # the Python implementation (python/a3ep), same forms
+    sys.path.insert(0, str(ROOT / "python"))
+    try:
+        import a3ep  # noqa: PLC0415
+    except ImportError as e:
+        fail("CS-010", f"python/a3ep not importable: {e}")
+    impl_errors = receipt_law_holds(
+        lambda r: a3ep.from_receipt(r).truth_class,
+        lambda claimed, r: a3ep.admit(claimed, basis=a3ep.Receipt.of(r)),
+        forms,
+        rule,
+    )
+    if impl_errors:
+        fail("CS-010", "python/a3ep: " + "; ".join(impl_errors))
+    pass_(
+        "CS-010",
+        f"receipt != fact over {len(forms)} forms; literal SUCCESS rule would admit FACT on "
+        f"{len(missed)}/{len(forms)}; python/a3ep parity",
+    )
 
 
 def cs_003() -> None:
@@ -535,6 +632,7 @@ def main() -> int:
         fail("CS-001", f"repo root {ROOT}")
     cs_001()
     cs_002()
+    cs_010()
     cs_003()
     cs_004()
     cs_005()
