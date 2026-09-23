@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -13,8 +14,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_SUFFIXES = {".kt", ".kts", ".py", ".sh"}
 TEXT_SUFFIXES = SOURCE_SUFFIXES | {".md", ".txt", ".html", ".json"}
-SCRUB_TERMS = (("<redacted-user>"), "/" + "Users/", "<redacted-host>", "<redacted-device-id>", "<redacted-device-id>")
-SCRUB = re.compile("|".join(re.escape(term) for term in SCRUB_TERMS), re.I)
+# Private identifiers are kept as SHA-256 digests of the lowercased token, never
+# in clear: a scrub list must not publish what it scrubs.
+SCRUB_DIGESTS = frozenset({
+    "4f4b638c5e618622e13d7bf6f0266c25f927b9b308a48c14b2ab3f8d1ff42d78",
+    "31bfe2b3b4d3f909bcb3be1b059bacc26ae770efdf3e595a27c7f8f73cf74ed2",
+    "2b89b5c78ebbeb66f6b49092e7c790f53e8a47f6c78c80904dcb35759c2c6b7a",
+    "5d07417abd2f3eef176ea0c546abd9b74c011d397aed0dc59cafd2e9ead65d76",
+})
+
+
+def _scrub_hit(text: str) -> bool:
+    if "/users/" in text.lower():
+        return True
+    for token in re.findall(r"[A-Za-z0-9-]+", text):
+        parts = token.lower().split("-")
+        for i in range(len(parts)):
+            for j in range(i + 1, len(parts) + 1):
+                if hashlib.sha256("-".join(parts[i:j]).encode()).hexdigest() in SCRUB_DIGESTS:
+                    return True
+    return False
+
+
+class _Scrub:
+    search = staticmethod(_scrub_hit)
+
+
+SCRUB = _Scrub()
 OVERCLAIM = re.compile(r"OS sensoriale|restyler|impedisce ogni errore|guardiano", re.I)
 
 
@@ -41,7 +67,7 @@ def check_scrub() -> list[str]:
 def check_assets() -> list[str]:
     bad = []
     for path, text in text_files(ROOT / "review-assets"):
-        if any(re.search(re.escape(term), text, re.I) for term in ("whats" + "app", "wa" + ".me", "<redacted-user>", "/" + "Users/", "<redacted-host>")):
+        if _scrub_hit(text) or any(re.search(re.escape(term), text, re.I) for term in ("whats" + "app", "wa" + ".me")):
             bad.append(str(path.relative_to(ROOT)))
     for path in (ROOT / "review-assets").rglob("*"):
         if path.is_file() and re.search(r"whatsapp|openlibrary|opengraph", path.name, re.I):
